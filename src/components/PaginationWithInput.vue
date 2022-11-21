@@ -28,7 +28,7 @@ const switchToPage = (page: string) => {
 <style lang="scss" scoped>
 .pagination-with-input{
  .input {
-   height: 28px;
+   height: 1.75rem;
    width: var(--easy-table-footer-pagination-input-width);
    outline: none;
  }

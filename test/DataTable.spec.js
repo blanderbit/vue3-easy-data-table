@@ -6,6 +6,7 @@ import { mount } from '@vue/test-utils';
 import crypto from 'crypto';
 import DataTable from '../src/components/DataTable.vue';
 import { mockClientItems, headersMocked, mockServerItems } from '../src/mock';
+import PaginationArrows from '../src/components/PaginationArrows.vue';
 
 Object.defineProperty(global, 'crypto', {
   value: {
@@ -111,11 +112,13 @@ describe('Pagination input', () => {
         currentPage: 3,
       },
     });
-    const paginationItemsIdx = wrapper.find('.pagination__items-index');
+    const paginationItemsIdxOutput = wrapper.find('.pagination__items-index span');
     const firstPageButton = wrapper.find('.first-page__click-button');
-    expect(paginationItemsIdx.find('span').text()).equal('3 of 6');
+    const paginationArrowsComponent = wrapper.findComponent(PaginationArrows);
+    expect(paginationItemsIdxOutput.text()).equal('3 of 6');
     await firstPageButton.trigger('click');
-    expect(paginationItemsIdx.find('span').text()).equal('1 of 6');
+    expect(paginationArrowsComponent.emitted('clickFirstPage')).toBeTruthy();
+    expect(paginationItemsIdxOutput.text()).equal('1 of 6');
   });
 
   it('should move to last page', async () => {
@@ -128,11 +131,13 @@ describe('Pagination input', () => {
         currentPage: 3,
       },
     });
-    const paginationItemsIdx = wrapper.find('.pagination__items-index');
+    const paginationItemsIdxOutput = wrapper.find('.pagination__items-index span');
     const lastPageButton = wrapper.find('.last-page__click-button');
-    expect(paginationItemsIdx.find('span').text()).equal('3 of 6');
+    const paginationArrowsComponent = wrapper.findComponent(PaginationArrows);
+    expect(paginationItemsIdxOutput.text()).equal('3 of 6');
     await lastPageButton.trigger('click');
-    expect(paginationItemsIdx.find('span').text()).equal('6 of 6');
+    expect(paginationArrowsComponent.emitted('clickLastPage')).toBeTruthy();
+    expect(paginationItemsIdxOutput.text()).equal('6 of 6');
   });
 
   it('should not display pagination input', async () => {
@@ -248,6 +253,30 @@ describe('Pagination input', () => {
     const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
     expect(paginationInputComponent.emitted('updatePage')).toBeTruthy();
     expect(paginationInputComponent.emitted('updatePage')[0][0]).toBe(10);
+  });
+
+  it('should emit updatePage event on input keyup enter event and display correct current page', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(11),
+        paginationWithInput: true,
+        headers: headersMocked,
+        rowsPerPage: 2,
+        currentPage: 3,
+      },
+    });
+    const paginationItemsIdxOutput = wrapper.find('.pagination__items-index span');
+    expect(paginationItemsIdxOutput.text()).equal('3 of 6');
+    const paginationInputWrapper = wrapper.find('.pagination-with-input');
+    const paginationInput = paginationInputWrapper.find('.input');
+
+    await paginationInput.setValue('4');
+    await paginationInput.trigger('keyup.enter');
+    expect(paginationItemsIdxOutput.text()).equal('4 of 6');
+
+    await paginationInput.setValue('2');
+    await paginationInput.trigger('keyup.enter');
+    expect(paginationItemsIdxOutput.text()).equal('2 of 6');
   });
 });
 
