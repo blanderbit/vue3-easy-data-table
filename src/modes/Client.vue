@@ -158,6 +158,7 @@ import DataTable from '../components/DataTable.vue';
 import {
   mockClientNestedItems, mockClientItems, mockDuplicateClientNestedItems, headersMocked,
 } from '../mock';
+import { tableHeaders, tableItems } from '../data/table-data';
 
 const searchField = ref('indicator.weight');
 const searchValue = ref('');
@@ -179,16 +180,7 @@ const filterOptions = [
   // },
 ];
 
-const headers: Header[] = [
-  { text: 'PLAYER', value: 'player' },
-  { text: 'TEAM', value: 'team' },
-  { text: 'NUMBER', value: 'number', sortable: true },
-  { text: 'POSITION', value: 'position' },
-  { text: 'HEIGHT', value: 'indicator.height' },
-  { text: 'WEIGHT (lbs)', value: 'indicator.weight', sortable: true },
-  { text: 'LAST ATTENDED', value: 'lastAttended', width: 200 },
-  { text: 'COUNTRY', value: 'country' },
-];
+const headers = tableHeaders;
 
 // const headers: Header[] = headersMocked;
 
@@ -197,107 +189,7 @@ const updateFilter = (items: Item[]) => {
   console.log(JSON.stringify(items));
 };
 
-const items = ref<Item[]>([
-  {
-    player: 'Stephen Curry',
-    firstName: 'GSW',
-    number: 30,
-    position: 'G',
-    indicator: { height: '6-2', weight: 185 },
-    lastAttended: 'Davidson',
-    country: 'USA',
-  },
-  {
-    player: 'Kevin Durant',
-    firstName: 'BKN',
-    number: 7,
-    position: 'F',
-    indicator: { height: '6-10', weight: 240 },
-    lastAttended: 'Texas-Austin',
-    country: 'USA',
-  },
-  {
-    player: 'Lebron James',
-    firstName: 'LAL',
-    number: 7,
-    position: 'F',
-    indicator: { height: '6-9', weight: 185 },
-    lastAttended: 'St. Vincent-St. Mary HS (OH)',
-    country: 'USA',
-  },
-  {
-    player: 'Giannis Antetokounmpo',
-    firstName: 'MIL',
-    number: 34,
-    position: 'F',
-    indicator: { height: '6-11', weight: 242 },
-    lastAttended: 'Filathlitikos',
-    country: 'Greece',
-  },
-  {
-    player: 'HC',
-    firstName: 'MIL',
-    number: 34,
-    position: 'F',
-    indicator: { height: '6-11', weight: 243 },
-    lastAttended: 'Filathlitikos',
-    country: 'Greece',
-  },
-  {
-    player: 'Ochai Agbaji',
-    firstName: 'UTA',
-    number: 30,
-    position: 'G',
-    indicator: { height: '6-5', weight: 215 },
-    lastAttended: 'Kansas',
-    country: 'USA',
-  },
-  {
-    player: 'Jarrett Allen',
-    firstName: 'CLE',
-    number: 31,
-    position: 'C',
-    indicator: { height: '6-9', weight: 243 },
-    lastAttended: 'Texas',
-    country: 'USA',
-  },
-  {
-    player: 'Kyle Anderson',
-    firstName: 'MIN',
-    number: 5,
-    position: 'F-G',
-    indicator: { height: '6-9', weight: 230 },
-    lastAttended: 'UCLA',
-    country: 'USA',
-  },
-  {
-    player: 'Precious Achiuwa',
-    firstName: 'TOR',
-    number: 5,
-    position: 'F',
-    indicator: { height: '6-8', weight: 225 },
-    lastAttended: 'Memphis',
-    country: 'Nigeria',
-  },
-  {
-    player: 'Amir Coffey',
-    firstName: 'LAC',
-    number: 7,
-    position: 'G-F',
-    indicator: { height: '6-7', weight: 210 },
-    lastAttended: 'Minnesota',
-    country: 'USA',
-  },
-  {
-    player: 'Jevon Carter',
-    firstName: 'MIL',
-    number: 5,
-    position: 'G',
-    indicator: { height: '6-1', weight: 200 },
-    lastAttended: 'West Virginia',
-    country: 'USA',
-  },
-]);
+const items = ref(tableItems);
 
 // const items = ref<Item[]>(mockClientItems());
 
