@@ -27,7 +27,8 @@
       :search-field="searchField"
       :search-value="searchValue"
       :rows-per-page="10"
-      buttons-pagination
+      :buttons-pagination="false"
+      :pagination-with-input="true"
       :sort-by="sortBy"
       :sort-type="sortType"
       theme-color="#1d90ff"
@@ -152,7 +153,6 @@ import type {
   BodyItemClassNameFunction,
   BodyRowClassNameFunction,
   TextDirection,
-  SortType,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 import {
@@ -199,19 +199,103 @@ const updateFilter = (items: Item[]) => {
 
 const items = ref<Item[]>([
   {
-    player: 'Stephen Curry', firstName: 'GSW', number: 30, position: 'G', indicator: { height: '6-2', weight: 185 }, lastAttended: 'Davidson', country: 'USA',
+    player: 'Stephen Curry',
+    firstName: 'GSW',
+    number: 30,
+    position: 'G',
+    indicator: { height: '6-2', weight: 185 },
+    lastAttended: 'Davidson',
+    country: 'USA',
   },
   {
-    player: 'Kevin Durant', firstName: 'BKN', number: 7, position: 'F', indicator: { height: '6-10', weight: 240 }, lastAttended: 'Texas-Austin', country: 'USA',
+    player: 'Kevin Durant',
+    firstName: 'BKN',
+    number: 7,
+    position: 'F',
+    indicator: { height: '6-10', weight: 240 },
+    lastAttended: 'Texas-Austin',
+    country: 'USA',
   },
   {
-    player: 'Lebron James', firstName: 'LAL', number: 7, position: 'F', indicator: { height: '6-9', weight: 185 }, lastAttended: 'St. Vincent-St. Mary HS (OH)', country: 'USA',
+    player: 'Lebron James',
+    firstName: 'LAL',
+    number: 7,
+    position: 'F',
+    indicator: { height: '6-9', weight: 185 },
+    lastAttended: 'St. Vincent-St. Mary HS (OH)',
+    country: 'USA',
   },
   {
-    player: 'Giannis Antetokounmpo', firstName: 'MIL', number: 34, position: 'F', indicator: { height: '6-11', weight: 242 }, lastAttended: 'Filathlitikos', country: 'Greece',
+    player: 'Giannis Antetokounmpo',
+    firstName: 'MIL',
+    number: 34,
+    position: 'F',
+    indicator: { height: '6-11', weight: 242 },
+    lastAttended: 'Filathlitikos',
+    country: 'Greece',
   },
   {
-    player: 'HC', firstName: 'MIL', number: 34, position: 'F', indicator: { height: '6-11', weight: 243 }, lastAttended: 'Filathlitikos', country: 'Greece',
+    player: 'HC',
+    firstName: 'MIL',
+    number: 34,
+    position: 'F',
+    indicator: { height: '6-11', weight: 243 },
+    lastAttended: 'Filathlitikos',
+    country: 'Greece',
+  },
+  {
+    player: 'Ochai Agbaji',
+    firstName: 'UTA',
+    number: 30,
+    position: 'G',
+    indicator: { height: '6-5', weight: 215 },
+    lastAttended: 'Kansas',
+    country: 'USA',
+  },
+  {
+    player: 'Jarrett Allen',
+    firstName: 'CLE',
+    number: 31,
+    position: 'C',
+    indicator: { height: '6-9', weight: 243 },
+    lastAttended: 'Texas',
+    country: 'USA',
+  },
+  {
+    player: 'Kyle Anderson',
+    firstName: 'MIN',
+    number: 5,
+    position: 'F-G',
+    indicator: { height: '6-9', weight: 230 },
+    lastAttended: 'UCLA',
+    country: 'USA',
+  },
+  {
+    player: 'Precious Achiuwa',
+    firstName: 'TOR',
+    number: 5,
+    position: 'F',
+    indicator: { height: '6-8', weight: 225 },
+    lastAttended: 'Memphis',
+    country: 'Nigeria',
+  },
+  {
+    player: 'Amir Coffey',
+    firstName: 'LAC',
+    number: 7,
+    position: 'G-F',
+    indicator: { height: '6-7', weight: 210 },
+    lastAttended: 'Minnesota',
+    country: 'USA',
+  },
+  {
+    player: 'Jevon Carter',
+    firstName: 'MIL',
+    number: 5,
+    position: 'G',
+    indicator: { height: '6-1', weight: 200 },
+    lastAttended: 'West Virginia',
+    country: 'USA',
   },
 ]);
 
@@ -372,7 +456,7 @@ const updateRowsPerPageSelect = (e: Event) => {
   --easy-table-header-height: 80px;
   --easy-table-header-font-color: #c1cad4;
   --easy-table-header-background-color: #2d3a4f;
-
+  /*--easy-table-footer-pagination-input-width: 50px;*/
   /* --easy-table-header-item-padding: 10px 15px; */
 
   --easy-table-body-even-row-font-color: #fff;

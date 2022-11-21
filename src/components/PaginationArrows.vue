@@ -1,5 +1,14 @@
 <template>
   <div
+    v-if="hasDoubleArrows"
+    class="first-page__click-button"
+    :class="{'first-page': isFirstPage}"
+    @click="emits('clickFirstPage')"
+  >
+    <span class="arrow arrow-right"></span>
+    <span class="arrow arrow-right"></span>
+  </div>
+  <div
     class="previous-page__click-button"
     :class="{'first-page': isFirstPage}"
     @click="emits('clickPrevPage')"
@@ -10,11 +19,24 @@
     v-if="slots.buttonsPagination"
     name="buttonsPagination"
   />
+  <slot
+    v-if="slots.paginationWithInput"
+    name="paginationWithInput"
+  />
   <div
     class="next-page__click-button"
     :class="{'last-page': isLastPage}"
     @click="emits('clickNextPage')"
   >
+    <span class="arrow arrow-left"></span>
+  </div>
+  <div
+    v-if="hasDoubleArrows"
+    class="last-page__click-button"
+    :class="{'last-page': isLastPage}"
+    @click="emits('clickLastPage')"
+  >
+    <span class="arrow arrow-left"></span>
     <span class="arrow arrow-left"></span>
   </div>
 </template>
@@ -25,14 +47,18 @@ import { useSlots } from 'vue';
 defineProps({
   isFirstPage: { type: Boolean, required: false },
   isLastPage: { type: Boolean, required: false },
+  hasDoubleArrows: { type: Boolean, default: false },
 });
 
-const emits = defineEmits(['clickPrevPage', 'clickNextPage']);
+const emits = defineEmits(['clickFirstPage', 'clickPrevPage', 'clickNextPage', 'clickLastPage']);
 
 const slots = useSlots();
 </script>
 <style lang="scss" scoped>
-  .previous-page__click-button, .next-page__click-button {
+  .previous-page__click-button,
+  .next-page__click-button,
+  .first-page__click-button,
+  .last-page__click-button {
     margin: 0px 5px;
     cursor: pointer;
     .arrow {
@@ -49,7 +75,8 @@ const slots = useSlots();
       }
     }
   }
-  .previous-page__click-button.first-page, .next-page__click-button.last-page {
+  .previous-page__click-button.first-page, .next-page__click-button.last-page,
+  .first-page__click-button.first-page, .last-page__click-button.last-page {
     cursor: not-allowed;
     .arrow {
       border-color: #e0e0e0;

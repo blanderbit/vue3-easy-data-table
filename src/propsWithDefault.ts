@@ -16,6 +16,10 @@ export default {
     type: Boolean,
     default: false,
   },
+  paginationWithInput: {
+    type: Boolean,
+    default: false,
+  },
   checkboxColumnWidth: {
     type: Number,
     default: null,

@@ -81,6 +81,176 @@ describe('Button Pagination', () => {
   });
 });
 
+describe('Pagination input', () => {
+  it('should display left and right double arrows', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(200),
+        paginationWithInput: true,
+        headers: headersMocked,
+        rowsPerPage: 5,
+      },
+    });
+    const firstPageButton = wrapper.find('.first-page__click-button');
+    const lastPageButton = wrapper.find('.last-page__click-button');
+    const firstPageDoubleArrow = firstPageButton.findAll('.arrow');
+    const lastPageDoubleArrow = lastPageButton.findAll('.arrow');
+    expect(firstPageButton.exists()).toBe(true);
+    expect(firstPageDoubleArrow.length).equal(2);
+    expect(lastPageButton.exists()).toBe(true);
+    expect(lastPageDoubleArrow.length).equal(2);
+  });
+
+  it('should move to first page', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(11),
+        paginationWithInput: true,
+        headers: headersMocked,
+        rowsPerPage: 2,
+        currentPage: 3,
+      },
+    });
+    const paginationItemsIdx = wrapper.find('.pagination__items-index');
+    const firstPageButton = wrapper.find('.first-page__click-button');
+    expect(paginationItemsIdx.find('span').text()).equal('3 of 6');
+    await firstPageButton.trigger('click');
+    expect(paginationItemsIdx.find('span').text()).equal('1 of 6');
+  });
+
+  it('should move to last page', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(11),
+        paginationWithInput: true,
+        headers: headersMocked,
+        rowsPerPage: 2,
+        currentPage: 3,
+      },
+    });
+    const paginationItemsIdx = wrapper.find('.pagination__items-index');
+    const lastPageButton = wrapper.find('.last-page__click-button');
+    expect(paginationItemsIdx.find('span').text()).equal('3 of 6');
+    await lastPageButton.trigger('click');
+    expect(paginationItemsIdx.find('span').text()).equal('6 of 6');
+  });
+
+  it('should not display pagination input', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(200),
+        paginationWithInput: false,
+        headers: headersMocked,
+        rowsPerPage: 5,
+      },
+    });
+    const paginationInputWrapper = wrapper.find('.pagination-with-input');
+    expect(paginationInputWrapper.exists()).toBe(false);
+  });
+
+  it('should display pagination input', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(200),
+        paginationWithInput: true,
+        headers: headersMocked,
+        rowsPerPage: 5,
+      },
+    });
+    const paginationInputWrapper = wrapper.find('.pagination-with-input');
+    const paginationInput = paginationInputWrapper.find('.input');
+    expect(paginationInput.exists()).toBe(true);
+  });
+
+  it('should not emit updatePage event, the entered page with a value of 0', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(200),
+        paginationWithInput: true,
+        headers: headersMocked,
+        rowsPerPage: 5,
+      },
+    });
+    const paginationInputWrapper = wrapper.find('.pagination-with-input');
+    const paginationInput = paginationInputWrapper.find('.input');
+    await paginationInput.setValue('0');
+    await paginationInput.trigger('blur');
+    const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
+    expect(paginationInputComponent.emitted('updatePage')).toBeFalsy();
+  });
+
+  it('should not emit updatePage event, the entered page is greater than to the maximum available page', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(10),
+        paginationWithInput: true,
+        headers: headersMocked,
+        rowsPerPage: 5,
+      },
+    });
+    const paginationInputWrapper = wrapper.find('.pagination-with-input');
+    const paginationInput = paginationInputWrapper.find('.input');
+    await paginationInput.setValue('3');
+    await paginationInput.trigger('blur');
+    const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
+    expect(paginationInputComponent.emitted('updatePage')).toBeFalsy();
+  });
+
+  it('should not emit updatePage event, the entered page is equal to the current page', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(10),
+        paginationWithInput: true,
+        headers: headersMocked,
+        currentPage: 2,
+        rowsPerPage: 5,
+      },
+    });
+    const paginationInputWrapper = wrapper.find('.pagination-with-input');
+    const paginationInput = paginationInputWrapper.find('.input');
+    await paginationInput.setValue('2');
+    await paginationInput.trigger('blur');
+    const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
+    expect(paginationInputComponent.emitted('updatePage')).toBeFalsy();
+  });
+
+  it('should emit updatePage event on input blur change', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(200),
+        paginationWithInput: true,
+        headers: headersMocked,
+        rowsPerPage: 5,
+      },
+    });
+    const paginationInputWrapper = wrapper.find('.pagination-with-input');
+    const paginationInput = paginationInputWrapper.find('.input');
+    await paginationInput.setValue('5');
+    await paginationInput.trigger('blur');
+    const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
+    expect(paginationInputComponent.emitted('updatePage')).toBeTruthy();
+    expect(paginationInputComponent.emitted('updatePage')[0][0]).toBe(5);
+  });
+
+  it('should emit updatePage event on input keyup enter event', async () => {
+    const wrapper = mount(DataTable, {
+      props: {
+        items: mockClientItems(200),
+        paginationWithInput: true,
+        headers: headersMocked,
+        rowsPerPage: 5,
+      },
+    });
+    const paginationInputWrapper = wrapper.find('.pagination-with-input');
+    const paginationInput = paginationInputWrapper.find('.input');
+    await paginationInput.setValue('10');
+    await paginationInput.trigger('keyup.enter');
+    const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
+    expect(paginationInputComponent.emitted('updatePage')).toBeTruthy();
+    expect(paginationInputComponent.emitted('updatePage')[0][0]).toBe(10);
+  });
+});
+
 // Selecting
 describe('Selecting', () => {
   describe('Single selection', () => {
