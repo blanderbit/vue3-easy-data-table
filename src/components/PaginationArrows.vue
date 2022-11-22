@@ -2,11 +2,18 @@
   <div
     v-if="hasDoubleArrows"
     class="first-page__click-button"
+    data-test-id="first-page-click-button"
     :class="{'first-page': isFirstPage}"
     @click="emits('clickFirstPage')"
   >
-    <span class="arrow arrow-right"></span>
-    <span class="arrow arrow-right"></span>
+    <span
+      data-test-id="arrow-right-icon"
+      class="arrow arrow-right"
+    />
+    <span
+      data-test-id="arrow-right-icon"
+      class="arrow arrow-right"
+    />
   </div>
   <div
     class="previous-page__click-button"
@@ -33,11 +40,18 @@
   <div
     v-if="hasDoubleArrows"
     class="last-page__click-button"
+    data-test-id="last-page-click-button"
     :class="{'last-page': isLastPage}"
     @click="emits('clickLastPage')"
   >
-    <span class="arrow arrow-left"></span>
-    <span class="arrow arrow-left"></span>
+    <span
+      data-test-id="arrow-left-icon"
+      class="arrow arrow-left"
+    />
+    <span
+      data-test-id="arrow-left-icon"
+      class="arrow arrow-left"
+    />
   </div>
 </template>
 

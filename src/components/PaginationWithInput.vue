@@ -1,8 +1,12 @@
 <template>
-  <div class="pagination-with-input">
+  <div
+    class="pagination-with-input"
+    data-test-id="pagination-with-input"
+  >
     <input
       :value="currentPaginationNumber"
       class="input"
+      data-test-id="pagination-with-input-control-el"
       @blur="switchToPage($event.target.value)"
       @keyup.enter="switchToPage($event.target.value)"
     />

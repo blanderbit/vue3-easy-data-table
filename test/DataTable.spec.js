@@ -83,8 +83,17 @@ describe('Button Pagination', () => {
 });
 
 describe('Pagination input', () => {
+  let wrapper;
+
+  const findWrapperItemByTestId = (testId) => wrapper.find(`[data-test-id='${testId}']`);
+  const findNodeItemsByTestId = (node, testId) => node.findAll(`[data-test-id='${testId}']`);
+
+  function createDataTableComponent(options) {
+    wrapper = mount(DataTable, options);
+  }
+
   it('should display left and right double arrows', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(200),
         paginationWithInput: true,
@@ -92,18 +101,33 @@ describe('Pagination input', () => {
         rowsPerPage: 5,
       },
     });
-    const firstPageButton = wrapper.find('.first-page__click-button');
-    const lastPageButton = wrapper.find('.last-page__click-button');
-    const firstPageDoubleArrow = firstPageButton.findAll('.arrow');
-    const lastPageDoubleArrow = lastPageButton.findAll('.arrow');
+    const firstPageButton = findWrapperItemByTestId('first-page-click-button');
+    const lastPageButton = findWrapperItemByTestId('last-page-click-button');
     expect(firstPageButton.exists()).toBe(true);
-    expect(firstPageDoubleArrow.length).equal(2);
     expect(lastPageButton.exists()).toBe(true);
+    const firstPageDoubleArrow = findNodeItemsByTestId(firstPageButton, 'arrow-right-icon');
+    const lastPageDoubleArrow = findNodeItemsByTestId(lastPageButton, 'arrow-left-icon');
+    expect(firstPageDoubleArrow.length).equal(2);
     expect(lastPageDoubleArrow.length).equal(2);
   });
 
+  it('should not display left and right double arrows', async () => {
+    createDataTableComponent({
+      props: {
+        items: mockClientItems(200),
+        paginationWithInput: false,
+        headers: headersMocked,
+        rowsPerPage: 5,
+      },
+    });
+    const firstPageButton = findWrapperItemByTestId('first-page-click-button');
+    const lastPageButton = findWrapperItemByTestId('last-page-click-button');
+    expect(firstPageButton.exists()).toBe(false);
+    expect(lastPageButton.exists()).toBe(false);
+  });
+
   it('should move to first page', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(11),
         paginationWithInput: true,
@@ -112,8 +136,8 @@ describe('Pagination input', () => {
         currentPage: 3,
       },
     });
-    const paginationItemsIdxOutput = wrapper.find('.pagination__items-index span');
-    const firstPageButton = wrapper.find('.first-page__click-button');
+    const paginationItemsIdxOutput = findWrapperItemByTestId('pagination-with-input-text');
+    const firstPageButton = findWrapperItemByTestId('first-page-click-button');
     const paginationArrowsComponent = wrapper.findComponent(PaginationArrows);
     expect(paginationItemsIdxOutput.text()).equal('3 of 6');
     await firstPageButton.trigger('click');
@@ -122,7 +146,7 @@ describe('Pagination input', () => {
   });
 
   it('should move to last page', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(11),
         paginationWithInput: true,
@@ -131,8 +155,8 @@ describe('Pagination input', () => {
         currentPage: 3,
       },
     });
-    const paginationItemsIdxOutput = wrapper.find('.pagination__items-index span');
-    const lastPageButton = wrapper.find('.last-page__click-button');
+    const paginationItemsIdxOutput = findWrapperItemByTestId('pagination-with-input-text');
+    const lastPageButton = findWrapperItemByTestId('last-page-click-button');
     const paginationArrowsComponent = wrapper.findComponent(PaginationArrows);
     expect(paginationItemsIdxOutput.text()).equal('3 of 6');
     await lastPageButton.trigger('click');
@@ -141,7 +165,7 @@ describe('Pagination input', () => {
   });
 
   it('should not display pagination input', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(200),
         paginationWithInput: false,
@@ -149,12 +173,14 @@ describe('Pagination input', () => {
         rowsPerPage: 5,
       },
     });
-    const paginationInputWrapper = wrapper.find('.pagination-with-input');
+    const paginationInputWrapper = findWrapperItemByTestId('pagination-with-input');
+    const paginationInputText = findWrapperItemByTestId('pagination-with-input-text');
     expect(paginationInputWrapper.exists()).toBe(false);
+    expect(paginationInputText.exists()).toBe(false);
   });
 
   it('should display pagination input', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(200),
         paginationWithInput: true,
@@ -162,13 +188,15 @@ describe('Pagination input', () => {
         rowsPerPage: 5,
       },
     });
-    const paginationInputWrapper = wrapper.find('.pagination-with-input');
-    const paginationInput = paginationInputWrapper.find('.input');
+    const paginationInputWrapper = findWrapperItemByTestId('pagination-with-input');
+    const paginationInputText = findWrapperItemByTestId('pagination-with-input-text');
+    const paginationInput = findWrapperItemByTestId('pagination-with-input-control-el');
     expect(paginationInput.exists()).toBe(true);
+    expect(paginationInputText.exists()).toBe(true);
   });
 
   it('should not emit updatePage event, the entered page with a value of 0', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(200),
         paginationWithInput: true,
@@ -176,8 +204,8 @@ describe('Pagination input', () => {
         rowsPerPage: 5,
       },
     });
-    const paginationInputWrapper = wrapper.find('.pagination-with-input');
-    const paginationInput = paginationInputWrapper.find('.input');
+    const paginationInputWrapper = findWrapperItemByTestId('pagination-with-input');
+    const paginationInput = findWrapperItemByTestId('pagination-with-input-control-el');
     await paginationInput.setValue('0');
     await paginationInput.trigger('blur');
     const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
@@ -185,7 +213,7 @@ describe('Pagination input', () => {
   });
 
   it('should not emit updatePage event, the entered page is greater than to the maximum available page', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(10),
         paginationWithInput: true,
@@ -193,8 +221,8 @@ describe('Pagination input', () => {
         rowsPerPage: 5,
       },
     });
-    const paginationInputWrapper = wrapper.find('.pagination-with-input');
-    const paginationInput = paginationInputWrapper.find('.input');
+    const paginationInputWrapper = findWrapperItemByTestId('pagination-with-input');
+    const paginationInput = findWrapperItemByTestId('pagination-with-input-control-el');
     await paginationInput.setValue('3');
     await paginationInput.trigger('blur');
     const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
@@ -202,7 +230,7 @@ describe('Pagination input', () => {
   });
 
   it('should not emit updatePage event, the entered page is equal to the current page', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(10),
         paginationWithInput: true,
@@ -211,8 +239,8 @@ describe('Pagination input', () => {
         rowsPerPage: 5,
       },
     });
-    const paginationInputWrapper = wrapper.find('.pagination-with-input');
-    const paginationInput = paginationInputWrapper.find('.input');
+    const paginationInputWrapper = findWrapperItemByTestId('pagination-with-input');
+    const paginationInput = findWrapperItemByTestId('pagination-with-input-control-el');
     await paginationInput.setValue('2');
     await paginationInput.trigger('blur');
     const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
@@ -220,7 +248,7 @@ describe('Pagination input', () => {
   });
 
   it('should emit updatePage event on input blur change', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(200),
         paginationWithInput: true,
@@ -228,8 +256,8 @@ describe('Pagination input', () => {
         rowsPerPage: 5,
       },
     });
-    const paginationInputWrapper = wrapper.find('.pagination-with-input');
-    const paginationInput = paginationInputWrapper.find('.input');
+    const paginationInputWrapper = findWrapperItemByTestId('pagination-with-input');
+    const paginationInput = findWrapperItemByTestId('pagination-with-input-control-el');
     await paginationInput.setValue('5');
     await paginationInput.trigger('blur');
     const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
@@ -238,7 +266,7 @@ describe('Pagination input', () => {
   });
 
   it('should emit updatePage event on input keyup enter event', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(200),
         paginationWithInput: true,
@@ -246,8 +274,8 @@ describe('Pagination input', () => {
         rowsPerPage: 5,
       },
     });
-    const paginationInputWrapper = wrapper.find('.pagination-with-input');
-    const paginationInput = paginationInputWrapper.find('.input');
+    const paginationInputWrapper = findWrapperItemByTestId('pagination-with-input');
+    const paginationInput = findWrapperItemByTestId('pagination-with-input-control-el');
     await paginationInput.setValue('10');
     await paginationInput.trigger('keyup.enter');
     const paginationInputComponent = wrapper.findComponent('.pagination-with-input');
@@ -256,7 +284,7 @@ describe('Pagination input', () => {
   });
 
   it('should emit updatePage event on input keyup enter event and display correct current page', async () => {
-    const wrapper = mount(DataTable, {
+    createDataTableComponent({
       props: {
         items: mockClientItems(11),
         paginationWithInput: true,
@@ -265,18 +293,17 @@ describe('Pagination input', () => {
         currentPage: 3,
       },
     });
-    const paginationItemsIdxOutput = wrapper.find('.pagination__items-index span');
-    expect(paginationItemsIdxOutput.text()).equal('3 of 6');
-    const paginationInputWrapper = wrapper.find('.pagination-with-input');
-    const paginationInput = paginationInputWrapper.find('.input');
+    const paginationInputText = findWrapperItemByTestId('pagination-with-input-text');
+    expect(paginationInputText.text()).equal('3 of 6');
+    const paginationInput = findWrapperItemByTestId('pagination-with-input-control-el');
 
     await paginationInput.setValue('4');
     await paginationInput.trigger('keyup.enter');
-    expect(paginationItemsIdxOutput.text()).equal('4 of 6');
+    expect(paginationInputText.text()).equal('4 of 6');
 
     await paginationInput.setValue('2');
     await paginationInput.trigger('keyup.enter');
-    expect(paginationItemsIdxOutput.text()).equal('2 of 6');
+    expect(paginationInputText.text()).equal('2 of 6');
   });
 });
 

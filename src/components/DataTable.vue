@@ -241,10 +241,16 @@
         />
       </div>
       <div class="pagination__items-index">
-        <span v-if="paginationWithInput">
+        <span
+          v-if="paginationWithInput"
+          data-test-id="pagination-with-input-text"
+        >
           {{ currentPaginationNumber }} of {{ maxPaginationNumber }}
         </span>
-        <span v-else>
+        <span
+          v-else
+          data-test-id="buttons-pagination-text"
+        >
           {{ `${currentPageFirstIndex}–${currentPageLastIndex}` }}
           {{ rowsOfPageSeparatorMessage }} {{ totalItemsLength }}
         </span>
