@@ -117,13 +117,14 @@
             :key="index"
           >
             <tr
-              :class="[{'even-row': (index + 1) % 2 === 0},
+              :class="[{'even-row': (index + 1) % 2 === 0 && !item.meta.selected},
                        typeof bodyRowClassName === 'string' ? bodyRowClassName : bodyRowClassName(item, index)]"
+              data-test-id="table-row"
               @click="($event) => {
-                clickRow(item, 'single');
+                clickRow($event, item, 'single');
                 clickRowToExpand && updateExpandingItemIndexList(index + prevPageEndIndex, item, $event);
               }"
-              @dblclick="clickRow(item, 'double')"
+              @dblclick="clickRow($event, item, 'double')"
             >
               <td
                 v-for="(column, i) in headerColumns"
@@ -132,6 +133,7 @@
                 :class="[{
                   'shadow': column === lastFixedColumn,
                   'can-expand': column === 'expand',
+                  'selected': item.meta.selected,
                 // eslint-disable-next-line max-len
                 }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
                 @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
@@ -154,7 +156,7 @@
                 </template>
                 <template v-else-if="column === 'checkbox'">
                   <SingleSelectCheckBox
-                    :checked="item[column]"
+                    :checked="item.meta.selected"
                     @change="toggleSelectItem(item)"
                   />
                 </template>
@@ -280,6 +282,7 @@
 import {
   useSlots, computed, toRefs, ref, watch, provide, onMounted, PropType,
 } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 import MultipleSelectCheckBox from './MultipleSelectCheckBox.vue';
 import SingleSelectCheckBox from './SingleSelectCheckBox.vue';
@@ -305,6 +308,7 @@ import type { HeaderForRender } from '../types/internal';
 // eslint-disable-next-line import/extensions
 import { generateColumnContent } from '../utils';
 import propsWithDefault from '../propsWithDefault';
+import { SelectableEnum } from '../enums/main';
 
 const props = defineProps({
   ...propsWithDefault,
@@ -350,6 +354,7 @@ const {
   tableMinHeight,
   themeColor,
   rowsOfPageSeparatorMessage,
+  selectable,
 } = toRefs(props);
 
 // style related computed variables
@@ -390,6 +395,8 @@ const emits = defineEmits([
 
 const isMultipleSelectable = computed((): boolean => itemsSelected.value !== null);
 const isServerSideMode = computed((): boolean => serverOptions.value !== null);
+
+const isMultiSelect = computed((): boolean => selectable.value === SelectableEnum.MULTIPLE);
 
 const {
   serverOptionsComputed,
@@ -441,6 +448,14 @@ const {
   rowsPerPage,
 );
 
+const itemsWithMeta = computed(() => items.value.map((item: Item) => ({
+  ...item,
+  meta: {
+    selected: false,
+    uniqueIndex: uuidv4(),
+  },
+})));
+
 const {
   totalItems,
   selectItemsComputed,
@@ -448,10 +463,11 @@ const {
   toggleSelectAll,
   toggleSelectItem,
 } = useTotalItems(
+  isMultiSelect,
   clientSortOptions,
   filterOptions,
   isServerSideMode,
-  items,
+  itemsWithMeta,
   itemsSelected,
   searchField,
   searchValue,
@@ -488,7 +504,7 @@ const {
   currentPaginationNumber,
   isMultipleSelectable,
   isServerSideMode,
-  items,
+  itemsWithMeta,
   rowsPerPageRef,
   selectItemsComputed,
   showIndex,
@@ -522,6 +538,9 @@ const {
 const {
   clickRow,
 } = useClickRow(
+  isMultiSelect,
+  pageItems,
+  selectItemsComputed,
   clickEventType,
   isMultipleSelectable,
   showIndex,
@@ -572,6 +591,10 @@ watch([currentPaginationNumber, clientSortOptions, searchField, searchValue, fil
   clearExpandingItemIndexList();
 }, { deep: true });
 
+const isTestMode = import.meta.env.MODE === 'test';
+const exposeForTest = isTestMode ? {
+  itemsWithMeta,
+} : {};
 defineExpose({
   currentPageFirstIndex,
   currentPageLastIndex,
@@ -586,6 +609,7 @@ defineExpose({
   rowsPerPageOptions: rowsItemsComputed,
   rowsPerPageActiveOption: rowsPerPageRef,
   updateRowsPerPageActiveOption: updateRowsPerPage,
+  ...exposeForTest,
 });
 </script>
 
@@ -604,7 +628,7 @@ defineExpose({
     /*body-row*/
     --easy-table-body-row-height: 36px;
     --easy-table-body-row-font-size: 12px;
-
+    --easy-table-body-row-backgroud-color: #506c67;
     --easy-table-body-row-font-color: #212121;
     --easy-table-body-row-background-color: #fff;
 
@@ -619,6 +643,7 @@ defineExpose({
     --easy-table-footer-background-color: #fff;
     --easy-table-footer-font-color: #212121;
     --easy-table-footer-font-size: 12px;
+    --easy-table-footer-pagination-input-width: 1.875rem;
     --easy-table-footer-padding: 0px 5px;
     --easy-table-footer-height: 36px;
     /**footer-rowsPerPage**/
@@ -649,5 +674,13 @@ defineExpose({
 }
 .vue3-easy-data-table__main.fixed-height {
   height: v-bind(tableHeightPx);
+}
+.vue3-easy-data-table__body {
+  -webkit-user-select: none; /* Safari */
+  user-select: none; /* Standard syntax */
+}
+
+tr td.selected {
+  background: var(--easy-table-body-row-backgroud-color)
 }
 </style>

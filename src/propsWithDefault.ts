@@ -5,6 +5,7 @@ import type {
   TextDirection,
 } from './types/main';
 import type { ClickEventType } from './types/internal';
+import { SelectableEnum } from './enums/main';
 
 export default {
   alternating: {
@@ -186,5 +187,15 @@ export default {
   clickRowToExpand: {
     type: Boolean,
     default: false,
+  },
+  selectable: {
+    type: String,
+    validator(value: SelectableEnum) {
+      return [
+        SelectableEnum.SINGLE,
+        SelectableEnum.MULTIPLE,
+      ].includes(value);
+    },
+    default: SelectableEnum.SINGLE,
   },
 };

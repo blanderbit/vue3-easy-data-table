@@ -32,15 +32,17 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint --fix 'src/**/*.{vue,html,css,js,ts}'",
+    "lint": "eslint --ext .vue,.html,.js,.ts --fix src",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "uuid": "^9.0.0",
     "vue": "^3.2.25"
   },
   "devDependencies": {
     "@types/node": "^17.0.29",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
     "@vitejs/plugin-vue": "^2.3.3",

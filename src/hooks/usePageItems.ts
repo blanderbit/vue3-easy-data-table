@@ -10,7 +10,7 @@ export default function usePageItems(
   isServerSideMode: ComputedRef<boolean>,
   items: Ref<Item[]>,
   rowsPerPageRef: Ref<number>,
-  selectItemsComputed: WritableComputedRef<Item[]>,
+  selectItemsComputed: Ref<Item[]>,
   showIndex: Ref<boolean>,
   totalItems: ComputedRef<Item[]>,
   totalItemsLength: ComputedRef<number>,

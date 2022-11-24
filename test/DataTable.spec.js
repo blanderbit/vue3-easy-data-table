@@ -3,8 +3,15 @@
  */
 import { describe, it, expect } from 'vitest';
 import { mount } from '@vue/test-utils';
+import crypto from 'crypto';
 import DataTable from '../src/components/DataTable.vue';
-import { mockClientItems, headersMocked, mockServerItems } from "../src/mock";
+import { mockClientItems, headersMocked, mockServerItems } from '../src/mock';
+
+Object.defineProperty(global, 'crypto', {
+  value: {
+    getRandomValues: (arr) => crypto.randomBytes(arr.length),
+  },
+});
 
 // Button Pagination
 describe('Button Pagination', () => {
@@ -17,7 +24,7 @@ describe('Button Pagination', () => {
         rowsPerPage: 5,
       },
     });
-    expect(wrapper.find('.data-table').exists()).toBe(true);
+    expect(wrapper.find('.vue3-easy-data-table').exists()).toBe(true);
   });
 
   /**
@@ -52,7 +59,7 @@ describe('Button Pagination', () => {
     expect(wrapper.find('.previous-page__click-button').classes()).include('first-page');
   });
 
-  it('Click the second pagination button to nagivate to the second page', async () => {
+  it('Click the second pagination button to navigate to the second page', async () => {
     const wrapper = mount(DataTable, {
       props: {
         items: mockClientItems(200),
@@ -74,52 +81,201 @@ describe('Button Pagination', () => {
   });
 });
 
-// Multiple selecting
-describe('Multiple selecting', () => {
-  it('Gather data of the the top two row items', async () => {
-    const mockItems = mockClientItems(200);
-    const wrapper = mount(DataTable, {
-      props: {
-        itemsSelected: [],
-        items: mockItems,
-        headers: headersMocked,
-        rowsPerPage: 5,
-      },
+// Selecting
+describe('Selecting', () => {
+  describe('Single selection', () => {
+    it('Should select only one row by clicking on rows', async () => {
+      const wrapper = mount(DataTable, {
+        props: {
+          itemsSelected: [],
+          items: mockClientItems(3),
+          headers: headersMocked,
+          selection: 'single',
+          rowsPerPage: 3,
+        },
+      });
+
+      const { itemsWithMeta } = wrapper.vm;
+      const tableRows = wrapper.findAll("[data-test-id='table-row']");
+      const firstTableRow = tableRows.at(0);
+      const secondTableRow = tableRows.at(1);
+      const firstTableRowSelectCheckbox = firstTableRow.findComponent('.easy-checkbox');
+      const secondTableRowSelectCheckbox = secondTableRow.findComponent('.easy-checkbox');
+      expect(firstTableRowSelectCheckbox.props().checked).toBeFalsy();
+      await firstTableRow.trigger('click');
+      expect(firstTableRowSelectCheckbox.props().checked).toBeTruthy();
+      await secondTableRow.trigger('click');
+      expect(firstTableRowSelectCheckbox.props().checked).toBeFalsy();
+      expect(secondTableRowSelectCheckbox.props().checked).toBeTruthy();
+
+      const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+      expect(updateItemsSelectedEvent).toHaveLength(2);
+      expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
+      expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
+      expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[1]]]);
     });
-    const singleCheckboxArr = wrapper.findAll('.single-select__checkbox');
-    const firstSingleCheckbox = singleCheckboxArr.at(0);
-    const secondSingleCheckbox = singleCheckboxArr.at(1);
-    await firstSingleCheckbox.trigger('click');
-    await secondSingleCheckbox.trigger('click');
-    const updateItemsSelecedEvent = wrapper.emitted('update:itemsSelected');
-    expect(updateItemsSelecedEvent).toHaveLength(2);
-    expect(updateItemsSelecedEvent[1]).toEqual([[mockItems[1], mockItems[0]]]);
+
+    it('Should select only one row by clicking on select checkboxes', async () => {
+      const mockItems = mockClientItems(200);
+      const wrapper = mount(DataTable, {
+        props: {
+          itemsSelected: [],
+          items: mockItems,
+          headers: headersMocked,
+          selection: 'single',
+          rowsPerPage: 5,
+        },
+      });
+      const { itemsWithMeta } = wrapper.vm;
+      const singleCheckboxArr = wrapper.findAll('.easy-checkbox');
+      const firstSingleCheckbox = singleCheckboxArr.at(1);
+      const secondSingleCheckbox = singleCheckboxArr.at(2);
+      expect(firstSingleCheckbox.find('input').attributes()).not.toHaveProperty('checked');
+      await firstSingleCheckbox.trigger('click');
+      expect(firstSingleCheckbox.find('input').attributes()).toHaveProperty('checked');
+      expect(secondSingleCheckbox.find('input').attributes()).not.toHaveProperty('checked');
+      await secondSingleCheckbox.trigger('click');
+      expect(firstSingleCheckbox.find('input').attributes()).not.toHaveProperty('checked');
+      expect(secondSingleCheckbox.find('input').attributes()).toHaveProperty('checked');
+      const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+      expect(updateItemsSelectedEvent).toHaveLength(2);
+      expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
+      expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
+      expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[1]]]);
+    });
   });
 
-  it('Gather data of the the first and sixth row items', async () => {
-    const mockItems = mockClientItems(200);
-    const wrapper = mount(DataTable, {
-      props: {
-        itemsSelected: [],
-        items: mockItems,
-        headers: headersMocked,
-        rowsPerPage: 5,
-      },
+  describe('Multi selection', () => {
+    it('Should select only 2 rows by clicking on rows', async () => {
+      const mockItems = mockClientItems(200);
+      const wrapper = mount(DataTable, {
+        props: {
+          itemsSelected: [],
+          items: mockItems,
+          headers: headersMocked,
+          rowsPerPage: 5,
+          selectable: 'multi',
+        },
+      });
+      const { itemsWithMeta } = wrapper.vm;
+      const tableRows = wrapper.findAll("[data-test-id='table-row']");
+      const firstTableRow = tableRows.at(0);
+      const secondTableRow = tableRows.at(2);
+      await firstTableRow.trigger('click');
+      await secondTableRow.trigger('click');
+      const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+      expect(updateItemsSelectedEvent).toHaveLength(2);
+      for (const updateItemsSelectedEventElement of updateItemsSelectedEvent[1][0]) {
+        expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
+      }
+      const expected = [[updateItemsSelectedEvent[0][0][0], updateItemsSelectedEvent[1][0][0]]];
+      const received = [[itemsWithMeta[0], itemsWithMeta[2]]];
+      expect(expected).toEqual(received);
     });
-    const singleCheckboxArr = wrapper.findAll('.single-select__checkbox');
-    const firstSingleCheckbox = singleCheckboxArr.at(0);
-    await firstSingleCheckbox.trigger('click');
 
-    const nextPageButton = wrapper.find('.next-page__click-button');
-    await nextPageButton.trigger('click');
+    it('Should select only 2 rows by clicking on select checkboxes', async () => {
+      const mockItems = mockClientItems(200);
+      const wrapper = mount(DataTable, {
+        props: {
+          itemsSelected: [],
+          items: mockItems,
+          headers: headersMocked,
+          rowsPerPage: 5,
+          selectable: 'multi',
+        },
+      });
+      const { itemsWithMeta } = wrapper.vm;
+      const singleCheckboxArr = wrapper.findAll('.easy-checkbox');
+      const firstSingleCheckbox = singleCheckboxArr.at(1);
+      const secondSingleCheckbox = singleCheckboxArr.at(2);
+      await firstSingleCheckbox.trigger('click');
+      await secondSingleCheckbox.trigger('click');
+      const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+      expect(updateItemsSelectedEvent).toHaveLength(2);
+      for (const updateItemsSelectedEventElement of updateItemsSelectedEvent[1][0]) {
+        expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
+      }
+      expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[1], itemsWithMeta[0]]]);
+    });
 
-    const singleCheckboxArrInSecondPage = wrapper.findAll('.single-select__checkbox');
-    const firstSingleCheckboxInSecondPage = singleCheckboxArrInSecondPage.at(0);
-    await firstSingleCheckboxInSecondPage.trigger('click');
+    it('Gather data of the the first and sixth row items', async () => {
+      const mockItems = mockClientItems(200);
+      const wrapper = mount(DataTable, {
+        props: {
+          itemsSelected: [],
+          items: mockItems,
+          headers: headersMocked,
+          rowsPerPage: 5,
+          selectable: 'multi',
+        },
+      });
+      const { itemsWithMeta } = wrapper.vm;
+      const singleCheckboxArr = wrapper.findAll('.easy-checkbox');
+      const firstSingleCheckbox = singleCheckboxArr.at(1);
+      await firstSingleCheckbox.trigger('click');
 
-    const updateItemsSelecedEvent = wrapper.emitted('update:itemsSelected');
-    expect(updateItemsSelecedEvent).toHaveLength(2);
-    expect(updateItemsSelecedEvent[1]).toEqual([[mockItems[5], mockItems[0]]]);
+      const nextPageButton = wrapper.find('.next-page__click-button');
+      await nextPageButton.trigger('click');
+
+      const singleCheckboxArrInSecondPage = wrapper.findAll('.easy-checkbox');
+      const firstSingleCheckboxInSecondPage = singleCheckboxArrInSecondPage.at(1);
+      await firstSingleCheckboxInSecondPage.trigger('click');
+
+      const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+      expect(updateItemsSelectedEvent).toHaveLength(2);
+      for (const updateItemsSelectedEventElement of updateItemsSelectedEvent[1][0]) {
+        expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
+      }
+      expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[5], itemsWithMeta[0]]]);
+    });
+
+    it('Select rows using shift key', async () => {
+      const wrapper = mount(DataTable, {
+        props: {
+          itemsSelected: [],
+          items: mockClientItems(200),
+          headers: headersMocked,
+          rowsPerPage: 5,
+          selectable: 'multi',
+        },
+      });
+      const { itemsWithMeta } = wrapper.vm;
+      const tableRows = wrapper.findAll("[data-test-id='table-row']");
+      const firstTableRow = tableRows.at(0);
+      await firstTableRow.trigger('click');
+      const thirdTableRow = tableRows.at(2);
+      await thirdTableRow.trigger('click', { shiftKey: true });
+      const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+      expect(updateItemsSelectedEvent).toHaveLength(2);
+      for (const updateItemsSelectedEventElement of updateItemsSelectedEvent[1][0]) {
+        expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
+      }
+      expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[0], itemsWithMeta[1], itemsWithMeta[2]]]);
+    });
+
+    it('Select rows using ctrl key', async () => {
+      const wrapper = mount(DataTable, {
+        props: {
+          itemsSelected: [],
+          items: mockClientItems(200),
+          headers: headersMocked,
+          rowsPerPage: 5,
+          selectable: 'multi',
+        },
+      });
+      const { itemsWithMeta } = wrapper.vm;
+      const tableRows = wrapper.findAll("[data-test-id='table-row']");
+      const firstTableRow = tableRows.at(0);
+      await firstTableRow.trigger('click');
+      const thirdTableRow = tableRows.at(2);
+      await thirdTableRow.trigger('click', { ctrlKey: true });
+      const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+      expect(updateItemsSelectedEvent).toHaveLength(2);
+      for (const updateItemsSelectedEventElement of updateItemsSelectedEvent[1][0]) {
+        expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
+      }
+      expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[2], itemsWithMeta[0]]]);
+    });
   });
 });
 

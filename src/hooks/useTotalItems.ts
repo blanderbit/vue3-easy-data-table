@@ -1,11 +1,13 @@
 import {
-  Ref, computed, ComputedRef, watch,
+  Ref, computed, ComputedRef, watch, ref,
 } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 import type { Item, FilterOption } from '../types/main';
 import type { ClientSortOptions, EmitsEventName } from '../types/internal';
 import { getItemValue } from '../utils';
 
 export default function useTotalItems(
+  isMultiSelect: ComputedRef<boolean>,
   clientSortOptions: Ref<ClientSortOptions | null>,
   filterOptions: Ref<FilterOption[]>,
   isServerSideMode: ComputedRef<boolean>,
@@ -125,31 +127,41 @@ export default function useTotalItems(
   // eslint-disable-next-line max-len
   const totalItemsLength = computed((): number => (isServerSideMode.value ? serverItemsLength.value : totalItems.value.length));
 
-  // multiple selecting
-  const selectItemsComputed = computed({
-    get: () => itemsSelected.value ?? [],
-    set: (value) => {
-      emits('update:itemsSelected', value);
-    },
+  const selectItemsComputed: Ref<Item[]> = ref([]);
+  watch(selectItemsComputed, (val) => {
+    emits('update:itemsSelected', val);
+  }, {
+    deep: true,
   });
 
   const toggleSelectAll = (isChecked: boolean): void => {
-    selectItemsComputed.value = isChecked ? totalItems.value : [];
+    if (!isMultiSelect.value) {
+      return;
+    }
+    selectItemsComputed.value = totalItems.value.map((item) => {
+      item.meta.selected = isChecked;
+      return item;
+    });
+    if (!isChecked) {
+      selectItemsComputed.value = [];
+    }
   };
 
   const toggleSelectItem = (item: Item):void => {
     const isAlreadyChecked = item.checkbox;
-    // eslint-disable-next-line no-param-reassign
     delete item.checkbox;
-    // eslint-disable-next-line no-param-reassign
     delete item.index;
-    if (!isAlreadyChecked) {
+    item.meta.selected = !item.meta.selected;
+    if (isAlreadyChecked) {
+      selectItemsComputed.value = selectItemsComputed.value
+        .filter((selectedItem) => item.meta.uniqueIndex !== selectedItem.meta.uniqueIndex);
+    } else if (!isMultiSelect.value && selectItemsComputed.value.length === 1) {
+      selectItemsComputed.value[0].meta.selected = false;
+      selectItemsComputed.value = [item];
+    } else {
       const selectItemsArr: Item[] = selectItemsComputed.value;
       selectItemsArr.unshift(item);
       selectItemsComputed.value = selectItemsArr;
-    } else {
-      selectItemsComputed.value = selectItemsComputed.value.filter((selectedItem) => JSON.stringify(selectedItem)
-        !== JSON.stringify(item));
     }
   };
 
