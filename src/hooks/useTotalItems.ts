@@ -148,11 +148,9 @@ export default function useTotalItems(
   };
 
   const toggleSelectItem = (item: Item):void => {
-    const isAlreadyChecked = item.checkbox;
-    delete item.checkbox;
-    delete item.index;
+    const isAlreadySelected = item.meta.selected;
     item.meta.selected = !item.meta.selected;
-    if (isAlreadyChecked) {
+    if (isAlreadySelected) {
       selectItemsComputed.value = selectItemsComputed.value
         .filter((selectedItem) => item.meta.uniqueIndex !== selectedItem.meta.uniqueIndex);
     } else if (!isMultiSelect.value && selectItemsComputed.value.length === 1) {

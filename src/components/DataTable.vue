@@ -118,6 +118,7 @@
           >
             <tr
               :class="[{'even-row': (index + 1) % 2 === 0 && !item.meta.selected},
+                       {'selected': item.meta.selected},
                        typeof bodyRowClassName === 'string' ? bodyRowClassName : bodyRowClassName(item, index)]"
               data-test-id="table-row"
               @click="($event) => {
@@ -133,7 +134,6 @@
                 :class="[{
                   'shadow': column === lastFixedColumn,
                   'can-expand': column === 'expand',
-                  'selected': item.meta.selected,
                 // eslint-disable-next-line max-len
                 }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
                 @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
@@ -628,7 +628,7 @@ defineExpose({
     /*body-row*/
     --easy-table-body-row-height: 36px;
     --easy-table-body-row-font-size: 12px;
-    --easy-table-body-row-backgroud-color: #506c67;
+    --easy-table-body-selected-row-backgroud-color: #506c67;
     --easy-table-body-row-font-color: #212121;
     --easy-table-body-row-background-color: #fff;
 
@@ -680,7 +680,11 @@ defineExpose({
   user-select: none; /* Standard syntax */
 }
 
-tr td.selected {
-  background: var(--easy-table-body-row-backgroud-color)
+tr.selected {
+  background: var(--easy-table-body-selected-row-backgroud-color);
+
+  td {
+    background: none;
+  }
 }
 </style>

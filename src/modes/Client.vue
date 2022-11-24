@@ -17,7 +17,7 @@
       ref="dataTable"
       v-model:items-selected="itemsSelected"
       :click-row-to-expand="false"
-      selectable="multi"
+      selectable="single"
       alternating
       border-cell
       no-hover
@@ -230,7 +230,7 @@ const items = ref<Item[]>([
 const itemsSelected = ref<Item[]>([]);
 
 watch(itemsSelected, (val) => {
-  console.log('itemsSelected VAL', val);
+  console.log('debug itemsSelected', val);
 }, {
   immediate: true,
   deep: true,

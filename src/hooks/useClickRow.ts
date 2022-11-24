@@ -19,8 +19,6 @@ export default function useClickRow(
   const clearSelection = () => {
     pageItems.value.forEach((pageItem) => {
       pageItem.meta.selected = false;
-      delete pageItem.checkbox;
-      delete pageItem.index;
     });
   };
 
@@ -42,40 +40,29 @@ export default function useClickRow(
     clearSelection();
     const pageItemsRange = pageItems.value.slice(minKey, maxKey + 1);
     pageItemsRange.forEach((pageItem) => {
-      delete pageItem.checkbox;
-      delete pageItem.index;
       pageItem.meta.selected = true;
     });
     selectItemsComputed.value = pageItemsRange;
   };
 
   const handleCtrlKey = (row: Item) => {
-    const oldSelected = row.meta.selected;
+    const isAlreadySelected = row.meta.selected;
     if (!isMultiSelect.value) {
-      console.log('not multi select');
       clearSelection();
     }
     firstSelectedRowIndex.value = row.meta.uniqueIndex;
-    row.meta.selected = !oldSelected;
-
-    const isAlreadyChecked = row.checkbox;
-    delete row.checkbox;
-    delete row.index;
-    if (isAlreadyChecked) {
+    row.meta.selected = !isAlreadySelected;
+    if (isAlreadySelected) {
       selectItemsComputed.value = selectItemsComputed.value
         .filter((selectedItem) => row.meta.uniqueIndex !== selectedItem.meta.uniqueIndex);
+    } else if (!isMultiSelect.value && selectItemsComputed.value.length === 1) {
+      // If multi select is not allowed, then we need to reset selected flag for
+      //  current item and replace array el with the clicked row.
+      selectItemsComputed.value[0].meta.selected = false;
+      selectItemsComputed.value = [row];
     } else {
-      // If use selectItemsComputed as computed.
-      // selectItemsComputed.value = [
-      //   row,
-      //   ...selectItemsComputed.value,
-      // ];
       selectItemsComputed.value.unshift(row);
     }
-
-  // else if (!isMultiSelect.value) {
-    // selectItemsComputed.value = [row];
-    // }
   };
 
   const clickRow = (event: PointerEvent, item: Item, clickType: ClickEventType) => {
@@ -89,20 +76,16 @@ export default function useClickRow(
       clearSelection();
       firstSelectedRowIndex.value = item.meta.uniqueIndex;
       item.meta.selected = true;
-      delete item.checkbox;
-      delete item.index;
       selectItemsComputed.value = [item];
     }
 
     const clickRowArgument = { ...item };
     if (isMultipleSelectable.value) {
       const { checkbox } = item;
-      delete clickRowArgument.checkbox;
       clickRowArgument.isSelected = checkbox;
     }
     if (showIndex.value) {
       const { index } = item;
-      delete clickRowArgument.index;
       clickRowArgument.indexInCurrentPage = index;
     }
     emits('clickRow', clickRowArgument);
