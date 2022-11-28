@@ -448,7 +448,7 @@ const {
   rowsPerPage,
 );
 
-const itemsWithMeta = computed(() => items.value.map((item: Item) => ({
+const itemsWithMeta = computed((): Item[] => items.value.map((item: Item) => ({
   ...item,
   meta: {
     selected: false,

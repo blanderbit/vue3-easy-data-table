@@ -82,7 +82,7 @@ export default {
   },
   loading: {
     type: Boolean,
-    deault: false,
+    default: false,
   },
   rowsPerPage: {
     type: Number,
@@ -97,7 +97,7 @@ export default {
     default: 'rows per page:',
   },
   searchField: {
-    type: [String, Array as PropType<String[]>],
+    type: [String, Array] as PropType<string | string[]>,
     default: '',
   },
   searchValue: {
@@ -117,11 +117,11 @@ export default {
     default: false,
   },
   sortBy: {
-    type: [String, Array as PropType<String[]>],
+    type: [String, Array] as PropType<string | string[]>,
     default: '',
   },
   sortType: {
-    type: [String as PropType<SortType>, Array as PropType<SortType[]>],
+    type: [String, Array] as PropType<SortType | SortType[]>,
     default: 'asc',
   },
   multiSort: {

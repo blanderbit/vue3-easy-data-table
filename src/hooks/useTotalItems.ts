@@ -13,7 +13,7 @@ export default function useTotalItems(
   isServerSideMode: ComputedRef<boolean>,
   items: Ref<Item[]>,
   itemsSelected: Ref<Item[]>,
-  searchField: Ref<string>,
+  searchField: Ref<string | string[]>,
   searchValue: Ref<string>,
   serverItemsLength: Ref<number>,
   multiSort: Ref<boolean>,

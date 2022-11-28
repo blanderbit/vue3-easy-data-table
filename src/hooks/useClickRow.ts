@@ -14,21 +14,21 @@ export default function useClickRow(
   showIndex: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
-  const firstSelectedRowIndex = ref(null);
+  const firstSelectedRowIndex = ref<string | null>(null);
 
-  const clearSelection = () => {
-    pageItems.value.forEach((pageItem) => {
-      pageItem.meta.selected = false;
+  const setSelectedMetaForItems = (items: Item[], selected: boolean) => {
+    items.forEach((item) => {
+      item.meta.selected = selected;
     });
   };
 
+  const clearSelection = () => {
+    setSelectedMetaForItems(pageItems.value, false);
+  };
+
   const handleShiftKey = (row: Item) => {
-    const indexes = [
-      row.meta.uniqueIndex,
-      firstSelectedRowIndex.value,
-    ];
-    let minKey = pageItems.value.findIndex((item) => item.meta.uniqueIndex === indexes[0]);
-    let maxKey = pageItems.value.findIndex((item) => item.meta.uniqueIndex === indexes[1]);
+    let minKey = pageItems.value.findIndex((item) => item.meta.uniqueIndex === row.meta.uniqueIndex);
+    let maxKey = pageItems.value.findIndex((item) => item.meta.uniqueIndex === firstSelectedRowIndex.value);
     const keys = [
       minKey,
       maxKey,
@@ -39,9 +39,7 @@ export default function useClickRow(
     ] = keys.sort((a, b) => a - b);
     clearSelection();
     const pageItemsRange = pageItems.value.slice(minKey, maxKey + 1);
-    pageItemsRange.forEach((pageItem) => {
-      pageItem.meta.selected = true;
-    });
+    setSelectedMetaForItems(pageItemsRange, true);
     selectItemsComputed.value = pageItemsRange;
   };
 
