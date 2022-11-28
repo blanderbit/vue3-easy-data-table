@@ -125,7 +125,7 @@ export default defineComponent({
 ## Useful links
 
 ### Table props
-[Here](docs/css-variables.md) you can find a complete list of table props.
+[Here](docs/table-props.md) you can find a complete list of table props.
 
 ### CSS variables
 [Here](docs/css-variables.md) you can find a complete list of CSS variables.
