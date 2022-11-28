@@ -202,4 +202,12 @@ export default {
     },
     default: SelectableEnum.SINGLE,
   },
+  exactMatch: {
+    type: Boolean,
+    default: false,
+  },
+  isExactMatchCaseSensitive: {
+    type: Boolean,
+    default: false,
+  },
 };

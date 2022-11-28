@@ -134,6 +134,7 @@
                 :class="[{
                   'shadow': column === lastFixedColumn,
                   'can-expand': column === 'expand',
+                  'exactMatch': exactMatchDictionary[item.meta.uniqueIndex]?.[column],
                 // eslint-disable-next-line max-len
                 }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
                 @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
@@ -380,6 +381,8 @@ const {
   themeColor,
   rowsOfPageSeparatorMessage,
   selectable,
+  exactMatch,
+  isExactMatchCaseSensitive,
 } = toRefs(props);
 
 // style related computed variables
@@ -482,12 +485,16 @@ const itemsWithMeta = computed((): Item[] => items.value.map((item: Item) => ({
 })));
 
 const {
+  exactMatchDictionary,
   totalItems,
   selectItemsComputed,
   totalItemsLength,
   toggleSelectAll,
   toggleSelectItem,
 } = useTotalItems(
+  exactMatch,
+  isExactMatchCaseSensitive,
+  headerColumns,
   isMultiSelect,
   clientSortOptions,
   filterOptions,
@@ -608,7 +615,10 @@ watch(rowsPerPageRef, (value) => {
   }
 });
 
-watch(searchValue, () => {
+watch(searchValue, (currVal) => {
+  if (!isServerSideMode.value && !currVal) {
+    exactMatchDictionary.value = {};
+  }
   if (!isServerSideMode.value) {
     updatePage(1);
   }
@@ -660,6 +670,8 @@ defineExpose({
     --easy-table-body-selected-row-background-color: #506c67;
     --easy-table-body-row-font-color: #212121;
     --easy-table-body-row-background-color: #fff;
+    --easy-table-body-exact-match-row-background-color: #4c4c12;
+    --easy-table-body-selected-and-exact-match-row-background-color: #778f0e;
 
     --easy-table-body-row-hover-font-color: #212121;
     --easy-table-body-row-hover-background-color: #eee;
@@ -700,13 +712,18 @@ defineExpose({
 
 .vue3-easy-data-table__main {
   min-height: v-bind(tableMinHeightPx);
+
+  .vue3-easy-data-table__body {
+    -webkit-user-select: none; /* Safari */
+    user-select: none; /* Standard syntax */
+  }
+
+  tr td.exactMatch {
+    background: var(--easy-table-body-exact-match-row-background-color);
+  }
 }
 .vue3-easy-data-table__main.fixed-height {
   height: v-bind(tableHeightPx);
-}
-.vue3-easy-data-table__body {
-  -webkit-user-select: none; /* Safari */
-  user-select: none; /* Standard syntax */
 }
 
 tr.selected {
@@ -714,6 +731,10 @@ tr.selected {
 
   td {
     background: none;
+
+    &.exactMatch {
+      background: var(--easy-table-body-selected-and-exact-match-row-background-color);
+    }
   }
 }
 </style>

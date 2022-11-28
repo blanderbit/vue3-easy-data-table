@@ -1,12 +1,14 @@
 import {
   Ref, computed, ComputedRef, watch, ref,
 } from 'vue';
-import { v4 as uuidv4 } from 'uuid';
-import type { Item, FilterOption } from '../types/main';
+import type { Item, FilterOption, ExactMatchDictionary } from '../types/main';
 import type { ClientSortOptions, EmitsEventName } from '../types/internal';
 import { getItemValue } from '../utils';
 
 export default function useTotalItems(
+  exactMatch: Ref<boolean>,
+  isExactMatchCaseSensitive: Ref<boolean>,
+  headerColumns: Ref<string[]>,
   isMultiSelect: ComputedRef<boolean>,
   clientSortOptions: Ref<ClientSortOptions | null>,
   filterOptions: Ref<FilterOption[]>,
@@ -19,7 +21,42 @@ export default function useTotalItems(
   multiSort: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
+  const exactMatchDictionary = ref<ExactMatchDictionary>({});
+
+  const searchingRegex = computed(() => new RegExp(searchValue.value, 'i'));
+
+  const fillExactMatchDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
+    Object.keys(item).forEach((itemKey) => {
+      if (typeof item[itemKey] === 'object') {
+        fillExactMatchDictionary(item[itemKey], itemUniqueIndex, itemKey);
+      }
+      if (searchingRegex.value.test(item[itemKey])) {
+        const exactMatchDictionaryKey = dictionaryKey ? `${dictionaryKey}.${itemKey}` : itemKey;
+        exactMatchDictionary.value[itemUniqueIndex] = {
+          [exactMatchDictionaryKey]: isExactMatchCaseSensitive.value
+            ? item[itemKey].toString() === searchValue.value.toString()
+            : true,
+        };
+      }
+    });
+  };
+
+  const flattenObj = (obj: Item, parent: string | null = null, res: Item = {}) => {
+    Object.keys(obj).forEach((key) => {
+      const propName = parent ? `${parent}_${key}` : key;
+      if (typeof obj[key] === 'object') {
+        flattenObj(obj[key], propName, res);
+      } else {
+        res[propName] = obj[key];
+      }
+    });
+    return res;
+  };
+
   const generateSearchingTarget = (item: Item): string => {
+    if (exactMatch.value) {
+      fillExactMatchDictionary(item, item.meta.uniqueIndex);
+    }
     if (typeof searchField.value === 'string' && searchField.value !== '') return getItemValue(searchField.value, item);
     if (Array.isArray(searchField.value)) {
       let searchString = '';
@@ -28,15 +65,14 @@ export default function useTotalItems(
       });
       return searchString;
     }
-    return Object.values(item).join(' ');
+    return Object.values(flattenObj(item)).join(' ');
   };
 
   // items searching
   const itemsSearching = computed((): Item[] => {
     // searching feature is not available in server-side mode
     if (!isServerSideMode.value && searchValue.value !== '') {
-      const regex = new RegExp(searchValue.value, 'i');
-      return items.value.filter((item) => regex.test(generateSearchingTarget(item)));
+      return items.value.filter((item) => searchingRegex.value.test(generateSearchingTarget(item)));
     }
     return items.value;
   });
@@ -164,6 +200,7 @@ export default function useTotalItems(
   };
 
   return {
+    exactMatchDictionary,
     totalItems,
     selectItemsComputed,
     totalItemsLength,

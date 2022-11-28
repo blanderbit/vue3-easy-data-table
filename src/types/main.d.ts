@@ -47,6 +47,12 @@ export type UpdateSortArgument = {
   sortBy: string
 }
 
+export type ExactMatchDictionary = {
+    [key: string]: {
+        [key: string]: boolean
+    }
+}
+
 export type HeaderItemClassNameFunction = (header: Header, index: number) => string
 export type BodyRowClassNameFunction = (item: Item, index: number) => string
 export type BodyItemClassNameFunction = (column: string, index: number) => string
