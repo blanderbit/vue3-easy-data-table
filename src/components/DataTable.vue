@@ -628,7 +628,7 @@ defineExpose({
     /*body-row*/
     --easy-table-body-row-height: 36px;
     --easy-table-body-row-font-size: 12px;
-    --easy-table-body-selected-row-backgroud-color: #506c67;
+    --easy-table-body-selected-row-background-color: #506c67;
     --easy-table-body-row-font-color: #212121;
     --easy-table-body-row-background-color: #fff;
 
@@ -681,7 +681,7 @@ defineExpose({
 }
 
 tr.selected {
-  background: var(--easy-table-body-selected-row-backgroud-color);
+  background: var(--easy-table-body-selected-row-background-color);
 
   td {
     background: none;
