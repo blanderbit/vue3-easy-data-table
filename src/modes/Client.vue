@@ -4,15 +4,20 @@
     <option>name</option>
     <option>indicator.weight</option>
   </select>
-  
-  <br/>
+
+  <br />
 
   <span>search value: </span>
-  <input type="text" v-model="searchValue">
+  <input
+    v-model="searchValue"
+    type="text"
+  >
   <div>
     <DataTable
-      click-row-to-expand
       ref="dataTable"
+      v-model:items-selected="itemsSelected"
+      :click-row-to-expand="false"
+      selectable="single"
       alternating
       border-cell
       no-hover
@@ -32,14 +37,14 @@
       :header-item-class-name="headerItemClassNameFunction"
       :body-item-class-name="bodyItemClassNameFunction"
       :body-expand-row-class-name="bodyExpandRowClassNameFunction"
-      @click-row="showItem"
-      @update-sort="updateSort"
-      @update-filter="updateFilter"
       multi-sort
       body-text-direction="left"
       header-text-direction="left"
       :filter-options="filterOptions"
-      click-event-type="double"
+      click-event-type="single"
+      @click-row="showItem"
+      @update-sort="updateSort"
+      @update-filter="updateFilter"
     >
       <template #expand="item">
         <div style="padding: 15px">
@@ -77,7 +82,7 @@
         </div>
       </template>
 
-       <template #body.append>
+      <template #body.append>
         <span>body.append</span>
       </template>
     </DataTable>
@@ -133,16 +138,26 @@
 
 <script lang="ts" setup>
 import {
-  computed, ref, reactive, toRefs,
+  computed, ref, reactive, toRefs, watch,
 } from 'vue';
 // import { useRowsPerPage } from 'use-vue3-easy-data-table';
 // import type { UseRowsPerPageReturn } from 'use-vue3-easy-data-table';
 import type {
-  Header, Item, FilterOption, ClickRowArgument, UpdateSortArgument, HeaderItemClassNameFunction, BodyItemClassNameFunction, BodyRowClassNameFunction,
+  Header,
+  Item,
+  FilterOption,
+  ClickRowArgument,
+  UpdateSortArgument,
+  HeaderItemClassNameFunction,
+  BodyItemClassNameFunction,
+  BodyRowClassNameFunction,
   TextDirection,
+  SortType,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
-import { mockClientNestedItems, mockClientItems, mockDuplicateClientNestedItems, headersMocked } from '../mock';
+import {
+  mockClientNestedItems, mockClientItems, mockDuplicateClientNestedItems, headersMocked,
+} from '../mock';
 
 const searchField = ref('indicator.weight');
 const searchValue = ref('');
@@ -157,22 +172,22 @@ const switchToNested = () => {
 };
 
 const filterOptions = [
-  {
-    field: 'indicator.height',
-    comparison: (value: string, criteria: string) => value === criteria,
-    criteria: '6-9',
-  },
+  // {
+  //   field: 'indicator.height',
+  //   comparison: (value: string, criteria: string) => value === criteria,
+  //   criteria: '6-9',
+  // },
 ];
 
 const headers: Header[] = [
-  { text: "PLAYER", value: "player" },
-  { text: "TEAM", value: "team"},
-  { text: "NUMBER", value: "number", sortable: true},
-  { text: "POSITION", value: "position"},
-  { text: "HEIGHT", value: "indicator.height"},
-  { text: "WEIGHT (lbs)", value: "indicator.weight", sortable: true},
-  { text: "LAST ATTENDED", value: "lastAttended", width: 200},
-  { text: "COUNTRY", value: "country"},
+  { text: 'PLAYER', value: 'player' },
+  { text: 'TEAM', value: 'team' },
+  { text: 'NUMBER', value: 'number', sortable: true },
+  { text: 'POSITION', value: 'position' },
+  { text: 'HEIGHT', value: 'indicator.height' },
+  { text: 'WEIGHT (lbs)', value: 'indicator.weight', sortable: true },
+  { text: 'LAST ATTENDED', value: 'lastAttended', width: 200 },
+  { text: 'COUNTRY', value: 'country' },
 ];
 
 // const headers: Header[] = headersMocked;
@@ -183,11 +198,21 @@ const updateFilter = (items: Item[]) => {
 };
 
 const items = ref<Item[]>([
-  { player: "Stephen Curry", firstName: "GSW", number: 30, position: 'G', indicator: {"height": '6-2', "weight": 185}, lastAttended: "Davidson", country: "USA"},
-  { player: "Kevin Durant", firstName: "BKN", number: 7, position: 'F', indicator: {"height": '6-10', "weight": 240}, lastAttended: "Texas-Austin", country: "USA"},
-  { player: "Lebron James", firstName: "LAL", number: 7, position: 'F', indicator: {"height": '6-9', "weight": 185}, lastAttended: "St. Vincent-St. Mary HS (OH)", country: "USA"},
-  { player: "Giannis Antetokounmpo", firstName: "MIL", number: 34, position: 'F', indicator: {"height": '6-11', "weight": 242}, lastAttended: "Filathlitikos", country: "Greece"},
-  { player: "HC", firstName: "MIL", number: 34, position: 'F', indicator: {"height": '6-11', "weight": 243}, lastAttended: "Filathlitikos", country: "Greece"},
+  {
+    player: 'Stephen Curry', firstName: 'GSW', number: 30, position: 'G', indicator: { height: '6-2', weight: 185 }, lastAttended: 'Davidson', country: 'USA',
+  },
+  {
+    player: 'Kevin Durant', firstName: 'BKN', number: 7, position: 'F', indicator: { height: '6-10', weight: 240 }, lastAttended: 'Texas-Austin', country: 'USA',
+  },
+  {
+    player: 'Lebron James', firstName: 'LAL', number: 7, position: 'F', indicator: { height: '6-9', weight: 185 }, lastAttended: 'St. Vincent-St. Mary HS (OH)', country: 'USA',
+  },
+  {
+    player: 'Giannis Antetokounmpo', firstName: 'MIL', number: 34, position: 'F', indicator: { height: '6-11', weight: 242 }, lastAttended: 'Filathlitikos', country: 'Greece',
+  },
+  {
+    player: 'HC', firstName: 'MIL', number: 34, position: 'F', indicator: { height: '6-11', weight: 243 }, lastAttended: 'Filathlitikos', country: 'Greece',
+  },
 ]);
 
 // const items = ref<Item[]>(mockClientItems());
@@ -202,7 +227,14 @@ const items = ref<Item[]>([
 //   { text: 'Favourite fruits', value: 'favouriteFruits'},
 // ];
 
-// const itemsSelected = ref<Item[]>([items.value[1]]);
+const itemsSelected = ref<Item[]>([]);
+
+watch(itemsSelected, (val) => {
+  console.log('debug itemsSelected', val);
+}, {
+  immediate: true,
+  deep: true,
+});
 
 const showItem = (item: ClickRowArgument) => {
   console.log('item');
@@ -273,9 +305,7 @@ const prevPage = () => {
 const updatePage = (paginationNumber: number) => {
   dataTable.value.updatePage(paginationNumber);
 };
-const isDataHeader = (header: Header) => {
-  return !(header.value === 'checkbox' || header.value === 'index' || header.value === 'expand')
-}
+const isDataHeader = (header: Header) => !(header.value === 'checkbox' || header.value === 'index' || header.value === 'expand');
 
 // rows per page
 const rowsPerPageOptions = computed(() => dataTable.value?.rowsPerPageOptions);

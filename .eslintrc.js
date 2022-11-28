@@ -26,6 +26,7 @@ module.exports = {
     'vue/no-multiple-template-root': 'off',
     'vue/no-v-model-argument': 'off',
     'vue/no-v-for-template-key': 'off',
+    'no-param-reassign': 'off',
     'import/extensions': [
       'error',
       'ignorePackages',
@@ -36,6 +37,7 @@ module.exports = {
         tsx: 'never',
       },
     ],
+    'linebreak-style': ['error', process.platform === 'win32' ? 'windows' : 'unix'],
   },
   settings: {
     'import/resolver': {

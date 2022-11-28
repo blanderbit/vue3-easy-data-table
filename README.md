@@ -122,6 +122,14 @@ export default defineComponent({
 </script>
 ```
 
+## Useful links
+
+### Table props
+[Here](docs/css-variables.md) you can find a complete list of table props.
+
+### CSS variables
+[Here](docs/css-variables.md) you can find a complete list of CSS variables.
+
 ## Todo
 1. Refactory.
 3. Make table header customizable 🎛️.
