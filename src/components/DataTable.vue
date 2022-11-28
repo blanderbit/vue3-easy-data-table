@@ -241,8 +241,19 @@
         />
       </div>
       <div class="pagination__items-index">
-        {{ `${currentPageFirstIndex}–${currentPageLastIndex}` }}
-        {{ rowsOfPageSeparatorMessage }} {{ totalItemsLength }}
+        <span
+          v-if="paginationWithInput"
+          data-test-id="pagination-with-input-text"
+        >
+          {{ currentPaginationNumber }} of {{ maxPaginationNumber }}
+        </span>
+        <span
+          v-else
+          data-test-id="buttons-pagination-text"
+        >
+          {{ `${currentPageFirstIndex}–${currentPageLastIndex}` }}
+          {{ rowsOfPageSeparatorMessage }} {{ totalItemsLength }}
+        </span>
       </div>
       <slot
         v-if="ifHasPaginationSlot"
@@ -260,14 +271,27 @@
         v-else
         :is-first-page="isFirstPage"
         :is-last-page="isLastPage"
+        :has-double-arrows="paginationWithInput"
         @click-next-page="nextPage"
         @click-prev-page="prevPage"
+        @click-first-page="firstPage"
+        @click-last-page="lastPage"
       >
         <template
           v-if="buttonsPagination"
           #buttonsPagination
         >
           <ButtonsPagination
+            :current-pagination-number="currentPaginationNumber"
+            :max-pagination-number="maxPaginationNumber"
+            @update-page="updatePage"
+          />
+        </template>
+        <template
+          v-if="paginationWithInput"
+          #paginationWithInput
+        >
+          <PaginationWithInput
             :current-pagination-number="currentPaginationNumber"
             :max-pagination-number="maxPaginationNumber"
             @update-page="updatePage"
@@ -309,6 +333,7 @@ import type { HeaderForRender } from '../types/internal';
 import { generateColumnContent } from '../utils';
 import propsWithDefault from '../propsWithDefault';
 import { SelectableEnum } from '../enums/main';
+import PaginationWithInput from './PaginationWithInput.vue';
 
 const props = defineProps({
   ...propsWithDefault,
@@ -481,8 +506,10 @@ const {
   maxPaginationNumber,
   isLastPage,
   isFirstPage,
+  firstPage,
   nextPage,
   prevPage,
+  lastPage,
   updatePage,
   updateCurrentPaginationNumber,
 } = usePagination(
@@ -603,8 +630,10 @@ defineExpose({
   currentPaginationNumber,
   isLastPage,
   isFirstPage,
+  firstPage,
   nextPage,
   prevPage,
+  lastPage,
   updatePage,
   rowsPerPageOptions: rowsItemsComputed,
   rowsPerPageActiveOption: rowsPerPageRef,

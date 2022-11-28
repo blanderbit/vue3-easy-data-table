@@ -18,6 +18,15 @@ export default function usePagination(
   const isLastPage = computed((): boolean => maxPaginationNumber.value === 0 || (currentPaginationNumber.value === maxPaginationNumber.value));
   const isFirstPage = computed((): boolean => currentPaginationNumber.value === 1);
 
+  const firstPage = () => {
+    if (totalItemsLength.value === 0 || loading.value) return;
+    if (isServerSideMode.value) {
+      updateServerOptionsPage(1);
+    } else {
+      currentPaginationNumber.value = 1;
+    }
+  };
+
   const nextPage = () => {
     if (totalItemsLength.value === 0) return;
     if (isLastPage.value) return;
@@ -42,6 +51,15 @@ export default function usePagination(
     }
   };
 
+  const lastPage = () => {
+    if (totalItemsLength.value === 0 || loading.value) return;
+    if (isServerSideMode.value) {
+      updateServerOptionsPage(maxPaginationNumber.value);
+    } else {
+      currentPaginationNumber.value = maxPaginationNumber.value;
+    }
+  };
+
   const updatePage = (page: number) => {
     if (loading.value) return;
     if (isServerSideMode.value) {
@@ -60,6 +78,8 @@ export default function usePagination(
     maxPaginationNumber,
     isLastPage,
     isFirstPage,
+    firstPage,
+    lastPage,
     nextPage,
     prevPage,
     updatePage,

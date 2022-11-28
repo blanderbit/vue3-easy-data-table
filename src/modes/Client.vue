@@ -27,7 +27,8 @@
       :search-field="searchField"
       :search-value="searchValue"
       :rows-per-page="10"
-      buttons-pagination
+      :buttons-pagination="false"
+      :pagination-with-input="true"
       :sort-by="sortBy"
       :sort-type="sortType"
       theme-color="#1d90ff"
@@ -158,6 +159,7 @@ import DataTable from '../components/DataTable.vue';
 import {
   mockClientNestedItems, mockClientItems, mockDuplicateClientNestedItems, headersMocked,
 } from '../mock';
+import { tableHeaders, tableItems } from '../data/table-data';
 
 const searchField = ref('indicator.weight');
 const searchValue = ref('');
@@ -179,16 +181,6 @@ const filterOptions = [
   // },
 ];
 
-const headers: Header[] = [
-  { text: 'PLAYER', value: 'player' },
-  { text: 'TEAM', value: 'team' },
-  { text: 'NUMBER', value: 'number', sortable: true },
-  { text: 'POSITION', value: 'position' },
-  { text: 'HEIGHT', value: 'indicator.height' },
-  { text: 'WEIGHT (lbs)', value: 'indicator.weight', sortable: true },
-  { text: 'LAST ATTENDED', value: 'lastAttended', width: 200 },
-  { text: 'COUNTRY', value: 'country' },
-];
 
 // const headers: Header[] = headersMocked;
 
@@ -197,35 +189,10 @@ const updateFilter = (items: Item[]) => {
   console.log(JSON.stringify(items));
 };
 
-const items = ref<Item[]>([
-  {
-    player: 'Stephen Curry', firstName: 'GSW', number: 30, position: 'G', indicator: { height: '6-2', weight: 185 }, lastAttended: 'Davidson', country: 'USA',
-  },
-  {
-    player: 'Kevin Durant', firstName: 'BKN', number: 7, position: 'F', indicator: { height: '6-10', weight: 240 }, lastAttended: 'Texas-Austin', country: 'USA',
-  },
-  {
-    player: 'Lebron James', firstName: 'LAL', number: 7, position: 'F', indicator: { height: '6-9', weight: 185 }, lastAttended: 'St. Vincent-St. Mary HS (OH)', country: 'USA',
-  },
-  {
-    player: 'Giannis Antetokounmpo', firstName: 'MIL', number: 34, position: 'F', indicator: { height: '6-11', weight: 242 }, lastAttended: 'Filathlitikos', country: 'Greece',
-  },
-  {
-    player: 'HC', firstName: 'MIL', number: 34, position: 'F', indicator: { height: '6-11', weight: 243 }, lastAttended: 'Filathlitikos', country: 'Greece',
-  },
-]);
+const items = ref(tableItems);
 
 // const items = ref<Item[]>(mockClientItems());
-
-// const headers: Header[] = [
-//   { text: 'Name', value: 'name'},
-//   { text: 'Address', value: 'address'},
-//   { text: 'Height', value: 'info.out.height', sortable: true},
-//   { text: 'Weight', value: 'info.out.weight', sortable: true },
-//   { text: 'Age', value: 'age', sortable: true },
-//   { text: 'Favourite sport', value: 'favouriteSport'},
-//   { text: 'Favourite fruits', value: 'favouriteFruits'},
-// ];
+const headers = tableHeaders;
 
 const itemsSelected = ref<Item[]>([]);
 
@@ -372,7 +339,7 @@ const updateRowsPerPageSelect = (e: Event) => {
   --easy-table-header-height: 80px;
   --easy-table-header-font-color: #c1cad4;
   --easy-table-header-background-color: #2d3a4f;
-
+  /*--easy-table-footer-pagination-input-width: 50px;*/
   /* --easy-table-header-item-padding: 10px 15px; */
 
   --easy-table-body-even-row-font-color: #fff;

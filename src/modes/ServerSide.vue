@@ -84,19 +84,25 @@
       </div>
     </div> -->
   </div>
-  <div>{{serverOptions}}</div>
+  <div>{{ serverOptions }}</div>
 </template>
-
 
 <script lang="ts">
 import {
   defineComponent, ref, computed, watch, onMounted, Ref,
 } from 'vue';
 import {
-  Header, Item, ServerOptions, UpdateSortArgument, BodyItemClassNameFunction, BodyRowClassNameFunction, HeaderItemClassNameFunction,
+  Header,
+  Item,
+  ServerOptions,
+  UpdateSortArgument,
+  BodyItemClassNameFunction,
+  BodyRowClassNameFunction,
+  HeaderItemClassNameFunction,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 import { mockClientItems, mockServerItems } from '../mock';
+import { tableHeaders, tableItems } from '../data/table-data';
 
 export default defineComponent({
   components: { DataTable },
@@ -112,16 +118,7 @@ export default defineComponent({
     //   { text: 'Favourite sport', value: 'favouriteSport', width: 200 },
     //   { text: 'Favourite fruits', value: 'favouriteFruits', width: 200 },
     // ];
-    const headers: Header[] = [
-      { text: "PLAYER", value: "player" },
-      { text: "firstName", value: "firstName"},
-      { text: "NUMBER", value: "number", sortable: true},
-      { text: "POSITION", value: "position"},
-      { text: "HEIGHT", value: "indicator.height"},
-      { text: "WEIGHT (lbs)", value: "indicator.weight", sortable: true},
-      { text: "LAST ATTENDED", value: "lastAttended", width: 200},
-      { text: "COUNTRY", value: "country"},
-    ];
+    const headers = tableHeaders;
     const items = ref<Item[]>([]);
     const itemsSelected = ref<Item[]>([items.value[0]]);
     const serverItemsLength = ref(0);
@@ -140,13 +137,7 @@ export default defineComponent({
         serverCurrentPageItems,
         serverTotalItemsLength,
       } = await mockServerItems(serverOptions.value, 101);
-      items.value = [
-        { player: "Stephen Curry", firstName: "GSW", number: 30, position: 'G', indicator: {"height": '6-2', "weight": 185}, lastAttended: "Davidson", country: "USA"},
-        { player: "Kevin Durant", firstName: "BKN", number: 7, position: 'F', indicator: {"height": '6-10', "weight": 240}, lastAttended: "Texas-Austin", country: "USA"},
-        { player: "Lebron James", firstName: "LAL", number: 7, position: 'F', indicator: {"height": '6-9', "weight": 185}, lastAttended: "St. Vincent-St. Mary HS (OH)", country: "USA"},
-        { player: "Giannis Antetokounmpo", firstName: "MIL", number: 34, position: 'F', indicator: {"height": '6-11', "weight": 242}, lastAttended: "Filathlitikos", country: "Greece"},
-        { player: "HC", firstName: "MIL", number: 34, position: 'F', indicator: {"height": '6-11', "weight": 243}, lastAttended: "Filathlitikos", country: "Greece"},
-      ];
+      items.value = tableItems;
       serverItemsLength.value = serverTotalItemsLength;
       loading.value = false;
     };
