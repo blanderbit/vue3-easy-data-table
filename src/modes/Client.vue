@@ -153,6 +153,7 @@ import type {
   BodyItemClassNameFunction,
   BodyRowClassNameFunction,
   TextDirection,
+  SortType,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 import {
@@ -180,7 +181,6 @@ const filterOptions = [
   // },
 ];
 
-const headers = tableHeaders;
 
 // const headers: Header[] = headersMocked;
 
@@ -192,16 +192,7 @@ const updateFilter = (items: Item[]) => {
 const items = ref(tableItems);
 
 // const items = ref<Item[]>(mockClientItems());
-
-// const headers: Header[] = [
-//   { text: 'Name', value: 'name'},
-//   { text: 'Address', value: 'address'},
-//   { text: 'Height', value: 'info.out.height', sortable: true},
-//   { text: 'Weight', value: 'info.out.weight', sortable: true },
-//   { text: 'Age', value: 'age', sortable: true },
-//   { text: 'Favourite sport', value: 'favouriteSport'},
-//   { text: 'Favourite fruits', value: 'favouriteFruits'},
-// ];
+const headers = tableHeaders;
 
 const itemsSelected = ref<Item[]>([]);
 

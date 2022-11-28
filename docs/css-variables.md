@@ -36,6 +36,7 @@
 | --easy-table-scrollbar-corner-color                | #fff;              |                                                                                                                              |
 | --easy-table-buttons-pagination-border             | 1px solid #e0e0e0; |                                                                                                                              |
 | --easy-table-body-selected-row-background-color    | 1px solid #e0e0e0; | Set background color for selected row(s)                                                                                     |
+| --easy-table-footer-pagination-input-width         | 1.875rem           | Set pagination input width                                                                                                   |
 
 
 ## Example
