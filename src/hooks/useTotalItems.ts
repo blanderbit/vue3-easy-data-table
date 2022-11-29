@@ -24,9 +24,9 @@ export default function useTotalItems(
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
   const exactMatchDictionary = ref<ExactMatchDictionary>({});
-  const ignoreColumns = ['expand', 'index', 'checkbox'];
 
   const fillExactMatchDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
+    const ignoreColumns = ['expand', 'index', 'checkbox', 'meta'];
     Object.keys(item).filter((itemKey) => !ignoreColumns.includes(itemKey)).forEach((itemKey) => {
       if (typeof item[itemKey] === 'object') {
         fillExactMatchDictionary(item[itemKey], itemUniqueIndex, itemKey);
@@ -47,7 +47,7 @@ export default function useTotalItems(
   const flattenObj = (obj: Item, parent: string | null = null, res: Item = {}) => {
     Object.keys(obj).forEach((key) => {
       const propName = parent ? `${parent}_${key}` : key;
-      if (typeof obj[key] === 'object') {
+      if (typeof obj[key] === 'object' && key !== 'meta') {
         flattenObj(obj[key], propName, res);
       } else {
         res[propName] = obj[key];
