@@ -622,8 +622,8 @@ watch(searchValue, (currVal) => {
     exactMatchDictionary.value = {};
 
     pageItems.value.forEach((item, idx) => {
-      if (item.index !== currentPageFirstIndex.value + idx) {
-        item.index = currentPageFirstIndex.value + idx;
+      if (item.index !== idx + 1) {
+        item.index = idx + 1;
       }
     });
   }

@@ -24,28 +24,23 @@ export default function useTotalItems(
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
   const exactMatchDictionary = ref<ExactMatchDictionary>({});
+  const ignoreColumns = ['expand', 'index', 'checkbox'];
+
+  const checkIfThereExactMatch = (item: Item, itemKey: string) => (isExactMatchCaseSensitive.value
+    ? item[itemKey].toString() === searchValue.value
+    : item[itemKey].toString().toLowerCase() === searchValue.value.toLowerCase());
 
   const fillExactMatchDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
-    let isExactMatch = false;
-    Object.keys(item).forEach((itemKey) => {
+    Object.keys(item).filter((itemKey) => !ignoreColumns.includes(itemKey)).forEach((itemKey) => {
       if (typeof item[itemKey] === 'object') {
         fillExactMatchDictionary(item[itemKey], itemUniqueIndex, itemKey);
       } else {
         const exactMatchDictionaryKey = dictionaryKey ? `${dictionaryKey}.${itemKey}` : itemKey;
         const hasDictionaryItemsByUniqueIdx = Object.keys(exactMatchDictionary.value[itemUniqueIndex] || {}).length;
-        const isExactMatchFlag = isExactMatchCaseSensitive.value
-          ? item[itemKey].toString() === searchValue.value
-          : item[itemKey].toString().toLowerCase() === searchValue.value.toLowerCase();
-        if (isExactMatchFlag) {
-          isExactMatch = isExactMatchFlag;
-        }
         exactMatchDictionary.value[itemUniqueIndex] = {
           ...(hasDictionaryItemsByUniqueIdx && exactMatchDictionary.value[itemUniqueIndex]),
-          [exactMatchDictionaryKey]: isExactMatchFlag,
+          [exactMatchDictionaryKey]: checkIfThereExactMatch(item, itemKey),
         };
-      }
-      if (item.meta) {
-        item.meta.isExactMatch = isExactMatch;
       }
     });
   };
@@ -116,6 +111,11 @@ export default function useTotalItems(
     }
     if (exactMatch.value && searchValue.value !== '') {
       entities.forEach((item) => {
+        Object.keys(item).filter((itemKey) => !ignoreColumns.includes(itemKey)).forEach((itemKey) => {
+          if (checkIfThereExactMatch(item, itemKey)) {
+            item.meta.isExactMatch = true;
+          }
+        });
         fillExactMatchDictionary(item, item.meta.uniqueIndex);
       });
       sortExactMatchRows(entities);
