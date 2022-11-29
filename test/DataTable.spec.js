@@ -14,6 +14,11 @@ import {
   headersMockedNestedItems,
 } from '../src/mock';
 import PaginationArrows from '../src/components/PaginationArrows.vue';
+import {
+  playerItemsWithDuplicationFixture,
+  playerHeadersFixture,
+  playerItemsWithSimilarNameFixture,
+} from './fixtures/DataTableFixtures';
 
 Object.defineProperty(global, 'crypto', {
   value: {
@@ -24,6 +29,7 @@ Object.defineProperty(global, 'crypto', {
 describe('Data Table', () => {
   let wrapper;
   const findWrapperItemByTestId = (testId) => wrapper.find(`[data-test-id='${testId}']`);
+  const findNodeItemByTestId = (node, testId) => node.find(`[data-test-id='${testId}']`);
   const findNodeItemsByTestId = (node, testId) => node.findAll(`[data-test-id='${testId}']`);
 
   function mountDataTableComponent(options) {
@@ -900,7 +906,7 @@ describe('Data Table', () => {
     });
 
     it(`
-    Searching by specific field (exact match),
+    Searching by specific field (address, exact match),
     should expect 0 rows because of the search by the wrong value in relation to the search field
   `, async () => {
       const mockItems = mockClientItems(200);
@@ -918,7 +924,7 @@ describe('Data Table', () => {
       expect(trArr.length).toBe(0);
     });
 
-    it('Searching by specific field (exact match)', async () => {
+    it('Searching by specific field (address, exact match)', async () => {
       const mockItems = mockClientItems(200);
       mountDataTableComponent({
         props: {
@@ -936,7 +942,7 @@ describe('Data Table', () => {
       expect(findWrapperItemByTestId('table-row-address-column').classes()).toContain('exactMatch');
     });
 
-    it('Searching by specific field (exact match)', async () => {
+    it('Searching by specific field (address, exact match)', async () => {
       const mockItems = mockClientItems(200);
       mountDataTableComponent({
         props: {
@@ -971,7 +977,7 @@ describe('Data Table', () => {
       expect(findWrapperItemByTestId('table-row-address-column').classes()).toContain('exactMatch');
     });
 
-    it('Searching by specific field (exact match and case sensitive)', async () => {
+    it('Searching by specific field (address, exact match and case sensitive)', async () => {
       const mockItems = mockClientItems(200);
       mountDataTableComponent({
         props: {
@@ -990,7 +996,7 @@ describe('Data Table', () => {
       expect(findWrapperItemByTestId('table-row-address-column').classes()).not.toContain('exactMatch');
     });
 
-    it('Searching by specific field (exact match and case sensitive)', async () => {
+    it('Searching by specific field (address, exact match and case sensitive)', async () => {
       const mockItems = mockClientItems(200);
       mountDataTableComponent({
         props: {
@@ -1007,6 +1013,79 @@ describe('Data Table', () => {
       expect(trArr.length).toBe(1);
       expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].address);
       expect(findWrapperItemByTestId('table-row-address-column').classes()).toContain('exactMatch');
+    });
+
+    it('Searching by specific field (player, exact match and case sensitive)', async () => {
+      mountDataTableComponent({
+        props: {
+          items: playerItemsWithDuplicationFixture,
+          headers: playerHeadersFixture,
+          rowsPerPage: 5,
+          exactMatch: true,
+          isExactMatchCaseSensitive: true,
+          searchField: 'player',
+          searchValue: 'HC',
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(2);
+      trArr.forEach((trEl) => {
+        expect(findNodeItemByTestId(trEl, 'table-row-player-column').classes()).toContain('exactMatch');
+      });
+    });
+
+    it('Searching by specific field (player, exact match and case sensitive)', async () => {
+      mountDataTableComponent({
+        props: {
+          items: playerItemsWithSimilarNameFixture,
+          headers: playerHeadersFixture,
+          rowsPerPage: 5,
+          exactMatch: true,
+          isExactMatchCaseSensitive: true,
+          searchField: 'player',
+          searchValue: 'HC',
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(2);
+      expect(findNodeItemByTestId(trArr[0], 'table-row-player-column').classes()).toContain('exactMatch');
+      expect(findNodeItemByTestId(trArr[1], 'table-row-player-column').classes()).not.toContain('exactMatch');
+    });
+
+    it('Searching by specific field (player, exact match and case sensitive)', async () => {
+      mountDataTableComponent({
+        props: {
+          items: playerItemsWithDuplicationFixture,
+          headers: playerHeadersFixture,
+          rowsPerPage: 5,
+          exactMatch: true,
+          isExactMatchCaseSensitive: true,
+          searchField: 'player',
+          searchValue: 'hc',
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(2);
+      trArr.forEach((trEl) => {
+        expect(findNodeItemByTestId(trEl, 'table-row-player-column').classes()).not.toContain('exactMatch');
+      });
+    });
+
+    it('Searching by specific field (player, exact match and not case sensitive)', async () => {
+      mountDataTableComponent({
+        props: {
+          items: playerItemsWithSimilarNameFixture,
+          headers: playerHeadersFixture,
+          rowsPerPage: 5,
+          exactMatch: true,
+          searchField: 'player',
+          searchValue: 'hc',
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(2);
+      expect(findNodeItemByTestId(trArr[0], 'table-row-player-column').classes()).toContain('exactMatch');
+      expect(findNodeItemByTestId(trArr[1], 'table-row-player-column').classes()).not.toContain('exactMatch');
     });
   });
 

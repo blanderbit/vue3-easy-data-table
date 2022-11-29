@@ -328,7 +328,7 @@ import useRows from '../hooks/useRows';
 import useServerOptions from '../hooks/useServerOptions';
 import useTotalItems from '../hooks/useTotalItems';
 
-import type { Header, Item } from '../types/main';
+import type { Header, Item, RowItem } from '../types/main';
 import type { HeaderForRender } from '../types/internal';
 
 // eslint-disable-next-line import/extensions
@@ -477,11 +477,12 @@ const {
   rowsPerPage,
 );
 
-const itemsWithMeta = computed((): Item[] => items.value.map((item: Item) => ({
+const itemsWithMeta = computed((): RowItem[] => items.value.map((item: Item, idx) => ({
   ...item,
   meta: {
     selected: false,
     uniqueIndex: uuidv4(),
+    isExactMatch: false,
   },
 })));
 
@@ -619,6 +620,12 @@ watch(rowsPerPageRef, (value) => {
 watch(searchValue, (currVal) => {
   if (!currVal) {
     exactMatchDictionary.value = {};
+
+    pageItems.value.forEach((item, idx) => {
+      if (item.index !== currentPageFirstIndex.value + idx) {
+        item.index = currentPageFirstIndex.value + idx;
+      }
+    });
   }
   if (!isServerSideMode.value) {
     updatePage(1);
@@ -711,30 +718,37 @@ defineExpose({
 <style lang="scss" scoped>
 @import '../scss/vue3-easy-data-table.scss';
 
-.vue3-easy-data-table__main {
-  min-height: v-bind(tableMinHeightPx);
+.vue3-easy-data-table {
+  .vue3-easy-data-table__main {
+    min-height: v-bind(tableMinHeightPx);
 
-  .vue3-easy-data-table__body {
-    -webkit-user-select: none; /* Safari */
-    user-select: none; /* Standard syntax */
-  }
+    .vue3-easy-data-table__body {
+      -webkit-user-select: none; /* Safari */
+      user-select: none; /* Standard syntax */
+    }
 
-  tr td.exactMatch {
-    background: var(--easy-table-body-exact-match-row-column-background-color);
-  }
-}
-.vue3-easy-data-table__main.fixed-height {
-  height: v-bind(tableHeightPx);
-}
+    tr {
+      &.selected {
+        background: var(--easy-table-body-selected-row-background-color);
 
-tr.selected {
-  background: var(--easy-table-body-selected-row-background-color);
+        td {
+          background: none;
 
-  td {
-    background: none;
+          &.exactMatch {
+            background: var(--easy-table-body-selected-row-and-exact-match-row-column-background-color);
+          }
+        }
+      }
 
-    &.exactMatch {
-      background: var(--easy-table-body-selected-row-and-exact-match-row-column-background-color);
+      td {
+        &.exactMatch {
+          background: var(--easy-table-body-exact-match-row-column-background-color);
+        }
+      }
+    }
+
+    &.fixed-height {
+      height: v-bind(tableHeightPx);
     }
   }
 }

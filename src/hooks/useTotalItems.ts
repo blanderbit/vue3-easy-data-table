@@ -1,7 +1,9 @@
 import {
   Ref, computed, ComputedRef, watch, ref,
 } from 'vue';
-import type { Item, FilterOption, ExactMatchDictionary } from '../types/main';
+import type {
+  Item, FilterOption, ExactMatchDictionary, RowItem,
+} from '../types/main';
 import type { ClientSortOptions, EmitsEventName } from '../types/internal';
 import { getItemValue } from '../utils';
 
@@ -13,7 +15,7 @@ export default function useTotalItems(
   clientSortOptions: Ref<ClientSortOptions | null>,
   filterOptions: Ref<FilterOption[]>,
   isServerSideMode: ComputedRef<boolean>,
-  items: Ref<Item[]>,
+  items: Ref<RowItem[]>,
   itemsSelected: Ref<Item[]>,
   searchField: Ref<string | string[]>,
   searchValue: Ref<string>,
@@ -23,20 +25,27 @@ export default function useTotalItems(
 ) {
   const exactMatchDictionary = ref<ExactMatchDictionary>({});
 
-  const searchingRegex = computed(() => new RegExp(searchValue.value, 'i'));
-
   const fillExactMatchDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
+    let isExactMatch = false;
     Object.keys(item).forEach((itemKey) => {
       if (typeof item[itemKey] === 'object') {
         fillExactMatchDictionary(item[itemKey], itemUniqueIndex, itemKey);
-      }
-      if (searchingRegex.value.test(item[itemKey])) {
+      } else {
         const exactMatchDictionaryKey = dictionaryKey ? `${dictionaryKey}.${itemKey}` : itemKey;
+        const hasDictionaryItemsByUniqueIdx = Object.keys(exactMatchDictionary.value[itemUniqueIndex] || {}).length;
+        const isExactMatchFlag = isExactMatchCaseSensitive.value
+          ? item[itemKey].toString() === searchValue.value
+          : item[itemKey].toString().toLowerCase() === searchValue.value.toLowerCase();
+        if (isExactMatchFlag) {
+          isExactMatch = isExactMatchFlag;
+        }
         exactMatchDictionary.value[itemUniqueIndex] = {
-          [exactMatchDictionaryKey]: isExactMatchCaseSensitive.value
-            ? item[itemKey].toString() === searchValue.value.toString()
-            : true,
+          ...(hasDictionaryItemsByUniqueIdx && exactMatchDictionary.value[itemUniqueIndex]),
+          [exactMatchDictionaryKey]: isExactMatchFlag,
         };
+      }
+      if (item.meta) {
+        item.meta.isExactMatch = isExactMatch;
       }
     });
   };
@@ -53,10 +62,7 @@ export default function useTotalItems(
     return res;
   };
 
-  const generateSearchingTarget = (item: Item): string => {
-    if (exactMatch.value) {
-      fillExactMatchDictionary(item, item.meta.uniqueIndex);
-    }
+  const generateSearchingTarget = (item: RowItem): string => {
     if (typeof searchField.value === 'string' && searchField.value !== '') return getItemValue(searchField.value, item);
     if (Array.isArray(searchField.value)) {
       let searchString = '';
@@ -68,14 +74,55 @@ export default function useTotalItems(
     return Object.values(flattenObj(item)).join(' ');
   };
 
+  const sortExactMatchRows = (rows: RowItem[]) => {
+    const matchDictionary = new Map();
+    let exactMatchCounter = 1;
+    rows.forEach((item, idx) => {
+      let index = idx;
+      if (item.meta.isExactMatch) {
+        index = exactMatchCounter;
+        exactMatchCounter += 1;
+      }
+      matchDictionary.set(item, {
+        index,
+        exactMatch: item.meta.isExactMatch,
+      });
+    });
+
+    let maxExactMatchIndex = exactMatchCounter;
+    matchDictionary.forEach((dictionaryValue) => {
+      if (!dictionaryValue.exactMatch) {
+        dictionaryValue.index = maxExactMatchIndex;
+        maxExactMatchIndex += 1;
+      }
+    });
+
+    rows.forEach((item) => {
+      if (matchDictionary.has(item)) {
+        const { index } = matchDictionary.get(item);
+        item.index = index;
+      }
+    });
+
+    rows.sort((a, b) => (a.index > b.index ? 1 : -1));
+  };
+
   // items searching
-  const itemsSearching = computed((): Item[] => {
+  const itemsSearching = computed((): RowItem[] => {
+    let entities = items.value;
     // searching feature is not available in server-side mode
     if (!isServerSideMode.value && searchValue.value !== '') {
-      return items.value.filter((item) => searchingRegex.value.test(generateSearchingTarget(item)));
+      entities = items.value.filter((item) => new RegExp(searchValue.value, 'i').test(generateSearchingTarget(item)));
     }
-    return items.value;
+    if (exactMatch.value && searchValue.value !== '') {
+      entities.forEach((item) => {
+        fillExactMatchDictionary(item, item.meta.uniqueIndex);
+      });
+      sortExactMatchRows(entities);
+    }
+    return entities;
   });
+
   // items filtering
   const itemsFiltering = computed((): Item[] => {
     let itemsFiltered = [...itemsSearching.value];

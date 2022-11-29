@@ -31,6 +31,15 @@ export const tableItems: Item[] = [
     country: 'USA',
   },
   {
+    player: 'HC 1',
+    team: 'MIL',
+    number: 34,
+    position: 'F',
+    indicator: { height: '6-11', weight: 243 },
+    lastAttended: 'Filathlitikos',
+    country: 'Greece',
+  },
+  {
     player: 'Lebron James',
     team: 'LAL',
     number: 7,

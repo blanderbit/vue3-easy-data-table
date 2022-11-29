@@ -4,6 +4,14 @@ export type FilterComparison = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'between';
 
 export type Item = Record<string, any>
 
+export type RowItem = Item & {
+    meta: {
+        selected: boolean,
+        uniqueIndex: string,
+        isExactMatch: boolean,
+    }
+}
+
 export type FilterOption = {
   field: string
   comparison: 'between'
