@@ -6,12 +6,22 @@ export const headersMocked: Header[] = [
   { text: 'Address', value: 'address' },
   { text: 'Height', value: 'height', sortable: true },
   { text: 'Weight', value: 'weight', sortable: true },
-  { text: 'Age', value: 'calories', sortable: true },
+  { text: 'Age', value: 'age', sortable: true },
   { text: 'Calories', value: 'calories' },
   { text: 'Fat (g)', value: 'fat' },
   { text: 'Carbs (g)', value: 'carbs' },
   { text: 'Protein (g)', value: 'protein' },
   { text: 'Iron (%)', value: 'iron' },
+];
+
+export const headersMockedNestedItems: Header[] = [
+  { text: 'Name', value: 'name' },
+  { text: 'Address', value: 'address' },
+  { text: 'Height', value: 'info.out.height', sortable: true },
+  { text: 'Weight', value: 'info.out.weight', sortable: true },
+  { text: 'Age', value: 'age', sortable: true },
+  { text: 'Favourite Sport', value: 'favouriteSport', sortable: true },
+  { text: 'Favourite fruits', value: 'favouriteFruits', sortable: true },
 ];
 
 export const mockClientItems = (itemsNumber = 100): Item[] => {
@@ -42,8 +52,13 @@ export const mockClientNestedItems = (itemsNumber = 100): Item[] => {
     mockItems.push({
       name: `name-${i}`,
       address: `address-${i}`,
-      info: { out: { height: i, weight: i } },
-      age: i,
+      info: {
+        out: {
+          height: `height-${i}`,
+          weight: `weight-${i}`,
+        },
+      },
+      age: `age-${i}`,
       favouriteSport: sports[i % 4],
       favouriteFruits: fruits[i % 4],
     });

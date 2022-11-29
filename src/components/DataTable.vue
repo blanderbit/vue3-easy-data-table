@@ -130,6 +130,7 @@
               <td
                 v-for="(column, i) in headerColumns"
                 :key="i"
+                :data-test-id="`table-row-${column}-column`"
                 :style="getFixedDistance(column, 'td')"
                 :class="[{
                   'shadow': column === lastFixedColumn,
