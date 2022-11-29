@@ -617,7 +617,7 @@ watch(rowsPerPageRef, (value) => {
 });
 
 watch(searchValue, (currVal) => {
-  if (!isServerSideMode.value && !currVal) {
+  if (!currVal) {
     exactMatchDictionary.value = {};
   }
   if (!isServerSideMode.value) {
@@ -671,8 +671,8 @@ defineExpose({
     --easy-table-body-selected-row-background-color: #506c67;
     --easy-table-body-row-font-color: #212121;
     --easy-table-body-row-background-color: #fff;
-    --easy-table-body-exact-match-row-background-color: #4c4c12;
-    --easy-table-body-selected-and-exact-match-row-background-color: #778f0e;
+    --easy-table-body-exact-match-row-column-background-color: #4c4c12;
+    --easy-table-body-selected-row-and-exact-match-row-column-background-color: #778f0e;
 
     --easy-table-body-row-hover-font-color: #212121;
     --easy-table-body-row-hover-background-color: #eee;
@@ -720,7 +720,7 @@ defineExpose({
   }
 
   tr td.exactMatch {
-    background: var(--easy-table-body-exact-match-row-background-color);
+    background: var(--easy-table-body-exact-match-row-column-background-color);
   }
 }
 .vue3-easy-data-table__main.fixed-height {
@@ -734,7 +734,7 @@ tr.selected {
     background: none;
 
     &.exactMatch {
-      background: var(--easy-table-body-selected-and-exact-match-row-background-color);
+      background: var(--easy-table-body-selected-row-and-exact-match-row-column-background-color);
     }
   }
 }
