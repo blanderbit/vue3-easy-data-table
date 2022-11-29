@@ -26,10 +26,6 @@ export default function useTotalItems(
   const exactMatchDictionary = ref<ExactMatchDictionary>({});
   const ignoreColumns = ['expand', 'index', 'checkbox'];
 
-  const checkIfThereExactMatch = (item: Item, itemKey: string) => (isExactMatchCaseSensitive.value
-    ? item[itemKey].toString() === searchValue.value
-    : item[itemKey].toString().toLowerCase() === searchValue.value.toLowerCase());
-
   const fillExactMatchDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
     Object.keys(item).filter((itemKey) => !ignoreColumns.includes(itemKey)).forEach((itemKey) => {
       if (typeof item[itemKey] === 'object') {
@@ -37,9 +33,12 @@ export default function useTotalItems(
       } else {
         const exactMatchDictionaryKey = dictionaryKey ? `${dictionaryKey}.${itemKey}` : itemKey;
         const hasDictionaryItemsByUniqueIdx = Object.keys(exactMatchDictionary.value[itemUniqueIndex] || {}).length;
+        const isExactMatch = (isExactMatchCaseSensitive.value
+          ? item[itemKey].toString() === searchValue.value
+          : item[itemKey].toString().toLowerCase() === searchValue.value.toLowerCase());
         exactMatchDictionary.value[itemUniqueIndex] = {
           ...(hasDictionaryItemsByUniqueIdx && exactMatchDictionary.value[itemUniqueIndex]),
-          [exactMatchDictionaryKey]: checkIfThereExactMatch(item, itemKey),
+          [exactMatchDictionaryKey]: isExactMatch,
         };
       }
     });
@@ -111,12 +110,9 @@ export default function useTotalItems(
     }
     if (exactMatch.value && searchValue.value !== '') {
       entities.forEach((item) => {
-        Object.keys(item).filter((itemKey) => !ignoreColumns.includes(itemKey)).forEach((itemKey) => {
-          if (checkIfThereExactMatch(item, itemKey)) {
-            item.meta.isExactMatch = true;
-          }
-        });
         fillExactMatchDictionary(item, item.meta.uniqueIndex);
+        item.meta.isExactMatch = Object.values(exactMatchDictionary.value[item.meta.uniqueIndex])
+          .some((dictionaryItemKey) => dictionaryItemKey);
       });
       sortExactMatchRows(entities);
     }
