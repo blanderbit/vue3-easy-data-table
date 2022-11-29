@@ -25,9 +25,13 @@ export default function useTotalItems(
 ) {
   const exactMatchDictionary = ref<ExactMatchDictionary>({});
 
+  const excludeControlKeysFromRowKeys = (objectKeys: string[]) => {
+    const ignoreKeys = ['expand', 'index', 'checkbox', 'meta'];
+    return objectKeys.filter((objectKey) => !ignoreKeys.includes(objectKey));
+  };
+
   const fillExactMatchDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
-    const ignoreColumns = ['expand', 'index', 'checkbox', 'meta'];
-    Object.keys(item).filter((itemKey) => !ignoreColumns.includes(itemKey)).forEach((itemKey) => {
+    excludeControlKeysFromRowKeys(Object.keys(item)).forEach((itemKey) => {
       if (typeof item[itemKey] === 'object') {
         fillExactMatchDictionary(item[itemKey], itemUniqueIndex, itemKey);
       } else {
@@ -47,7 +51,7 @@ export default function useTotalItems(
   const flattenObj = (obj: Item, parent: string | null = null, res: Item = {}) => {
     Object.keys(obj).forEach((key) => {
       const propName = parent ? `${parent}_${key}` : key;
-      if (typeof obj[key] === 'object' && key !== 'meta') {
+      if (typeof obj[key] === 'object') {
         flattenObj(obj[key], propName, res);
       } else {
         res[propName] = obj[key];
@@ -65,7 +69,12 @@ export default function useTotalItems(
       });
       return searchString;
     }
-    return Object.values(flattenObj(item)).join(' ');
+    const itemWithoutControlKeys = excludeControlKeysFromRowKeys(Object.keys(item))
+      .reduce((acc: Item, key) => {
+        acc[key] = item[key];
+        return acc;
+      }, {});
+    return Object.values(flattenObj(itemWithoutControlKeys)).join(' ');
   };
 
   const sortExactMatchRows = (rows: RowItem[]) => {
