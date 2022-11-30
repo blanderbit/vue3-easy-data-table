@@ -26,7 +26,7 @@ export default function useTotalItems(
   // A dictionary containing unique row IDs as keys and as values an object,
   // which containing the column name as a key, a flag indicating whether
   // there is an exact match as a value.
-  const rowsWithExactMatchColumns = ref<ExactMatchDictionary>({});
+  const rowsWithExactMatchColumnsDictionary = ref<ExactMatchDictionary>({});
 
   const excludeControlKeysFromRowKeys = (objectKeys: string[]) => {
     const ignoreKeys = ['expand', 'index', 'checkbox', 'meta'];
@@ -42,12 +42,13 @@ export default function useTotalItems(
         fillRowsWithExactMatchColumnsDictionary(item[itemKey], itemUniqueIndex, itemKey);
       } else {
         const exactMatchDictionaryKey = dictionaryKey ? `${dictionaryKey}.${itemKey}` : itemKey;
-        const hasDictionaryItemsByRowUniqueIdx = Object.keys(rowsWithExactMatchColumns.value[itemUniqueIndex] || {}).length;
+        const hasDictionaryItemsByRowUniqueIdx = Object
+          .keys(rowsWithExactMatchColumnsDictionary.value[itemUniqueIndex] || {}).length;
         const isExactMatch = (isExactMatchCaseSensitive.value
           ? item[itemKey].toString() === searchValue.value
           : item[itemKey].toString().toLowerCase() === searchValue.value.toLowerCase());
-        rowsWithExactMatchColumns.value[itemUniqueIndex] = {
-          ...(hasDictionaryItemsByRowUniqueIdx && rowsWithExactMatchColumns.value[itemUniqueIndex]),
+        rowsWithExactMatchColumnsDictionary.value[itemUniqueIndex] = {
+          ...(hasDictionaryItemsByRowUniqueIdx && rowsWithExactMatchColumnsDictionary.value[itemUniqueIndex]),
           [exactMatchDictionaryKey]: isExactMatch,
         };
       }
@@ -106,16 +107,16 @@ export default function useTotalItems(
 
   // items searching
   const itemsSearching = computed((): RowItem[] => {
+    rowsWithExactMatchColumnsDictionary.value = {};
     let entities = items.value;
     // searching feature is not available in server-side mode
     if (!isServerSideMode.value && searchValue.value !== '') {
       entities = items.value.filter((item) => new RegExp(searchValue.value, 'i').test(generateSearchingTarget(item)));
     }
     if (exactMatch.value && searchValue.value !== '') {
-      rowsWithExactMatchColumns.value = {};
       entities.forEach((item) => {
         fillRowsWithExactMatchColumnsDictionary(item, item.meta.uniqueIndex);
-        item.meta.isExactMatch = Object.values(rowsWithExactMatchColumns.value[item.meta.uniqueIndex])
+        item.meta.isExactMatch = Object.values(rowsWithExactMatchColumnsDictionary.value[item.meta.uniqueIndex])
           .some((dictionaryItemKey) => dictionaryItemKey);
       });
       moveExactMatchRowsUp(entities);
@@ -247,7 +248,7 @@ export default function useTotalItems(
   };
 
   return {
-    rowsWithExactMatchColumns,
+    rowsWithExactMatchColumnsDictionary,
     totalItems,
     selectItemsComputed,
     totalItemsLength,

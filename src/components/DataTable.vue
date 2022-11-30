@@ -135,7 +135,7 @@
                 :class="[{
                   'shadow': column === lastFixedColumn,
                   'can-expand': column === 'expand',
-                  'exactMatch': rowsWithExactMatchColumns[item.meta.uniqueIndex]?.[column],
+                  'exactMatch': rowsWithExactMatchColumnsDictionary[item.meta.uniqueIndex]?.[column],
                 // eslint-disable-next-line max-len
                 }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
                 @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
@@ -477,7 +477,7 @@ const {
   rowsPerPage,
 );
 
-const itemsWithMeta = computed((): RowItem[] => items.value.map((item: Item, idx) => ({
+const itemsWithMeta = computed((): RowItem[] => items.value.map((item: Item) => ({
   ...item,
   meta: {
     selected: false,
@@ -487,7 +487,7 @@ const itemsWithMeta = computed((): RowItem[] => items.value.map((item: Item, idx
 })));
 
 const {
-  rowsWithExactMatchColumns,
+  rowsWithExactMatchColumnsDictionary,
   totalItems,
   selectItemsComputed,
   totalItemsLength,
@@ -619,8 +619,6 @@ watch(rowsPerPageRef, (value) => {
 
 watch(searchValue, (currVal) => {
   if (!currVal) {
-    rowsWithExactMatchColumns.value = {};
-
     pageItems.value.forEach((item, idx) => {
       if (item.index !== idx + 1) {
         item.index = idx + 1;
