@@ -17,11 +17,13 @@
       ref="dataTable"
       v-model:items-selected="itemsSelected"
       :click-row-to-expand="false"
+      :exact-match="true"
+      :is-exact-match-case-sensitive="true"
+      :show-index="true"
       selectable="single"
       alternating
       border-cell
       no-hover
-      show-index
       :headers="headers"
       :items="items"
       :search-field="searchField"
@@ -161,7 +163,7 @@ import {
 } from '../mock';
 import { tableHeaders, tableItems } from '../data/table-data';
 
-const searchField = ref('indicator.weight');
+const searchField = ref(null); // null | 'indicator.weight' | ['indicator.weight'] | ['indicator.weight', 'indicator.height']
 const searchValue = ref('');
 const sortBy = ref(['indicator.weight', 'number']);
 const sortType = ref<SortType | SortType[] | undefined>(['desc', 'asc']);
@@ -180,7 +182,6 @@ const filterOptions = [
   //   criteria: '6-9',
   // },
 ];
-
 
 // const headers: Header[] = headersMocked;
 

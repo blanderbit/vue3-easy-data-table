@@ -4,6 +4,14 @@ export type FilterComparison = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'between';
 
 export type Item = Record<string, any>
 
+export type RowItem = Item & {
+    meta: {
+        selected: boolean,
+        uniqueIndex: string,
+        isExactMatch: boolean,
+    }
+}
+
 export type FilterOption = {
   field: string
   comparison: 'between'
@@ -45,6 +53,12 @@ export type ClickRowArgument = Item & {
 export type UpdateSortArgument = {
   sortType: SortType | null
   sortBy: string
+}
+
+export type ExactMatchDictionary = {
+    [key: string]: {
+        [key: string]: boolean
+    }
 }
 
 export type HeaderItemClassNameFunction = (header: Header, index: number) => string

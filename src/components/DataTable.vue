@@ -130,10 +130,12 @@
               <td
                 v-for="(column, i) in headerColumns"
                 :key="i"
+                :data-test-id="`table-row-${column}-column`"
                 :style="getFixedDistance(column, 'td')"
                 :class="[{
                   'shadow': column === lastFixedColumn,
                   'can-expand': column === 'expand',
+                  'exactMatch': rowsWithExactMatchColumnsDictionary[item.meta.uniqueIndex]?.[column],
                 // eslint-disable-next-line max-len
                 }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
                 @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
@@ -326,7 +328,7 @@ import useRows from '../hooks/useRows';
 import useServerOptions from '../hooks/useServerOptions';
 import useTotalItems from '../hooks/useTotalItems';
 
-import type { Header, Item } from '../types/main';
+import type { Header, Item, RowItem } from '../types/main';
 import type { HeaderForRender } from '../types/internal';
 
 // eslint-disable-next-line import/extensions
@@ -380,6 +382,8 @@ const {
   themeColor,
   rowsOfPageSeparatorMessage,
   selectable,
+  exactMatch,
+  isExactMatchCaseSensitive,
 } = toRefs(props);
 
 // style related computed variables
@@ -473,21 +477,26 @@ const {
   rowsPerPage,
 );
 
-const itemsWithMeta = computed((): Item[] => items.value.map((item: Item) => ({
+const itemsWithMeta = computed((): RowItem[] => items.value.map((item: Item) => ({
   ...item,
   meta: {
     selected: false,
     uniqueIndex: uuidv4(),
+    isExactMatch: false,
   },
 })));
 
 const {
+  rowsWithExactMatchColumnsDictionary,
   totalItems,
   selectItemsComputed,
   totalItemsLength,
   toggleSelectAll,
   toggleSelectItem,
 } = useTotalItems(
+  exactMatch,
+  isExactMatchCaseSensitive,
+  headerColumns,
   isMultiSelect,
   clientSortOptions,
   filterOptions,
@@ -660,6 +669,8 @@ defineExpose({
     --easy-table-body-selected-row-background-color: #506c67;
     --easy-table-body-row-font-color: #212121;
     --easy-table-body-row-background-color: #fff;
+    --easy-table-body-exact-match-row-column-background-color: #4c4c12;
+    --easy-table-body-selected-row-and-exact-match-row-column-background-color: #778f0e;
 
     --easy-table-body-row-hover-font-color: #212121;
     --easy-table-body-row-hover-background-color: #eee;
@@ -698,22 +709,38 @@ defineExpose({
 <style lang="scss" scoped>
 @import '../scss/vue3-easy-data-table.scss';
 
-.vue3-easy-data-table__main {
-  min-height: v-bind(tableMinHeightPx);
-}
-.vue3-easy-data-table__main.fixed-height {
-  height: v-bind(tableHeightPx);
-}
-.vue3-easy-data-table__body {
-  -webkit-user-select: none; /* Safari */
-  user-select: none; /* Standard syntax */
-}
+.vue3-easy-data-table {
+  .vue3-easy-data-table__main {
+    min-height: v-bind(tableMinHeightPx);
 
-tr.selected {
-  background: var(--easy-table-body-selected-row-background-color);
+    .vue3-easy-data-table__body {
+      -webkit-user-select: none; /* Safari */
+      user-select: none; /* Standard syntax */
+    }
 
-  td {
-    background: none;
+    tr {
+      &.selected {
+        background: var(--easy-table-body-selected-row-background-color);
+
+        td {
+          background: none;
+
+          &.exactMatch {
+            background: var(--easy-table-body-selected-row-and-exact-match-row-column-background-color);
+          }
+        }
+      }
+
+      td {
+        &.exactMatch {
+          background: var(--easy-table-body-exact-match-row-column-background-color);
+        }
+      }
+    }
+
+    &.fixed-height {
+      height: v-bind(tableHeightPx);
+    }
   }
 }
 </style>

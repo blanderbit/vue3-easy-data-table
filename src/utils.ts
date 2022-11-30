@@ -20,3 +20,18 @@ export function generateColumnContent(column: string, item: Item) {
   const content = getItemValue(column, item);
   return Array.isArray(content) ? content.join(',') : content;
 }
+
+export function flattenObj(obj: Item, parent: string | null = null, res: Item = {}) {
+  if (typeof obj !== 'object') return res;
+  const objKeys = Object.keys(obj);
+  if (!objKeys.length) return res;
+  objKeys.forEach((key) => {
+    const propName = parent ? `${parent}_${key}` : key;
+    if (typeof obj[key] === 'object') {
+      flattenObj(obj[key], propName, res);
+    } else {
+      res[propName] = obj[key];
+    }
+  });
+  return res;
+}
