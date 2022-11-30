@@ -23,25 +23,28 @@ export default function useTotalItems(
   multiSort: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
-  const exactMatchDictionary = ref<ExactMatchDictionary>({});
+  // A dictionary containing unique row IDs as keys and as values an object,
+  // which containing the column name as a key, a flag indicating whether
+  // there is an exact match as a value.
+  const rowsWithExactMatchColumns = ref<ExactMatchDictionary>({});
 
   const excludeControlKeysFromRowKeys = (objectKeys: string[]) => {
     const ignoreKeys = ['expand', 'index', 'checkbox', 'meta'];
     return objectKeys.filter((objectKey) => !ignoreKeys.includes(objectKey));
   };
 
-  const fillExactMatchDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
+  const fillRowsWithExactMatchColumnsDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
     excludeControlKeysFromRowKeys(Object.keys(item)).forEach((itemKey) => {
       if (typeof item[itemKey] === 'object') {
-        fillExactMatchDictionary(item[itemKey], itemUniqueIndex, itemKey);
+        fillRowsWithExactMatchColumnsDictionary(item[itemKey], itemUniqueIndex, itemKey);
       } else {
         const exactMatchDictionaryKey = dictionaryKey ? `${dictionaryKey}.${itemKey}` : itemKey;
-        const hasDictionaryItemsByUniqueIdx = Object.keys(exactMatchDictionary.value[itemUniqueIndex] || {}).length;
+        const hasDictionaryItemsByUniqueIdx = Object.keys(rowsWithExactMatchColumns.value[itemUniqueIndex] || {}).length;
         const isExactMatch = (isExactMatchCaseSensitive.value
           ? item[itemKey].toString() === searchValue.value
           : item[itemKey].toString().toLowerCase() === searchValue.value.toLowerCase());
-        exactMatchDictionary.value[itemUniqueIndex] = {
-          ...(hasDictionaryItemsByUniqueIdx && exactMatchDictionary.value[itemUniqueIndex]),
+        rowsWithExactMatchColumns.value[itemUniqueIndex] = {
+          ...(hasDictionaryItemsByUniqueIdx && rowsWithExactMatchColumns.value[itemUniqueIndex]),
           [exactMatchDictionaryKey]: isExactMatch,
         };
       }
@@ -77,8 +80,8 @@ export default function useTotalItems(
     return Object.values(flattenObj(itemWithoutControlKeys)).join(' ');
   };
 
-  const sortExactMatchRows = (rows: RowItem[]) => {
-    const matchDictionary = new Map();
+  const moveExactMatchRowsUp = (rows: RowItem[]) => {
+    const exactMatchRowsDictionary = new Map();
     let exactMatchCounter = 1;
     rows.forEach((item, idx) => {
       let index = idx;
@@ -86,14 +89,14 @@ export default function useTotalItems(
         index = exactMatchCounter;
         exactMatchCounter += 1;
       }
-      matchDictionary.set(item, {
+      exactMatchRowsDictionary.set(item, {
         index,
         exactMatch: item.meta.isExactMatch,
       });
     });
 
     let maxExactMatchIndex = exactMatchCounter;
-    matchDictionary.forEach((dictionaryValue) => {
+    exactMatchRowsDictionary.forEach((dictionaryValue) => {
       if (!dictionaryValue.exactMatch) {
         dictionaryValue.index = maxExactMatchIndex;
         maxExactMatchIndex += 1;
@@ -101,8 +104,8 @@ export default function useTotalItems(
     });
 
     rows.forEach((item) => {
-      if (matchDictionary.has(item)) {
-        const { index } = matchDictionary.get(item);
+      if (exactMatchRowsDictionary.has(item)) {
+        const { index } = exactMatchRowsDictionary.get(item);
         item.index = index;
       }
     });
@@ -118,12 +121,13 @@ export default function useTotalItems(
       entities = items.value.filter((item) => new RegExp(searchValue.value, 'i').test(generateSearchingTarget(item)));
     }
     if (exactMatch.value && searchValue.value !== '') {
+      rowsWithExactMatchColumns.value = {};
       entities.forEach((item) => {
-        fillExactMatchDictionary(item, item.meta.uniqueIndex);
-        item.meta.isExactMatch = Object.values(exactMatchDictionary.value[item.meta.uniqueIndex])
+        fillRowsWithExactMatchColumnsDictionary(item, item.meta.uniqueIndex);
+        item.meta.isExactMatch = Object.values(rowsWithExactMatchColumns.value[item.meta.uniqueIndex])
           .some((dictionaryItemKey) => dictionaryItemKey);
       });
-      sortExactMatchRows(entities);
+      moveExactMatchRowsUp(entities);
     }
     return entities;
   });
@@ -252,7 +256,7 @@ export default function useTotalItems(
   };
 
   return {
-    exactMatchDictionary,
+    rowsWithExactMatchColumns,
     totalItems,
     selectItemsComputed,
     totalItemsLength,
