@@ -35,7 +35,7 @@ export const tableItems: Item[] = [
     team: 'MIL',
     number: 34,
     position: 'F',
-    indicator: { height: '6-11', weight: 243 },
+    indicator: { height: '6-9', weight: 220 },
     lastAttended: 'Filathlitikos',
     country: 'Greece',
   },

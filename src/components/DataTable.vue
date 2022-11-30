@@ -617,14 +617,7 @@ watch(rowsPerPageRef, (value) => {
   }
 });
 
-watch(searchValue, (currVal) => {
-  if (!currVal) {
-    pageItems.value.forEach((item, idx) => {
-      if (item.index !== idx + 1) {
-        item.index = idx + 1;
-      }
-    });
-  }
+watch(searchValue, () => {
   if (!isServerSideMode.value) {
     updatePage(1);
   }

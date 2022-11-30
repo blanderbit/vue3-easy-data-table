@@ -37,7 +37,10 @@ export default function usePageItems(
   // items for render
   const pageItems = computed((): Item[] => {
     if (showIndex.value) {
-      return itemsInPage.value.map((item, index) => ({ index: currentPageFirstIndex.value + index, ...item }));
+      return itemsInPage.value.map((item, idx) => {
+        item.index = currentPageFirstIndex.value + idx;
+        return item;
+      });
     }
     return itemsInPage.value;
   });

@@ -19,11 +19,11 @@
       :click-row-to-expand="false"
       :exact-match="true"
       :is-exact-match-case-sensitive="true"
+      :show-index="true"
       selectable="single"
       alternating
       border-cell
       no-hover
-      show-index
       :headers="headers"
       :items="items"
       :search-field="searchField"
