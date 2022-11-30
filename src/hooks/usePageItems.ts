@@ -34,7 +34,8 @@ export default function usePageItems(
     return totalItems.value.slice(currentPageFirstIndex.value - 1, currentPageLastIndex.value);
   });
 
-  const itemsWithIndex = computed((): Item[] => {
+  // items for render
+  const pageItems = computed((): Item[] => {
     if (showIndex.value) {
       return itemsInPage.value.map((item, index) => ({ index: currentPageFirstIndex.value + index, ...item }));
     }
@@ -47,9 +48,6 @@ export default function usePageItems(
     }
     return selectItemsComputed.value.length === totalItems.value.length ? 'allSelected' : 'partSelected';
   });
-
-  // items for render
-  const pageItems = computed((): Item[] => itemsWithIndex.value);
 
   return {
     currentPageFirstIndex,

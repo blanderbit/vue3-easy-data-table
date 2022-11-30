@@ -5,7 +5,7 @@ import type {
   Item, FilterOption, ExactMatchDictionary, RowItem,
 } from '../types/main';
 import type { ClientSortOptions, EmitsEventName } from '../types/internal';
-import { getItemValue } from '../utils';
+import { getItemValue, flattenObj } from '../utils';
 
 export default function useTotalItems(
   exactMatch: Ref<boolean>,
@@ -34,33 +34,24 @@ export default function useTotalItems(
   };
 
   const fillRowsWithExactMatchColumnsDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
-    excludeControlKeysFromRowKeys(Object.keys(item)).forEach((itemKey) => {
+    if (typeof item !== 'object') return;
+    const itemKeys = Object.keys(item);
+    if (!itemKeys.length) return;
+    excludeControlKeysFromRowKeys(itemKeys).forEach((itemKey) => {
       if (typeof item[itemKey] === 'object') {
         fillRowsWithExactMatchColumnsDictionary(item[itemKey], itemUniqueIndex, itemKey);
       } else {
         const exactMatchDictionaryKey = dictionaryKey ? `${dictionaryKey}.${itemKey}` : itemKey;
-        const hasDictionaryItemsByUniqueIdx = Object.keys(rowsWithExactMatchColumns.value[itemUniqueIndex] || {}).length;
+        const hasDictionaryItemsByRowUniqueIdx = Object.keys(rowsWithExactMatchColumns.value[itemUniqueIndex] || {}).length;
         const isExactMatch = (isExactMatchCaseSensitive.value
           ? item[itemKey].toString() === searchValue.value
           : item[itemKey].toString().toLowerCase() === searchValue.value.toLowerCase());
         rowsWithExactMatchColumns.value[itemUniqueIndex] = {
-          ...(hasDictionaryItemsByUniqueIdx && rowsWithExactMatchColumns.value[itemUniqueIndex]),
+          ...(hasDictionaryItemsByRowUniqueIdx && rowsWithExactMatchColumns.value[itemUniqueIndex]),
           [exactMatchDictionaryKey]: isExactMatch,
         };
       }
     });
-  };
-
-  const flattenObj = (obj: Item, parent: string | null = null, res: Item = {}) => {
-    Object.keys(obj).forEach((key) => {
-      const propName = parent ? `${parent}_${key}` : key;
-      if (typeof obj[key] === 'object') {
-        flattenObj(obj[key], propName, res);
-      } else {
-        res[propName] = obj[key];
-      }
-    });
-    return res;
   };
 
   const generateSearchingTarget = (item: RowItem): string => {
