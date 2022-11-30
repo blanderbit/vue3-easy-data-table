@@ -7,6 +7,7 @@ import type {
 } from '../types/internal';
 
 export default function useHeaders(
+  checkedTableProperties: Ref<string[]>,
   checkboxColumnWidth: Ref<number>,
   expandColumnWidth: Ref<number>,
   fixedCheckbox: Ref<boolean>,
@@ -26,12 +27,13 @@ export default function useHeaders(
   updateServerOptionsSort: (newSortBy: string, newSortType: SortType | null) => void,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
-  const hasFixedColumnsFromUser = computed(() => headers.value.findIndex((header) => header.fixed) !== -1);
+  const visibleHeaders = computed(() => headers.value.filter((header) => checkedTableProperties.value.includes(header.value)));
+  const hasFixedColumnsFromUser = computed(() => visibleHeaders.value.findIndex((header) => header.fixed) !== -1);
   const fixedHeadersFromUser = computed(() => {
-    if (hasFixedColumnsFromUser.value) return headers.value.filter((header) => header.fixed);
+    if (hasFixedColumnsFromUser.value) return visibleHeaders.value.filter((header) => header.fixed);
     return [];
   });
-  const unFixedHeaders = computed(() => headers.value.filter((header) => !header.fixed));
+  const unFixedHeaders = computed(() => visibleHeaders.value.filter((header) => !header.fixed));
 
   // eslint-disable-next-line max-len
   const generateClientSortOptions = (sortByValue: string | string[], sortTypeValue: SortType | SortType[]): ClientSortOptions | null => {

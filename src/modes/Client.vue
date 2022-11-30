@@ -20,6 +20,7 @@
       :exact-match="true"
       :is-exact-match-case-sensitive="true"
       :show-index="true"
+      :manage-table-properties="true"
       selectable="single"
       alternating
       border-cell
@@ -210,7 +211,7 @@ const showItem = (item: ClickRowArgument) => {
 };
 
 const updateSort = (sortOption: UpdateSortArgument) => {
-  console.log(sortOption);
+  console.log('sortOption', sortOption);
 };
 // filtering
 

@@ -1,4 +1,23 @@
 <template>
+  <template
+    v-if="manageTableProperties"
+  >
+    <div
+      v-click-outside="clickOutsideManageTablePropertiesArea"
+      class="manage-table-properties-container"
+    >
+      <i
+        class="sliders-icon fa fa-sliders-h"
+        @click="toggleManageTablePropertiesVisibility"
+      />
+      <manage-table-properties
+        v-if="isManageTablePropertiesVisible"
+        v-model="checkedTableProperties"
+        :columns="tableProperties"
+        @set-checked-table-properties="setCheckedTableProperties"
+      />
+    </div>
+  </template>
   <div
     ref="dataTable"
     class="vue3-easy-data-table"
@@ -317,6 +336,8 @@ import Loading from './Loading.vue';
 import LoadingLine from './LoadingLine.vue';
 import ButtonsPagination from './ButtonsPagination.vue';
 import PaginationArrows from './PaginationArrows.vue';
+import PaginationWithInput from './PaginationWithInput.vue';
+import ManageTableProperties from './ManageTableProperties.vue';
 
 import useClickRow from '../hooks/useClickRow';
 import useExpandableRow from '../hooks/useExpandableRow';
@@ -335,7 +356,6 @@ import type { HeaderForRender } from '../types/internal';
 import { generateColumnContent } from '../utils';
 import propsWithDefault from '../propsWithDefault';
 import { SelectableEnum } from '../enums/main';
-import PaginationWithInput from './PaginationWithInput.vue';
 
 const props = defineProps({
   ...propsWithDefault,
@@ -384,6 +404,7 @@ const {
   selectable,
   exactMatch,
   isExactMatchCaseSensitive,
+  manageTableProperties,
 } = toRefs(props);
 
 // style related computed variables
@@ -404,6 +425,9 @@ const ifHasBodySlot = computed(() => !!slots.body);
 const dataTable = ref();
 const tableBody = ref();
 provide('dataTable', dataTable);
+
+const isManageTablePropertiesVisible = ref(false);
+const checkedTableProperties = ref<string[]>([]);
 
 // fixed-columns shadow
 const showShadow = ref(false);
@@ -438,6 +462,8 @@ const {
   emits,
 );
 
+const tableProperties = computed(() => headers.value);
+
 const {
   clientSortOptions,
   headerColumns,
@@ -446,6 +472,7 @@ const {
   isMultiSorting,
   getMultiSortNumber,
 } = useHeaders(
+  checkedTableProperties,
   checkboxColumnWidth,
   expandColumnWidth,
   fixedCheckbox,
@@ -599,6 +626,26 @@ const getFixedDistance = (column: string, type: 'td' | 'th' = 'th') => {
   return undefined;
 };
 
+const toggleManageTablePropertiesVisibility = () => {
+  isManageTablePropertiesVisible.value = !isManageTablePropertiesVisible.value;
+};
+
+const clickOutsideManageTablePropertiesArea = () => {
+  isManageTablePropertiesVisible.value = false;
+};
+
+const setCheckedTableProperties = (value: string[]) => {
+  checkedTableProperties.value = value;
+};
+
+watch(manageTableProperties, (val) => {
+  if (val) {
+    checkedTableProperties.value = tableProperties.value.map((tableProperty) => tableProperty.value);
+  }
+}, {
+  immediate: true,
+});
+
 watch(loading, (newVal, oldVal) => {
   if (serverOptionsComputed.value) {
     // in server-side mode, turn to next page when api request finished.
@@ -708,6 +755,17 @@ defineExpose({
 
 <style lang="scss" scoped>
 @import '../scss/vue3-easy-data-table.scss';
+
+.manage-table-properties-container {
+  display: flex;
+  justify-content: end;
+
+  .sliders-icon {
+    margin-right: 1rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+  }
+}
 
 .vue3-easy-data-table {
   .vue3-easy-data-table__main {

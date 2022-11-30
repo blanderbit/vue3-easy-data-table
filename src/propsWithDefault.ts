@@ -210,4 +210,8 @@ export default {
     type: Boolean,
     default: false,
   },
+  manageTableProperties: {
+    type: Boolean,
+    default: false,
+  },
 };
