@@ -21,6 +21,13 @@ export function generateColumnContent(column: string, item: Item) {
   return Array.isArray(content) ? content.join(',') : content;
 }
 
+/**
+ * Obtain a new object in which all elements of nested objects
+ * have been recursively "raised" to the top level.
+ * @param {Object} obj - Input object.
+ * @param {Object} parent - Parent object.
+ * @param {Object} res - Flatten object.
+ */
 export function flattenObj(obj: Item, parent: string | null = null, res: Item = {}) {
   if (typeof obj !== 'object') return res;
   const objKeys = Object.keys(obj);
