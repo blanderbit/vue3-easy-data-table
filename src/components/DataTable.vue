@@ -1,324 +1,327 @@
 <template>
-  <template
-    v-if="manageTableProperties"
-  >
+  <div>
     <div
-      v-click-outside="clickOutsideManageTablePropertiesArea"
+      v-if="manageTableProperties"
       class="manage-table-properties-container"
     >
-      <i
-        class="sliders-icon fa fa-sliders-h"
-        @click="toggleManageTablePropertiesVisibility"
-      />
-      <manage-table-properties
-        v-if="isManageTablePropertiesVisible"
-        v-model="checkedTableProperties"
-        :columns="tableProperties"
-        @set-checked-table-properties="setCheckedTableProperties"
-      />
+      <div class="area">
+        <i
+          class="sliders-icon fa fa-sliders-h"
+          data-test-id="manage-table-properties-icon"
+          @click.stop="toggleManageTablePropertiesVisibility"
+        />
+        <manage-table-properties
+          v-if="isManageTablePropertiesVisible"
+          v-model="checkedTableProperties"
+          data-test-id="manage-table-properties"
+          :columns="tableProperties"
+          @set-checked-table-properties="setCheckedTableProperties"
+          @close="toggleManageTablePropertiesVisibility"
+        />
+      </div>
     </div>
-  </template>
-  <div
-    ref="dataTable"
-    class="vue3-easy-data-table"
-    :class="[tableClassName]"
-  >
     <div
-      ref="tableBody"
-      class="vue3-easy-data-table__main"
-      :class="{
-        'fixed-header': fixedHeader,
-        'fixed-height': tableHeight,
-        'show-shadow': showShadow,
-        'table-fixed': fixedHeaders.length,
-        'hoverable': !noHover,
-        'border-cell': borderCell,
-      }"
+      ref="dataTable"
+      class="vue3-easy-data-table"
+      :class="[tableClassName]"
     >
-      <table>
-        <colgroup>
-          <col
-            v-for="(header, index) in headersForRender"
-            :key="index"
-            :style="getColStyle(header)"
-          />
-        </colgroup>
-        <thead
-          v-if="headersForRender.length && !hideHeader"
-          class="vue3-easy-data-table__header"
-          :class="[headerClassName]"
-        >
-          <tr>
-            <th
+      <div
+        ref="tableBody"
+        class="vue3-easy-data-table__main"
+        :class="{
+          'fixed-header': fixedHeader,
+          'fixed-height': tableHeight,
+          'show-shadow': showShadow,
+          'table-fixed': fixedHeaders.length,
+          'hoverable': !noHover,
+          'border-cell': borderCell,
+        }"
+      >
+        <table>
+          <colgroup>
+            <col
               v-for="(header, index) in headersForRender"
               :key="index"
-              :class="[{
-                sortable: header.sortable,
-                'none': header.sortable && header.sortType === 'none',
-                'desc': header.sortable && header.sortType === 'desc',
-                'asc': header.sortable && header.sortType === 'asc',
-                'shadow': header.value === lastFixedColumn,
-              // eslint-disable-next-line max-len
-              }, typeof headerItemClassName === 'string' ? headerItemClassName : headerItemClassName(header as Header, index)]"
-              :style="getFixedDistance(header.value)"
-              @click.stop="(header.sortable && header.sortType) ? updateSortField(header.value, header.sortType) : null"
-            >
-              <MultipleSelectCheckBox
-                v-if="header.text === 'checkbox'"
-                :key="multipleSelectStatus"
-                :status="multipleSelectStatus"
-                @change="toggleSelectAll"
-              />
-              <span
-                v-else
-                class="header"
-                :class="`direction-${headerTextDirection}`"
+              :style="getColStyle(header)"
+            />
+          </colgroup>
+          <thead
+            v-if="headersForRender.length && !hideHeader"
+            class="vue3-easy-data-table__header"
+            :class="[headerClassName]"
+          >
+            <tr>
+              <th
+                v-for="(header, index) in headersForRender"
+                :key="index"
+                :class="[{
+                  sortable: header.sortable,
+                  'none': header.sortable && header.sortType === 'none',
+                  'desc': header.sortable && header.sortType === 'desc',
+                  'asc': header.sortable && header.sortType === 'asc',
+                  'shadow': header.value === lastFixedColumn,
+                  // eslint-disable-next-line max-len
+                }, typeof headerItemClassName === 'string' ? headerItemClassName : headerItemClassName(header as Header, index)]"
+                :style="getFixedDistance(header.value)"
+                @click="(header.sortable && header.sortType) ? updateSortField(header.value, header.sortType) : null"
               >
-                <slot
-                  v-if="slots[`header-${header.value}`]"
-                  :name="`header-${header.value}`"
-                  v-bind="header"
-                />
-                <slot
-                  v-else-if="slots[`header-${header.value.toLowerCase()}`]"
-                  :name="`header-${header.value.toLowerCase()}`"
-                  v-bind="header"
+                <MultipleSelectCheckBox
+                  v-if="header.text === 'checkbox'"
+                  :key="multipleSelectStatus"
+                  :status="multipleSelectStatus"
+                  @change="toggleSelectAll"
                 />
                 <span
                   v-else
-                  class="header-text"
+                  class="header"
+                  :class="`direction-${headerTextDirection}`"
                 >
-                  {{ header.text }}
-                </span>
-                <i
-                  v-if="header.sortable"
-                  :key="header.sortType ? header.sortType : 'none'"
-                  class="sortType-icon"
-                  :class="{'desc': header.sortType === 'desc'}"
-                ></i>
-                <span
-                  v-if="multiSort && isMultiSorting(header.value)"
-                  class="multi-sort__number"
-                >
-                  {{ getMultiSortNumber(header.value) }}
-                </span>
-              </span>
-            </th>
-          </tr>
-        </thead>
-        <slot
-          v-if="ifHasBodySlot"
-          name="body"
-          v-bind="pageItems"
-        />
-        <tbody
-          v-else-if="headerColumns.length"
-          class="vue3-easy-data-table__body"
-          :class="{'row-alternation': alternating}"
-        >
-          <slot
-            name="body-prepend"
-            v-bind="{
-              items: pageItems,
-              pagination: {
-                isFirstPage,
-                isLastPage,
-                currentPaginationNumber,
-                maxPaginationNumber,
-                nextPage,
-                prevPage
-              },
-              headers: headersForRender
-            }"
-          />
-          <template
-            v-for="(item, index) in pageItems"
-            :key="index"
-          >
-            <tr
-              :class="[{'even-row': (index + 1) % 2 === 0 && !item.meta.selected},
-                       {'selected': item.meta.selected},
-                       typeof bodyRowClassName === 'string' ? bodyRowClassName : bodyRowClassName(item, index)]"
-              data-test-id="table-row"
-              @click="($event) => {
-                clickRow($event, item, 'single');
-                clickRowToExpand && updateExpandingItemIndexList(index + prevPageEndIndex, item, $event);
-              }"
-              @dblclick="clickRow($event, item, 'double')"
-            >
-              <td
-                v-for="(column, i) in headerColumns"
-                :key="i"
-                :data-test-id="`table-row-${column}-column`"
-                :style="getFixedDistance(column, 'td')"
-                :class="[{
-                  'shadow': column === lastFixedColumn,
-                  'can-expand': column === 'expand',
-                  'exactMatch': rowsWithExactMatchColumnsDictionary[item.meta.uniqueIndex]?.[column],
-                // eslint-disable-next-line max-len
-                }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
-                @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
-              >
-                <slot
-                  v-if="slots[`item-${column}`]"
-                  :name="`item-${column}`"
-                  v-bind="item"
-                />
-                <slot
-                  v-else-if="slots[`item-${column.toLowerCase()}`]"
-                  :name="`item-${column.toLowerCase()}`"
-                  v-bind="item"
-                />
-                <template v-else-if="column === 'expand'">
+                  <slot
+                    v-if="slots[`header-${header.value}`]"
+                    :name="`header-${header.value}`"
+                    v-bind="header"
+                  />
+                  <slot
+                    v-else-if="slots[`header-${header.value.toLowerCase()}`]"
+                    :name="`header-${header.value.toLowerCase()}`"
+                    v-bind="header"
+                  />
+                  <span
+                    v-else
+                    class="header-text"
+                  >
+                    {{ header.text }}
+                  </span>
                   <i
-                    class="expand-icon"
-                    :class="{'expanding': expandingItemIndexList.includes(prevPageEndIndex + index)}"
-                  />
-                </template>
-                <template v-else-if="column === 'checkbox'">
-                  <SingleSelectCheckBox
-                    :checked="item.meta.selected"
-                    @change="toggleSelectItem(item)"
-                  />
-                </template>
-                <template v-else>
-                  {{ generateColumnContent(column, item) }}
-                </template>
-              </td>
+                    v-if="header.sortable"
+                    :key="header.sortType ? header.sortType : 'none'"
+                    class="sortType-icon"
+                    :class="{'desc': header.sortType === 'desc'}"
+                  ></i>
+                  <span
+                    v-if="multiSort && isMultiSorting(header.value)"
+                    class="multi-sort__number"
+                  >
+                    {{ getMultiSortNumber(header.value) }}
+                  </span>
+                </span>
+              </th>
             </tr>
-            <tr
-              v-if="ifHasExpandSlot && expandingItemIndexList.includes(index + prevPageEndIndex)"
-              :class="[{'even-row': (index + 1) % 2 === 0},
-                       typeof bodyExpandRowClassName === 'string' ? bodyExpandRowClassName : bodyExpandRowClassName(item, index)]"
+          </thead>
+          <slot
+            v-if="ifHasBodySlot"
+            name="body"
+            v-bind="pageItems"
+          />
+          <tbody
+            v-else-if="headerColumns.length"
+            class="vue3-easy-data-table__body"
+            :class="{'row-alternation': alternating}"
+          >
+            <slot
+              name="body-prepend"
+              v-bind="{
+                items: pageItems,
+                pagination: {
+                  isFirstPage,
+                  isLastPage,
+                  currentPaginationNumber,
+                  maxPaginationNumber,
+                  nextPage,
+                  prevPage
+                },
+                headers: headersForRender
+              }"
+            />
+            <template
+              v-for="(item, index) in pageItems"
+              :key="index"
             >
-              <td
-                :colspan="headersForRender.length"
-                class="expand"
+              <tr
+                :class="[{'even-row': (index + 1) % 2 === 0 && !item.meta.selected},
+                         {'selected': item.meta.selected},
+                         typeof bodyRowClassName === 'string' ? bodyRowClassName : bodyRowClassName(item, index)]"
+                data-test-id="table-row"
+                @click="($event) => {
+                  clickRow($event, item, 'single');
+                  clickRowToExpand && updateExpandingItemIndexList(index + prevPageEndIndex, item, $event);
+                }"
+                @dblclick="clickRow($event, item, 'double')"
               >
-                <LoadingLine
-                  v-if="item.expandLoading"
-                  class="expand-loading"
-                />
-                <slot
-                  name="expand"
-                  v-bind="item"
-                />
-              </td>
-            </tr>
-          </template>
-          <slot
-            name="body-append"
-            v-bind="{
-              items: pageItems,
-              pagination: {
-                isFirstPage,
-                isLastPage,
-                currentPaginationNumber,
-                maxPaginationNumber,
-                nextPage,
-                prevPage,
-                updatePage
-              },
-              headers: headersForRender
-            }"
-          />
-        </tbody>
-      </table>
-      <div
-        v-if="loading"
-        class="vue3-easy-data-table__loading"
-      >
+                <td
+                  v-for="(column, i) in headerColumns"
+                  :key="i"
+                  :data-test-id="`table-row-${column}-column`"
+                  :style="getFixedDistance(column, 'td')"
+                  :class="[{
+                    'shadow': column === lastFixedColumn,
+                    'can-expand': column === 'expand',
+                    'exactMatch': rowsWithExactMatchColumnsDictionary[item.meta.uniqueIndex]?.[column],
+                    // eslint-disable-next-line max-len
+                  }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
+                  @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
+                >
+                  <slot
+                    v-if="slots[`item-${column}`]"
+                    :name="`item-${column}`"
+                    v-bind="item"
+                  />
+                  <slot
+                    v-else-if="slots[`item-${column.toLowerCase()}`]"
+                    :name="`item-${column.toLowerCase()}`"
+                    v-bind="item"
+                  />
+                  <template v-else-if="column === 'expand'">
+                    <i
+                      class="expand-icon"
+                      :class="{'expanding': expandingItemIndexList.includes(prevPageEndIndex + index)}"
+                    />
+                  </template>
+                  <template v-else-if="column === 'checkbox'">
+                    <SingleSelectCheckBox
+                      :checked="item.meta.selected"
+                      @change="toggleSelectItem(item)"
+                    />
+                  </template>
+                  <template v-else>
+                    {{ generateColumnContent(column, item) }}
+                  </template>
+                </td>
+              </tr>
+              <tr
+                v-if="ifHasExpandSlot && expandingItemIndexList.includes(index + prevPageEndIndex)"
+                :class="[{'even-row': (index + 1) % 2 === 0},
+                         typeof bodyExpandRowClassName === 'string' ? bodyExpandRowClassName : bodyExpandRowClassName(item, index)]"
+              >
+                <td
+                  :colspan="headersForRender.length"
+                  class="expand"
+                >
+                  <LoadingLine
+                    v-if="item.expandLoading"
+                    class="expand-loading"
+                  />
+                  <slot
+                    name="expand"
+                    v-bind="item"
+                  />
+                </td>
+              </tr>
+            </template>
+            <slot
+              name="body-append"
+              v-bind="{
+                items: pageItems,
+                pagination: {
+                  isFirstPage,
+                  isLastPage,
+                  currentPaginationNumber,
+                  maxPaginationNumber,
+                  nextPage,
+                  prevPage,
+                  updatePage
+                },
+                headers: headersForRender
+              }"
+            />
+          </tbody>
+        </table>
         <div
-          class="vue3-easy-data-table__loading-mask "
-        ></div>
-        <div class="loading-entity">
-          <slot
-            v-if="ifHasLoadingSlot"
-            name="loading"
-          />
-          <Loading v-else></Loading>
+          v-if="loading"
+          class="vue3-easy-data-table__loading"
+        >
+          <div
+            class="vue3-easy-data-table__loading-mask "
+          ></div>
+          <div class="loading-entity">
+            <slot
+              v-if="ifHasLoadingSlot"
+              name="loading"
+            />
+            <Loading v-else></Loading>
+          </div>
+        </div>
+
+        <div
+          v-if="!pageItems.length && !loading"
+          class="vue3-easy-data-table__message"
+        >
+          {{ emptyMessage }}
         </div>
       </div>
-
       <div
-        v-if="!pageItems.length && !loading"
-        class="vue3-easy-data-table__message"
+        v-if="!hideFooter"
+        class="vue3-easy-data-table__footer"
       >
-        {{ emptyMessage }}
-      </div>
-    </div>
-    <div
-      v-if="!hideFooter"
-      class="vue3-easy-data-table__footer"
-    >
-      <div
-        v-if="!hideRowsPerPage"
-        class="pagination__rows-per-page"
-      >
-        {{ rowsPerPageMessage }}
-        <RowsSelector
-          v-model="rowsPerPageRef"
-          :rows-items="rowsItemsComputed"
+        <div
+          v-if="!hideRowsPerPage"
+          class="pagination__rows-per-page"
+        >
+          {{ rowsPerPageMessage }}
+          <RowsSelector
+            v-model="rowsPerPageRef"
+            :rows-items="rowsItemsComputed"
+          />
+        </div>
+        <div class="pagination__items-index">
+          <span
+            v-if="paginationWithInput"
+            data-test-id="pagination-with-input-text"
+          >
+            {{ currentPaginationNumber }} of {{ maxPaginationNumber }}
+          </span>
+          <span
+            v-else
+            data-test-id="buttons-pagination-text"
+          >
+            {{ `${currentPageFirstIndex}–${currentPageLastIndex}` }}
+            {{ rowsOfPageSeparatorMessage }} {{ totalItemsLength }}
+          </span>
+        </div>
+        <slot
+          v-if="ifHasPaginationSlot"
+          name="pagination"
+          v-bind="{
+            isFirstPage,
+            isLastPage,
+            currentPaginationNumber,
+            maxPaginationNumber,
+            nextPage,
+            prevPage,
+          }"
         />
-      </div>
-      <div class="pagination__items-index">
-        <span
-          v-if="paginationWithInput"
-          data-test-id="pagination-with-input-text"
-        >
-          {{ currentPaginationNumber }} of {{ maxPaginationNumber }}
-        </span>
-        <span
+        <PaginationArrows
           v-else
-          data-test-id="buttons-pagination-text"
+          :is-first-page="isFirstPage"
+          :is-last-page="isLastPage"
+          :has-double-arrows="paginationWithInput"
+          @click-next-page="nextPage"
+          @click-prev-page="prevPage"
+          @click-first-page="firstPage"
+          @click-last-page="lastPage"
         >
-          {{ `${currentPageFirstIndex}–${currentPageLastIndex}` }}
-          {{ rowsOfPageSeparatorMessage }} {{ totalItemsLength }}
-        </span>
+          <template
+            v-if="buttonsPagination"
+            #buttonsPagination
+          >
+            <ButtonsPagination
+              :current-pagination-number="currentPaginationNumber"
+              :max-pagination-number="maxPaginationNumber"
+              @update-page="updatePage"
+            />
+          </template>
+          <template
+            v-if="paginationWithInput"
+            #paginationWithInput
+          >
+            <PaginationWithInput
+              :current-pagination-number="currentPaginationNumber"
+              :max-pagination-number="maxPaginationNumber"
+              @update-page="updatePage"
+            />
+          </template>
+        </PaginationArrows>
       </div>
-      <slot
-        v-if="ifHasPaginationSlot"
-        name="pagination"
-        v-bind="{
-          isFirstPage,
-          isLastPage,
-          currentPaginationNumber,
-          maxPaginationNumber,
-          nextPage,
-          prevPage,
-        }"
-      />
-      <PaginationArrows
-        v-else
-        :is-first-page="isFirstPage"
-        :is-last-page="isLastPage"
-        :has-double-arrows="paginationWithInput"
-        @click-next-page="nextPage"
-        @click-prev-page="prevPage"
-        @click-first-page="firstPage"
-        @click-last-page="lastPage"
-      >
-        <template
-          v-if="buttonsPagination"
-          #buttonsPagination
-        >
-          <ButtonsPagination
-            :current-pagination-number="currentPaginationNumber"
-            :max-pagination-number="maxPaginationNumber"
-            @update-page="updatePage"
-          />
-        </template>
-        <template
-          v-if="paginationWithInput"
-          #paginationWithInput
-        >
-          <PaginationWithInput
-            :current-pagination-number="currentPaginationNumber"
-            :max-pagination-number="maxPaginationNumber"
-            @update-page="updatePage"
-          />
-        </template>
-      </PaginationArrows>
     </div>
   </div>
 </template>
@@ -356,6 +359,7 @@ import type { HeaderForRender } from '../types/internal';
 import { generateColumnContent } from '../utils';
 import propsWithDefault from '../propsWithDefault';
 import { SelectableEnum } from '../enums/main';
+import useDetectOutsideClick from '../hooks/useDetectOutsideClick';
 
 const props = defineProps({
   ...propsWithDefault,
@@ -428,6 +432,14 @@ provide('dataTable', dataTable);
 
 const isManageTablePropertiesVisible = ref(false);
 const checkedTableProperties = ref<string[]>([]);
+// const manageTablePropertiesRef = ref(null);
+
+// useDetectOutsideClick(manageTablePropertiesRef, () => {
+//   console.log('CLICK OUTSIDE');
+//   if (isManageTablePropertiesVisible.value) {
+//     isManageTablePropertiesVisible.value = false;
+//   }
+// });
 
 // fixed-columns shadow
 const showShadow = ref(false);
@@ -634,10 +646,6 @@ const toggleManageTablePropertiesVisibility = () => {
   isManageTablePropertiesVisible.value = !isManageTablePropertiesVisible.value;
 };
 
-const clickOutsideManageTablePropertiesArea = () => {
-  isManageTablePropertiesVisible.value = false;
-};
-
 const setCheckedTableProperties = (value: string[]) => {
   checkedTableProperties.value = value;
 };
@@ -756,10 +764,13 @@ defineExpose({
   display: flex;
   justify-content: end;
 
-  .sliders-icon {
+  .area {
     margin-right: 1rem;
     margin-bottom: 0.5rem;
-    cursor: pointer;
+
+    .sliders-icon {
+      cursor: pointer;
+    }
   }
 }
 

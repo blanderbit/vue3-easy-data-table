@@ -1,5 +1,8 @@
 <template>
-  <div class="manage-table-properties">
+  <div
+    ref="manageTablePropertiesRef"
+    class="manage-table-properties"
+  >
     <div
       class="manage-table-properties__body"
     >
@@ -8,6 +11,7 @@
         <div
           v-for="column of transformedTablePropertyColumns"
           :key="column.value"
+          data-test-id="property-item"
           class="properties__item"
         >
           <input
@@ -16,6 +20,7 @@
             type="checkbox"
             :value="column.value"
             :disabled="column.disabled"
+            data-test-id="property-item-checkbox"
             class="properties__item__checkbox"
           >
           <label
@@ -35,8 +40,9 @@ import {
   computed, PropType, ref, toRefs, watch,
 } from 'vue';
 import { Item } from '../types/main';
+import useDetectOutsideClick from '../hooks/useDetectOutsideClick';
 
-const emits = defineEmits(['set-checked-table-properties']);
+const emits = defineEmits(['set-checked-table-properties', 'close']);
 
 const props = defineProps({
   columns: { type: Array as PropType<Item[]>, required: true },
@@ -67,12 +73,16 @@ watch(selectedTablePropertyColumns, (val) => {
   emits('set-checked-table-properties', val);
 });
 
+const manageTablePropertiesRef = ref<HTMLElement | null>(null);
+
+useDetectOutsideClick(manageTablePropertiesRef, () => {
+  emits('close');
+});
+
 </script>
 
 <style lang="scss" scoped>
 .manage-table-properties {
-  right: 0.5rem;
-  width: max-content;
   position: relative;
   z-index: 50;
 
@@ -83,7 +93,7 @@ watch(selectedTablePropertyColumns, (val) => {
     box-shadow: 0 25px 50px -12px rgb(0 0 0 / 25%);
     position: absolute;
     padding: 0.5rem;
-    margin-top: 1.75rem;
+    margin-top: 1rem;
     font-weight: 700;
     border-radius: 0.25rem;
     background-color: #fff;

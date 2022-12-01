@@ -55,19 +55,23 @@ export default function useTotalItems(
   };
 
   const generateSearchingTarget = (item: RowItem): string => {
-    if (typeof searchField.value === 'string' && searchField.value !== '') return getItemValue(searchField.value, item);
+    const flattenItem = flattenObj(item);
+    let keysShouldBeExcluded = manageTableProperties.value ? Object.keys(flattenItem).filter(
+      (key) => !checkedTableProperties.value.includes(key),
+    ) : [];
+    keysShouldBeExcluded = [...keysShouldBeExcluded, ...itemIgnoreKeys];
+    if (typeof searchField.value === 'string' && searchField.value !== '') {
+      const itemWithFilteredKeys = excludeKeysFromObj(item, keysShouldBeExcluded);
+      return getItemValue(searchField.value, itemWithFilteredKeys);
+    }
     if (Array.isArray(searchField.value)) {
+      const itemWithFilteredKeys = excludeKeysFromObj(item, keysShouldBeExcluded);
       let searchString = '';
       searchField.value.forEach((field) => {
-        searchString += getItemValue(field, item);
+        searchString += getItemValue(field, itemWithFilteredKeys);
       });
       return searchString;
     }
-    const keysShouldBeExcluded = manageTableProperties.value ? Object.keys(item).filter(
-      (key) => !checkedTableProperties.value.includes(key),
-    ) : [];
-    const itemWithoutControlKeys = excludeKeysFromObj(item, itemIgnoreKeys);
-    const flattenItem = flattenObj(itemWithoutControlKeys);
     const flattenFilteredItem = excludeKeysFromObj(flattenItem, keysShouldBeExcluded);
     return Object.values(flattenFilteredItem).join(' ');
   };

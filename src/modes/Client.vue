@@ -164,17 +164,11 @@ import {
 } from '../mock';
 import { tableHeaders, tableItems } from '../data/table-data';
 
-const searchField = ref(null); // null | 'indicator.weight' | ['indicator.weight'] | ['indicator.weight', 'indicator.height']
+// null | 'player' | 'indicator.weight' | ['indicator.weight'] | ['indicator.weight', 'indicator.height']
+const searchField = ref(null);
 const searchValue = ref('');
 const sortBy = ref(['indicator.weight', 'number']); // ['indicator.weight', 'number'] | 'number'
 const sortType = ref<SortType | SortType[] | undefined>(['desc', 'asc']);
-const switchToNested300 = () => {
-  items.value = mockClientNestedItems(300);
-};
-
-const switchToNested = () => {
-  items.value = mockClientNestedItems(100);
-};
 
 const filterOptions = [
   // {
@@ -204,6 +198,14 @@ watch(itemsSelected, (val) => {
   immediate: true,
   deep: true,
 });
+
+const switchToNested300 = () => {
+  items.value = mockClientNestedItems(300);
+};
+
+const switchToNested = () => {
+  items.value = mockClientNestedItems(100);
+};
 
 const showItem = (item: ClickRowArgument) => {
   console.log('item');

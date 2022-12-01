@@ -31,6 +31,7 @@ Object.defineProperty(global, 'crypto', {
 describe('Data Table', () => {
   let wrapper;
   const findWrapperItemByTestId = (testId) => wrapper.find(`[data-test-id='${testId}']`);
+  const findWrapperItemsByTestId = (testId) => wrapper.findAll(`[data-test-id='${testId}']`);
   const findNodeItemByTestId = (node, testId) => node.find(`[data-test-id='${testId}']`);
   const findNodeItemsByTestId = (node, testId) => node.findAll(`[data-test-id='${testId}']`);
 
@@ -1095,6 +1096,178 @@ describe('Data Table', () => {
       expect(trArr.length).toBe(2);
       expect(findNodeItemByTestId(trArr[0], 'table-row-player-column').classes()).toContain('exactMatch');
       expect(findNodeItemByTestId(trArr[1], 'table-row-player-column').classes()).not.toContain('exactMatch');
+    });
+  });
+
+  describe('Manage table properties', () => {
+    it('should render menage table properties icon', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          manageTableProperties: true,
+        },
+      });
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      expect(manageTablePropertiesIcon.isVisible()).toBeTruthy();
+
+      let manageTableProperties = findWrapperItemByTestId('manage-table-properties');
+      expect(manageTableProperties.exists()).toBeFalsy();
+      await manageTablePropertiesIcon.trigger('click');
+
+      manageTableProperties = findWrapperItemByTestId('manage-table-properties');
+      expect(manageTableProperties.isVisible()).toBeTruthy();
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      tablePropertiesBlock.forEach((tableProperty) => {
+        expect(findNodeItemByTestId(tableProperty, 'property-item-checkbox').element.checked).toBeTruthy();
+      });
+    });
+
+    it('should not render menage table properties icon', () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          manageTableProperties: false,
+        },
+      });
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      expect(manageTablePropertiesIcon.exists()).toBeFalsy();
+    });
+
+    it('Should hide 1 table property', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          manageTableProperties: true,
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      expect(wrapper.findAll('tbody td').at(0).text()).toBe(mockItems[0].name);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(0);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      expect(firstTablePropertyCheckbox.element.checked).toBeTruthy();
+      await firstTablePropertyCheckbox.setChecked(false);
+      expect(firstTablePropertyCheckbox.element.checked).toBeFalsy();
+      expect(wrapper.findAll('tbody td').at(0).text()).toBe(mockItems[0].address);
+    });
+
+    it('Should not hide all table properties, the last one should be disabled', async () => {
+      const mockItems = [
+        {
+          name: 'Test name',
+          address: 'Test address',
+        },
+      ];
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: [
+            { text: 'Name', value: 'name' },
+            { text: 'Address', value: 'address' },
+          ],
+          manageTableProperties: true,
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[0].address);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyCheckbox = findNodeItemByTestId(tablePropertiesBlock.at(0), 'property-item-checkbox');
+      const secondTablePropertyCheckbox = findNodeItemByTestId(tablePropertiesBlock.at(1), 'property-item-checkbox');
+
+      expect(firstTablePropertyCheckbox.element.disabled).toBeFalsy();
+      await secondTablePropertyCheckbox.setChecked(false);
+
+      expect(firstTablePropertyCheckbox.element.disabled).toBeTruthy();
+      expect(wrapper.findAll('tbody td').at(0).text()).toBe(mockItems[0].name);
+    });
+
+    it('Should not search since that field is not visible', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          searchValue: 'name-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(0);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
+    });
+
+    it('Should not search by specific field since that field is not visible', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          searchField: 'name',
+          searchValue: 'name-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(0);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
+    });
+
+    it('Should not search by specific fields since that field is not visible', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          searchField: ['name', 'address'],
+          searchValue: 'name-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(0);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
     });
   });
 
