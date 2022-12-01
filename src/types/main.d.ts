@@ -35,6 +35,7 @@ export type Header = {
   value: string
   sortable?: boolean
   fixed?: boolean
+  visible?: boolean
   width?: number
 }
 

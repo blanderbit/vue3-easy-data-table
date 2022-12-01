@@ -26,7 +26,7 @@ export function flattenObj(obj: Item, parent: string | null = null, res: Item = 
   const objKeys = Object.keys(obj);
   if (!objKeys.length) return res;
   objKeys.forEach((key) => {
-    const propName = parent ? `${parent}_${key}` : key;
+    const propName = parent ? `${parent}.${key}` : key;
     if (typeof obj[key] === 'object') {
       flattenObj(obj[key], propName, res);
     } else {
@@ -34,4 +34,20 @@ export function flattenObj(obj: Item, parent: string | null = null, res: Item = 
     }
   });
   return res;
+}
+
+/**
+ * Exclude ignored keys from object.
+ * @param {Object} obj - Input object.
+ * @param {Array} ignoreObjectKeys - Array of keys that should be excluded.
+ * @return {Object} - The object without ignored keys.
+ */
+export function excludeKeysFromObj(obj: Item, ignoreObjectKeys: string[] = []) {
+  if (typeof obj !== 'object') return obj;
+  const objKeys = Object.keys(obj);
+  if (!objKeys.length) return obj;
+  return objKeys.filter((objectKey) => !ignoreObjectKeys.includes(objectKey)).reduce((acc: Item, key) => {
+    acc[key] = obj[key];
+    return acc;
+  }, {});
 }

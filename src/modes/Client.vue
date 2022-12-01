@@ -166,7 +166,7 @@ import { tableHeaders, tableItems } from '../data/table-data';
 
 const searchField = ref(null); // null | 'indicator.weight' | ['indicator.weight'] | ['indicator.weight', 'indicator.height']
 const searchValue = ref('');
-const sortBy = ref(['indicator.weight', 'number']);
+const sortBy = ref(['indicator.weight', 'number']); // ['indicator.weight', 'number'] | 'number'
 const sortType = ref<SortType | SortType[] | undefined>(['desc', 'asc']);
 const switchToNested300 = () => {
   items.value = mockClientNestedItems(300);

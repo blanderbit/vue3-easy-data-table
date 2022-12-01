@@ -49,8 +49,7 @@ const COLUMN_TITLE_PROPERTY_LENGTH_LIMIT = 8;
 const selectedTablePropertyColumns = ref<string[]>([]);
 
 const transformedTablePropertyColumns = computed(() => columns.value.map((column) => {
-  column.disabled = column.grouped
-      || (selectedTablePropertyColumns.value.length === 1
+  column.disabled = (selectedTablePropertyColumns.value.length === 1
           && selectedTablePropertyColumns.value[0] === column.value);
   column.shortTitle = column.text.length > COLUMN_TITLE_PROPERTY_LENGTH_LIMIT
     ? `${column.text.slice(0, COLUMN_TITLE_PROPERTY_LENGTH_LIMIT)}...`

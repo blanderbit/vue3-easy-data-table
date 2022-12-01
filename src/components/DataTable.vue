@@ -462,7 +462,7 @@ const {
   emits,
 );
 
-const tableProperties = computed(() => headers.value);
+const tableProperties = ref<Header[]>([]);
 
 const {
   clientSortOptions,
@@ -472,6 +472,8 @@ const {
   isMultiSorting,
   getMultiSortNumber,
 } = useHeaders(
+  tableProperties,
+  manageTableProperties,
   checkedTableProperties,
   checkboxColumnWidth,
   expandColumnWidth,
@@ -521,6 +523,7 @@ const {
   toggleSelectAll,
   toggleSelectItem,
 } = useTotalItems(
+  checkedTableProperties,
   exactMatch,
   isExactMatchCaseSensitive,
   headerColumns,
@@ -637,14 +640,6 @@ const clickOutsideManageTablePropertiesArea = () => {
 const setCheckedTableProperties = (value: string[]) => {
   checkedTableProperties.value = value;
 };
-
-watch(manageTableProperties, (val) => {
-  if (val) {
-    checkedTableProperties.value = tableProperties.value.map((tableProperty) => tableProperty.value);
-  }
-}, {
-  immediate: true,
-});
 
 watch(loading, (newVal, oldVal) => {
   if (serverOptionsComputed.value) {

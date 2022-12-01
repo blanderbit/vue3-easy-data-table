@@ -1,5 +1,5 @@
 import {
-  ref, Ref, computed, ComputedRef, WritableComputedRef,
+  ref, Ref, computed, ComputedRef, WritableComputedRef, watch,
 } from 'vue';
 import type { Header, SortType } from '../types/main';
 import type {
@@ -7,6 +7,8 @@ import type {
 } from '../types/internal';
 
 export default function useHeaders(
+  tableProperties: Ref<Header[]>,
+  manageTableProperties: Ref<boolean>,
   checkedTableProperties: Ref<string[]>,
   checkboxColumnWidth: Ref<number>,
   expandColumnWidth: Ref<number>,
@@ -27,7 +29,23 @@ export default function useHeaders(
   updateServerOptionsSort: (newSortBy: string, newSortType: SortType | null) => void,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
-  const visibleHeaders = computed(() => headers.value.filter((header) => checkedTableProperties.value.includes(header.value)));
+  const initialHeaders = computed(() => headers.value.map((header) => ({
+    ...header,
+    visible: header.visible ?? true,
+  })));
+  const initialVisibleHeaders = computed(() => initialHeaders.value.filter((header) => header.visible));
+
+  watch(initialVisibleHeaders, (currVal) => {
+    tableProperties.value = currVal;
+    if (manageTableProperties.value) {
+      checkedTableProperties.value = currVal.map((header) => header.value);
+    }
+  }, {
+    immediate: true,
+  });
+
+  const visibleHeaders = computed(() => initialVisibleHeaders.value
+    .filter((header) => checkedTableProperties.value.includes(header.value)));
   const hasFixedColumnsFromUser = computed(() => visibleHeaders.value.findIndex((header) => header.fixed) !== -1);
   const fixedHeadersFromUser = computed(() => {
     if (hasFixedColumnsFromUser.value) return visibleHeaders.value.filter((header) => header.fixed);

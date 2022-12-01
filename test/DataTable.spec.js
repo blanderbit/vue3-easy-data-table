@@ -1,7 +1,9 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect } from 'vitest';
+import {
+  describe, it, expect, vi,
+} from 'vitest';
 import { mount } from '@vue/test-utils';
 import crypto from 'crypto';
 import DataTable from '../src/components/DataTable.vue';
@@ -33,7 +35,14 @@ describe('Data Table', () => {
   const findNodeItemsByTestId = (node, testId) => node.findAll(`[data-test-id='${testId}']`);
 
   function mountDataTableComponent(options) {
-    wrapper = mount(DataTable, options);
+    wrapper = mount(DataTable, {
+      ...options,
+      global: {
+        directives: {
+          clickOutside: vi.fn(),
+        },
+      },
+    });
   }
 
   // Button Pagination
