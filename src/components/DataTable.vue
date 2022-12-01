@@ -523,6 +523,7 @@ const {
   toggleSelectAll,
   toggleSelectItem,
 } = useTotalItems(
+  manageTableProperties,
   checkedTableProperties,
   exactMatch,
   isExactMatchCaseSensitive,

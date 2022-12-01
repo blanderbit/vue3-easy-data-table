@@ -44,8 +44,12 @@ export default function useHeaders(
     immediate: true,
   });
 
-  const visibleHeaders = computed(() => initialVisibleHeaders.value
-    .filter((header) => checkedTableProperties.value.includes(header.value)));
+  const visibleHeaders = computed(() => {
+    if (manageTableProperties.value) {
+      return initialVisibleHeaders.value.filter((header) => checkedTableProperties.value.includes(header.value));
+    }
+    return initialVisibleHeaders.value;
+  });
   const hasFixedColumnsFromUser = computed(() => visibleHeaders.value.findIndex((header) => header.fixed) !== -1);
   const fixedHeadersFromUser = computed(() => {
     if (hasFixedColumnsFromUser.value) return visibleHeaders.value.filter((header) => header.fixed);

@@ -8,6 +8,7 @@ import type { ClientSortOptions, EmitsEventName } from '../types/internal';
 import { getItemValue, flattenObj, excludeKeysFromObj } from '../utils';
 
 export default function useTotalItems(
+  manageTableProperties: Ref<boolean>,
   checkedTableProperties: Ref<string[]>,
   exactMatch: Ref<boolean>,
   isExactMatchCaseSensitive: Ref<boolean>,
@@ -62,9 +63,9 @@ export default function useTotalItems(
       });
       return searchString;
     }
-    const keysShouldBeExcluded = Object.keys(item).filter(
+    const keysShouldBeExcluded = manageTableProperties.value ? Object.keys(item).filter(
       (key) => !checkedTableProperties.value.includes(key),
-    );
+    ) : [];
     const itemWithoutControlKeys = excludeKeysFromObj(item, itemIgnoreKeys);
     const flattenItem = flattenObj(itemWithoutControlKeys);
     const flattenFilteredItem = excludeKeysFromObj(flattenItem, keysShouldBeExcluded);

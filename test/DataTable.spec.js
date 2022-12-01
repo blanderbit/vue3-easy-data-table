@@ -338,7 +338,7 @@ describe('Data Table', () => {
             itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 3,
           },
         });
@@ -365,7 +365,7 @@ describe('Data Table', () => {
             itemsSelected: [],
             items: mockItems,
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 5,
           },
         });
@@ -390,7 +390,7 @@ describe('Data Table', () => {
             itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 3,
           },
         });
@@ -426,7 +426,7 @@ describe('Data Table', () => {
             itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 3,
           },
         });
@@ -462,7 +462,7 @@ describe('Data Table', () => {
             itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 3,
           },
         });
@@ -499,7 +499,7 @@ describe('Data Table', () => {
             itemsSelected: [],
             items: mockItems,
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 5,
           },
         });
@@ -969,7 +969,7 @@ describe('Data Table', () => {
       expect(findWrapperItemByTestId('table-row-address-column').classes()).toContain('exactMatch');
     });
 
-    it('Searching by specific all fields (exact match)', async () => {
+    it('Searching by all fields (exact match)', async () => {
       const mockItems = mockClientItems(200);
       mountDataTableComponent({
         props: {
