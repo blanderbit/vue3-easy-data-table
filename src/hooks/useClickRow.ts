@@ -10,7 +10,6 @@ export default function useClickRow(
   pageItems: ComputedRef<Item[]>,
   selectItemsComputed: Ref<Item[]>,
   clickEventType: Ref<ClickEventType>,
-  isMultipleSelectable: ComputedRef<boolean>,
   showIndex: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
@@ -78,10 +77,6 @@ export default function useClickRow(
     }
 
     const clickRowArgument = { ...item };
-    if (isMultipleSelectable.value) {
-      const { checkbox } = item;
-      clickRowArgument.isSelected = checkbox;
-    }
     if (showIndex.value) {
       const { index } = item;
       clickRowArgument.indexInCurrentPage = index;

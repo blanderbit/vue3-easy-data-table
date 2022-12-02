@@ -6,7 +6,6 @@ import type { MultipleSelectStatus } from '../types/internal';
 
 export default function usePageItems(
   currentPaginationNumber: Ref<number>,
-  isMultipleSelectable: ComputedRef<boolean>,
   isServerSideMode: ComputedRef<boolean>,
   items: Ref<Item[]>,
   rowsPerPageRef: Ref<number>,

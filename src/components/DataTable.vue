@@ -355,6 +355,7 @@ import usePagination from '../hooks/usePagination';
 import useRows from '../hooks/useRows';
 import useServerOptions from '../hooks/useServerOptions';
 import useTotalItems from '../hooks/useTotalItems';
+import useTableProperties from '../hooks/useTableProperties';
 
 import type { Header, Item, RowItem } from '../types/main';
 import type { HeaderForRender } from '../types/internal';
@@ -433,9 +434,6 @@ const dataTable = ref();
 const tableBody = ref();
 provide('dataTable', dataTable);
 
-const isManageTablePropertiesVisible = ref(false);
-const checkedTableProperties = ref<string[]>([]);
-
 // fixed-columns shadow
 const showShadow = ref(false);
 onMounted(() => {
@@ -453,9 +451,7 @@ const emits = defineEmits([
   'update:serverOptions',
 ]);
 
-const isMultipleSelectable = computed((): boolean => itemsSelected.value !== null);
 const isServerSideMode = computed((): boolean => serverOptions.value !== null);
-
 const isMultiSelect = computed((): boolean => selectable.value === SelectableEnum.MULTIPLE);
 
 const {
@@ -469,7 +465,13 @@ const {
   emits,
 );
 
-const tableProperties = ref<Header[]>([]);
+const {
+  tableProperties,
+  isManageTablePropertiesVisible,
+  checkedTableProperties,
+  toggleManageTablePropertiesVisibility,
+  setCheckedTableProperties,
+} = useTableProperties();
 
 const {
   filteredClientSortOptions,
@@ -490,7 +492,6 @@ const {
   headers,
   ifHasExpandSlot,
   indexColumnWidth,
-  isMultipleSelectable,
   isServerSideMode,
   mustSort,
   serverOptionsComputed,
@@ -576,7 +577,6 @@ const {
   pageItems,
 } = usePageItems(
   currentPaginationNumber,
-  isMultipleSelectable,
   isServerSideMode,
   itemsWithMeta,
   rowsPerPageRef,
@@ -616,7 +616,6 @@ const {
   pageItems,
   selectItemsComputed,
   clickEventType,
-  isMultipleSelectable,
   showIndex,
   emits,
 );
@@ -635,14 +634,6 @@ const getFixedDistance = (column: string, type: 'td' | 'th' = 'th') => {
     return `left: ${columInfo.distance}px;z-index: ${type === 'th' ? 3 : 1};position: sticky;`;
   }
   return undefined;
-};
-
-const toggleManageTablePropertiesVisibility = () => {
-  isManageTablePropertiesVisible.value = !isManageTablePropertiesVisible.value;
-};
-
-const setCheckedTableProperties = (value: string[]) => {
-  checkedTableProperties.value = value;
 };
 
 watch(loading, (newVal, oldVal) => {

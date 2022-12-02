@@ -208,8 +208,7 @@ const switchToNested = () => {
 };
 
 const showItem = (item: ClickRowArgument) => {
-  console.log('item');
-  console.log(JSON.stringify(item));
+  console.log('showItem', JSON.stringify(item));
 };
 
 const updateSort = (sortOption: UpdateSortArgument) => {

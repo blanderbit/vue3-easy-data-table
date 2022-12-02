@@ -18,7 +18,6 @@ export default function useHeaders(
   headers: Ref<Header[]>,
   ifHasExpandSlot: ComputedRef<boolean>,
   indexColumnWidth: Ref<number>,
-  isMultipleSelectable: ComputedRef<boolean>,
   isServerSideMode: ComputedRef<boolean>,
   mustSort: Ref<boolean>,
   serverOptionsComputed: WritableComputedRef<ServerOptionsComputed | null>,
@@ -44,6 +43,7 @@ export default function useHeaders(
     immediate: true,
   });
 
+  // Visible headers if user change visibility of table properties.
   const visibleHeaders = computed(() => {
     if (manageTableProperties.value) {
       return initialVisibleHeaders.value.filter((header) => checkedTableProperties.value.includes(header.value));
@@ -138,14 +138,10 @@ export default function useHeaders(
     }
     // checkbox
     let headersWithCheckbox: HeaderForRender[] = [];
-    if (!isMultipleSelectable.value) {
-      headersWithCheckbox = headersWithIndex;
-    } else {
-      const headerCheckbox: HeaderForRender = (fixedCheckbox.value || hasFixedColumnsFromUser.value) ? {
-        text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 36,
-      } : { text: 'checkbox', value: 'checkbox' };
-      headersWithCheckbox = [headerCheckbox, ...headersWithIndex];
-    }
+    const headerCheckbox: HeaderForRender = (fixedCheckbox.value || hasFixedColumnsFromUser.value) ? {
+      text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 36,
+    } : { text: 'checkbox', value: 'checkbox' };
+    headersWithCheckbox = [headerCheckbox, ...headersWithIndex];
     return headersWithCheckbox;
   });
 
