@@ -190,8 +190,12 @@
               </tr>
               <tr
                 v-if="ifHasExpandSlot && expandingItemIndexList.includes(index + prevPageEndIndex)"
-                :class="[{'even-row': (index + 1) % 2 === 0},
-                         typeof bodyExpandRowClassName === 'string' ? bodyExpandRowClassName : bodyExpandRowClassName(item, index)]"
+                :class="[
+                  { 'even-row': (index + 1) % 2 === 0},
+                  typeof bodyExpandRowClassName === 'string' ?
+                    bodyExpandRowClassName :
+                    bodyExpandRowClassName(item, index)
+                ]"
               >
                 <td
                   :colspan="headersForRender.length"
@@ -359,7 +363,6 @@ import type { HeaderForRender } from '../types/internal';
 import { generateColumnContent } from '../utils';
 import propsWithDefault from '../propsWithDefault';
 import { SelectableEnum } from '../enums/main';
-import useDetectOutsideClick from '../hooks/useDetectOutsideClick';
 
 const props = defineProps({
   ...propsWithDefault,
@@ -432,14 +435,6 @@ provide('dataTable', dataTable);
 
 const isManageTablePropertiesVisible = ref(false);
 const checkedTableProperties = ref<string[]>([]);
-// const manageTablePropertiesRef = ref(null);
-
-// useDetectOutsideClick(manageTablePropertiesRef, () => {
-//   console.log('CLICK OUTSIDE');
-//   if (isManageTablePropertiesVisible.value) {
-//     isManageTablePropertiesVisible.value = false;
-//   }
-// });
 
 // fixed-columns shadow
 const showShadow = ref(false);
@@ -477,7 +472,7 @@ const {
 const tableProperties = ref<Header[]>([]);
 
 const {
-  clientSortOptions,
+  filteredClientSortOptions,
   headerColumns,
   headersForRender,
   updateSortField,
@@ -541,7 +536,7 @@ const {
   isExactMatchCaseSensitive,
   headerColumns,
   isMultiSelect,
-  clientSortOptions,
+  filteredClientSortOptions,
   filterOptions,
   isServerSideMode,
   itemsWithMeta,
@@ -674,7 +669,7 @@ watch(searchValue, () => {
   }
 });
 
-watch([currentPaginationNumber, clientSortOptions, searchField, searchValue, filterOptions], () => {
+watch([currentPaginationNumber, filteredClientSortOptions, searchField, searchValue, filterOptions], () => {
   clearExpandingItemIndexList();
 }, { deep: true });
 

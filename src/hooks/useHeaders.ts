@@ -104,9 +104,10 @@ export default function useHeaders(
 
       // client mode
       // multi sort
-      // eslint-disable-next-line max-len
-      if (clientSortOptions.value && Array.isArray(clientSortOptions.value.sortBy) && Array.isArray(clientSortOptions.value.sortDesc)
-      && clientSortOptions.value.sortBy.includes(headerSorting.value)) {
+      if (clientSortOptions.value
+          && Array.isArray(clientSortOptions.value.sortBy)
+          && Array.isArray(clientSortOptions.value.sortDesc)
+          && clientSortOptions.value.sortBy.includes(headerSorting.value)) {
         const index = clientSortOptions.value.sortBy.indexOf(headerSorting.value);
         headerSorting.sortType = clientSortOptions.value.sortDesc[index] ? 'desc' : 'asc';
       } else if (clientSortOptions.value && headerSorting.value === clientSortOptions.value.sortBy) {
@@ -194,28 +195,52 @@ export default function useHeaders(
     });
   };
 
-  const isMultiSorting = (headerText: string): boolean => {
-    if (serverOptionsComputed.value) {
-      if (Array.isArray(serverOptionsComputed.value.sortBy)) return serverOptionsComputed.value.sortBy.includes(headerText);
+  const filteredClientSortOptions = computed(() => {
+    if (!clientSortOptions.value) return null;
+    if (Array.isArray(clientSortOptions.value.sortBy) && Array.isArray(clientSortOptions.value.sortDesc)) {
+      // If the sortBy property includes the column that is not visible
+      //  it should be excluded from sortBy array because it does not make sense
+      //  to sort by property that is not visible.
+      const nonVisibleSortByColumnKeys = clientSortOptions.value.sortBy.reduce((acc: number[], sortByColumn, idx) => {
+        if (!headerColumns.value.includes(sortByColumn)) {
+          acc.push(idx);
+        }
+        return acc;
+      }, []);
+      const filteredSortBy = clientSortOptions.value.sortBy
+        .filter((_, idx) => !nonVisibleSortByColumnKeys.includes(idx));
+      const filteredSortDesc = clientSortOptions.value.sortDesc
+        .filter((_, idx) => !nonVisibleSortByColumnKeys.includes(idx));
+      return {
+        sortBy: filteredSortBy,
+        sortDesc: filteredSortDesc,
+      };
     }
-    if (clientSortOptions.value && Array.isArray(clientSortOptions.value.sortBy)) {
-      return clientSortOptions.value.sortBy.includes(headerText);
+    return clientSortOptions.value;
+  });
+
+  const isMultiSorting = (headerText: string): boolean => {
+    if (serverOptionsComputed.value && Array.isArray(serverOptionsComputed.value.sortBy)) {
+      return serverOptionsComputed.value.sortBy.includes(headerText);
+    }
+    if (filteredClientSortOptions.value && Array.isArray(filteredClientSortOptions.value.sortBy)) {
+      return filteredClientSortOptions.value.sortBy.includes(headerText);
     }
     return false;
   };
 
   const getMultiSortNumber = (headerText: string) => {
-    if (serverOptionsComputed.value) {
-      if (Array.isArray(serverOptionsComputed.value.sortBy)) return serverOptionsComputed.value.sortBy.indexOf(headerText) + 1;
+    if (serverOptionsComputed.value && Array.isArray(serverOptionsComputed.value.sortBy)) {
+      return serverOptionsComputed.value.sortBy.indexOf(headerText) + 1;
     }
-    if (clientSortOptions.value && Array.isArray(clientSortOptions.value.sortBy)) {
-      return clientSortOptions.value.sortBy.indexOf(headerText) + 1;
+    if (filteredClientSortOptions.value && Array.isArray(filteredClientSortOptions.value.sortBy)) {
+      return filteredClientSortOptions.value.sortBy.indexOf(headerText) + 1;
     }
     return false;
   };
 
   return {
-    clientSortOptions,
+    filteredClientSortOptions,
     headerColumns,
     headersForRender,
     updateSortField,

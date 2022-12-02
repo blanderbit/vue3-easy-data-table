@@ -19,7 +19,7 @@ import PaginationArrows from '../src/components/PaginationArrows.vue';
 import {
   playerItemsWithDuplicationFixture,
   playerHeadersFixture,
-  playerItemsWithSimilarNameFixture,
+  playerItemsWithSimilarNameFixture, playerItemsSortByFixture,
 } from './fixtures/DataTableFixtures';
 
 Object.defineProperty(global, 'crypto', {
@@ -1268,6 +1268,29 @@ describe('Data Table', () => {
       await firstTablePropertyCheckbox.setChecked(false);
       trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(0);
+    });
+
+    it('Should not sort by specific field since that field is not visible', async () => {
+      mountDataTableComponent({
+        props: {
+          items: playerItemsSortByFixture,
+          headers: playerHeadersFixture,
+          sortBy: 'number',
+          manageTableProperties: true,
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      const firstTr = trArr.at(0);
+      const secondTr = trArr.at(1);
+      expect(firstTr.findAll('td').at(0).text()).toBe(playerItemsSortByFixture.at(1).player);
+      expect(secondTr.findAll('td').at(0).text()).toBe(playerItemsSortByFixture.at(0).player);
+      await findWrapperItemByTestId('manage-table-properties-icon').trigger('click');
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(2);
+      const widthTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await widthTablePropertyCheckbox.setChecked(false);
+      expect(firstTr.findAll('td').at(0).text()).toBe(playerItemsSortByFixture.at(0).player);
+      expect(secondTr.findAll('td').at(0).text()).toBe(playerItemsSortByFixture.at(1).player);
     });
   });
 

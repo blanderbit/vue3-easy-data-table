@@ -14,7 +14,7 @@ export default function useTotalItems(
   isExactMatchCaseSensitive: Ref<boolean>,
   headerColumns: Ref<string[]>,
   isMultiSelect: ComputedRef<boolean>,
-  clientSortOptions: Ref<ClientSortOptions | null>,
+  filteredClientSortOptions: ComputedRef<ClientSortOptions | null>,
   filterOptions: Ref<FilterOption[]>,
   isServerSideMode: ComputedRef<boolean>,
   items: Ref<RowItem[]>,
@@ -55,24 +55,24 @@ export default function useTotalItems(
   };
 
   const generateSearchingTarget = (item: RowItem): string => {
-    const flattenItem = flattenObj(item);
-    let keysShouldBeExcluded = manageTableProperties.value ? Object.keys(flattenItem).filter(
+    const itemWithoutControlKeys = excludeKeysFromObj(item, itemIgnoreKeys);
+    const flattenItem = flattenObj(itemWithoutControlKeys);
+    const nonVisibleHeaderKeys = manageTableProperties.value ? Object.keys(flattenItem).filter(
       (key) => !checkedTableProperties.value.includes(key),
     ) : [];
-    keysShouldBeExcluded = [...keysShouldBeExcluded, ...itemIgnoreKeys];
     if (typeof searchField.value === 'string' && searchField.value !== '') {
-      const itemWithFilteredKeys = excludeKeysFromObj(item, keysShouldBeExcluded);
+      const itemWithFilteredKeys = excludeKeysFromObj(item, nonVisibleHeaderKeys);
       return getItemValue(searchField.value, itemWithFilteredKeys);
     }
     if (Array.isArray(searchField.value)) {
-      const itemWithFilteredKeys = excludeKeysFromObj(item, keysShouldBeExcluded);
+      const itemWithFilteredKeys = excludeKeysFromObj(item, nonVisibleHeaderKeys);
       let searchString = '';
       searchField.value.forEach((field) => {
         searchString += getItemValue(field, itemWithFilteredKeys);
       });
       return searchString;
     }
-    const flattenFilteredItem = excludeKeysFromObj(flattenItem, keysShouldBeExcluded);
+    const flattenFilteredItem = excludeKeysFromObj(flattenItem, nonVisibleHeaderKeys);
     return Object.values(flattenFilteredItem).join(' ');
   };
 
@@ -196,23 +196,16 @@ export default function useTotalItems(
   // (last step: sorting)
   const totalItems = computed((): Item[] => {
     if (isServerSideMode.value) return items.value;
-    if (clientSortOptions.value === null) return itemsFiltering.value;
-    let { sortBy, sortDesc } = clientSortOptions.value;
+    if (filteredClientSortOptions.value === null) return itemsFiltering.value;
+    const { sortBy, sortDesc } = filteredClientSortOptions.value;
     const itemsFilteringSorted = [...itemsFiltering.value];
     // multi sort
     if (multiSort && Array.isArray(sortBy) && Array.isArray(sortDesc)) {
-      const indexesShouldBeRemoved = sortBy.reduce((acc: number[], sortByColumn, idx) => {
-        if (!headerColumns.value.includes(sortByColumn)) {
-          acc.push(idx);
-        }
-        return acc;
-      }, []);
-      sortBy = sortBy.filter((_, idx) => !indexesShouldBeRemoved.includes(idx));
-      sortDesc = sortDesc.filter((_, idx) => !indexesShouldBeRemoved.includes(idx));
       if (sortBy.length === 0) return itemsFilteringSorted;
       return recursionMultiSort(sortBy, sortDesc, itemsFilteringSorted, sortBy.length - 1);
     }
     const isSortByColumnVisible = headerColumns.value.includes(sortBy as string);
+    // If sort by column is not visible does not make sense to sort by it.
     if (!isSortByColumnVisible) return itemsFilteringSorted;
     // eslint-disable-next-line vue/no-side-effects-in-computed-properties
     return itemsFilteringSorted.sort((a, b) => {
