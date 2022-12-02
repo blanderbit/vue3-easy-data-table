@@ -46,8 +46,7 @@ export type ServerOptions = {
   sortType?: SortType | SortType[]
 }
 
-export type ClickRowArgument = Item & {
-  isSelected?: boolean
+export type ClickRowArgument = RowItem & {
   indexInCurrentPage?: number
 }
 
