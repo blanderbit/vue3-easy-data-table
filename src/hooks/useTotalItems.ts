@@ -57,6 +57,7 @@ export default function useTotalItems(
   const generateSearchingTarget = (item: RowItem): string => {
     const itemWithoutControlKeys = excludeKeysFromObj(item, itemIgnoreKeys);
     const flattenItem = flattenObj(itemWithoutControlKeys);
+    // Obtain those header keys that are not visible to exclude it from item.
     const nonVisibleHeaderKeys = manageTableProperties.value ? Object.keys(flattenItem).filter(
       (key) => !checkedTableProperties.value.includes(key),
     ) : [];

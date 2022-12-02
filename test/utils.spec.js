@@ -58,6 +58,26 @@ describe('Utils', () => {
       expect(excludeKeysFromObj({}, ['age'])).toEqual({});
     });
 
+    it('should not exclude keys from object because of a non object param (number)', () => {
+      expect(excludeKeysFromObj(2, ['age'])).toEqual(2);
+    });
+
+    it('should not exclude keys from object because of a non object param (string)', () => {
+      expect(excludeKeysFromObj('2', ['age'])).toEqual('2');
+    });
+
+    it('should not exclude keys from object because of a non object param (array)', () => {
+      expect(excludeKeysFromObj(['age'], ['age'])).toEqual(['age']);
+    });
+
+    it('should not exclude keys from object because of a non object param', () => {
+      expect(excludeKeysFromObj(undefined, ['age'])).toEqual(undefined);
+    });
+
+    it('should not exclude keys from object because of a non object param', () => {
+      expect(excludeKeysFromObj(null, ['age'])).toEqual(null);
+    });
+
     it('should not exclude keys from object because of a non-object param', () => {
       expect(excludeKeysFromObj([], ['age'])).toEqual([]);
     });

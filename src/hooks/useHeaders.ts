@@ -194,9 +194,10 @@ export default function useHeaders(
   const filteredClientSortOptions = computed(() => {
     if (!clientSortOptions.value) return null;
     if (Array.isArray(clientSortOptions.value.sortBy) && Array.isArray(clientSortOptions.value.sortDesc)) {
+      if (!manageTableProperties.value) return clientSortOptions.value;
       // If the sortBy property includes the column that is not visible
       //  it should be excluded from sortBy array because it does not make sense
-      //  to sort by property that is not visible.
+      //  to sort by column that is not visible.
       const nonVisibleSortByColumnKeys = clientSortOptions.value.sortBy.reduce((acc: number[], sortByColumn, idx) => {
         if (!headerColumns.value.includes(sortByColumn)) {
           acc.push(idx);

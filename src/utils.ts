@@ -50,7 +50,10 @@ export function flattenObj(obj: Item, parent: string | null = null, res: Item = 
  * @return {Object} - The object without ignored keys.
  */
 export function excludeKeysFromObj(obj: Item, ignoreObjectKeys: string[] = []) {
-  if (typeof obj !== 'object') return obj;
+  if (!(typeof obj === 'object' && !Array.isArray(obj) && obj !== null)
+      || !Array.isArray(ignoreObjectKeys)
+      || !ignoreObjectKeys.length
+  ) return obj;
   const objKeys = Object.keys(obj);
   if (!objKeys.length) return obj;
   return objKeys.filter((objectKey) => !ignoreObjectKeys.includes(objectKey)).reduce((acc: Item, key) => {
