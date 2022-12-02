@@ -5,7 +5,12 @@ import type {
   Item, FilterOption, ExactMatchDictionary, RowItem,
 } from '../types/main';
 import type { ClientSortOptions, EmitsEventName } from '../types/internal';
-import { getItemValue, flattenObj, excludeKeysFromObj } from '../utils';
+import {
+  getItemValue,
+  flattenObj,
+  excludeKeysFromObj,
+  unFlattenObj,
+} from '../utils';
 
 export default function useTotalItems(
   manageTableProperties: Ref<boolean>,
@@ -62,14 +67,15 @@ export default function useTotalItems(
       (key) => !checkedTableProperties.value.includes(key),
     ) : [];
     if (typeof searchField.value === 'string' && searchField.value !== '') {
-      const itemWithFilteredKeys = excludeKeysFromObj(item, nonVisibleHeaderKeys);
-      return getItemValue(searchField.value, itemWithFilteredKeys);
+      // Exclude non visible header keys from flatten item keys and un flat flatten item.
+      const unFlattenItem = unFlattenObj(excludeKeysFromObj(flattenItem, nonVisibleHeaderKeys));
+      return getItemValue(searchField.value, unFlattenItem);
     }
     if (Array.isArray(searchField.value)) {
-      const itemWithFilteredKeys = excludeKeysFromObj(item, nonVisibleHeaderKeys);
+      const unFlattenItem = unFlattenObj(excludeKeysFromObj(flattenItem, nonVisibleHeaderKeys));
       let searchString = '';
       searchField.value.forEach((field) => {
-        searchString += getItemValue(field, itemWithFilteredKeys);
+        searchString += getItemValue(field, unFlattenItem);
       });
       return searchString;
     }

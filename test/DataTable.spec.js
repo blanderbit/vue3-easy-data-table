@@ -1232,7 +1232,7 @@ describe('Data Table', () => {
       expect(trArr.length).toBe(0);
     });
 
-    it('Should not search by specific fields since that field is not visible', async () => {
+    it('Should not search by specific fields since that one of that fields is not visible', async () => {
       const mockItems = mockClientItems(1);
       mountDataTableComponent({
         props: {
@@ -1251,6 +1251,54 @@ describe('Data Table', () => {
 
       const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
       const firstTablePropertyBlock = tablePropertiesBlock.at(0);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
+    });
+
+    it('Should not search by specific nested field since that field is not visible', async () => {
+      const mockItems = mockClientNestedItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMockedNestedItems,
+          searchField: 'info.out.height',
+          searchValue: 'height-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      await findWrapperItemByTestId('manage-table-properties-icon').trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(2);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
+    });
+
+    it('Should not search by specific nested fields since that one of that fields is not visible', async () => {
+      const mockItems = mockClientNestedItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMockedNestedItems,
+          searchField: ['info.out.height'],
+          searchValue: 'height-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      await findWrapperItemByTestId('manage-table-properties-icon').trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(2);
       const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
       await firstTablePropertyCheckbox.setChecked(false);
       trArr = wrapper.findAll('tbody tr');
