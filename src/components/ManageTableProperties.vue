@@ -53,6 +53,7 @@ const { columns, modelValue } = toRefs(props);
 const COLUMN_TITLE_PROPERTY_LENGTH_LIMIT = 8;
 
 const selectedTablePropertyColumns = ref<string[]>([]);
+const manageTablePropertiesRef = ref<HTMLElement | null>(null);
 
 const transformedTablePropertyColumns = computed(() => columns.value.map((column) => {
   column.disabled = (selectedTablePropertyColumns.value.length === 1
@@ -72,8 +73,6 @@ watch(modelValue, (val) => {
 watch(selectedTablePropertyColumns, (val) => {
   emits('set-checked-table-properties', val);
 });
-
-const manageTablePropertiesRef = ref<HTMLElement | null>(null);
 
 useDetectOutsideClick(manageTablePropertiesRef, () => {
   emits('close');
