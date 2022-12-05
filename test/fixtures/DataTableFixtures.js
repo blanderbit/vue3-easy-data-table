@@ -69,3 +69,33 @@ export const playerItemsWithSimilarNameFixture = [
   },
   ...playerItemsFixture,
 ];
+
+export const playerItemsSortByFixture = [
+  {
+    player: 'Stephen Curry',
+    team: 'GSW',
+    number: 30,
+    position: 'G',
+    indicator: { height: '6-2', weight: 185 },
+    lastAttended: 'Davidson',
+    country: 'USA',
+  },
+  {
+    player: 'Kevin Durant',
+    team: 'BKN',
+    number: 7,
+    position: 'F',
+    indicator: { height: '6-10', weight: 240 },
+    lastAttended: 'Texas-Austin',
+    country: 'USA',
+  },
+  {
+    player: 'HC 1',
+    team: 'MIL',
+    number: 34,
+    position: 'F',
+    indicator: { height: '6-9', weight: 220 },
+    lastAttended: 'Filathlitikos',
+    country: 'Greece',
+  },
+];

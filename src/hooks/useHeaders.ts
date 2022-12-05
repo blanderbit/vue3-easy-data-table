@@ -1,5 +1,5 @@
 import {
-  ref, Ref, computed, ComputedRef, WritableComputedRef,
+  ref, Ref, computed, ComputedRef, WritableComputedRef, watch,
 } from 'vue';
 import type { Header, SortType } from '../types/main';
 import type {
@@ -7,6 +7,9 @@ import type {
 } from '../types/internal';
 
 export default function useHeaders(
+  tableProperties: Ref<Header[]>,
+  manageTableProperties: Ref<boolean>,
+  checkedTableProperties: Ref<string[]>,
   checkboxColumnWidth: Ref<number>,
   expandColumnWidth: Ref<number>,
   fixedCheckbox: Ref<boolean>,
@@ -15,7 +18,6 @@ export default function useHeaders(
   headers: Ref<Header[]>,
   ifHasExpandSlot: ComputedRef<boolean>,
   indexColumnWidth: Ref<number>,
-  isMultipleSelectable: ComputedRef<boolean>,
   isServerSideMode: ComputedRef<boolean>,
   mustSort: Ref<boolean>,
   serverOptionsComputed: WritableComputedRef<ServerOptionsComputed | null>,
@@ -26,12 +28,34 @@ export default function useHeaders(
   updateServerOptionsSort: (newSortBy: string, newSortType: SortType | null) => void,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
-  const hasFixedColumnsFromUser = computed(() => headers.value.findIndex((header) => header.fixed) !== -1);
+  const initialHeaders = computed(() => headers.value.map((header) => ({
+    ...header,
+    visible: header.visible ?? true,
+  })));
+  const initialVisibleHeaders = computed(() => initialHeaders.value.filter((header) => header.visible));
+
+  watch(initialVisibleHeaders, (currVal) => {
+    tableProperties.value = currVal;
+    if (manageTableProperties.value) {
+      checkedTableProperties.value = currVal.map((header) => header.value);
+    }
+  }, {
+    immediate: true,
+  });
+
+  // Visible headers if user change visibility of table properties.
+  const visibleHeaders = computed(() => {
+    if (manageTableProperties.value) {
+      return initialVisibleHeaders.value.filter((header) => checkedTableProperties.value.includes(header.value));
+    }
+    return initialVisibleHeaders.value;
+  });
+  const hasFixedColumnsFromUser = computed(() => visibleHeaders.value.findIndex((header) => header.fixed) !== -1);
   const fixedHeadersFromUser = computed(() => {
-    if (hasFixedColumnsFromUser.value) return headers.value.filter((header) => header.fixed);
+    if (hasFixedColumnsFromUser.value) return visibleHeaders.value.filter((header) => header.fixed);
     return [];
   });
-  const unFixedHeaders = computed(() => headers.value.filter((header) => !header.fixed));
+  const unFixedHeaders = computed(() => visibleHeaders.value.filter((header) => !header.fixed));
 
   // eslint-disable-next-line max-len
   const generateClientSortOptions = (sortByValue: string | string[], sortTypeValue: SortType | SortType[]): ClientSortOptions | null => {
@@ -80,9 +104,10 @@ export default function useHeaders(
 
       // client mode
       // multi sort
-      // eslint-disable-next-line max-len
-      if (clientSortOptions.value && Array.isArray(clientSortOptions.value.sortBy) && Array.isArray(clientSortOptions.value.sortDesc)
-      && clientSortOptions.value.sortBy.includes(headerSorting.value)) {
+      if (clientSortOptions.value
+          && Array.isArray(clientSortOptions.value.sortBy)
+          && Array.isArray(clientSortOptions.value.sortDesc)
+          && clientSortOptions.value.sortBy.includes(headerSorting.value)) {
         const index = clientSortOptions.value.sortBy.indexOf(headerSorting.value);
         headerSorting.sortType = clientSortOptions.value.sortDesc[index] ? 'desc' : 'asc';
       } else if (clientSortOptions.value && headerSorting.value === clientSortOptions.value.sortBy) {
@@ -113,14 +138,10 @@ export default function useHeaders(
     }
     // checkbox
     let headersWithCheckbox: HeaderForRender[] = [];
-    if (!isMultipleSelectable.value) {
-      headersWithCheckbox = headersWithIndex;
-    } else {
-      const headerCheckbox: HeaderForRender = (fixedCheckbox.value || hasFixedColumnsFromUser.value) ? {
-        text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 36,
-      } : { text: 'checkbox', value: 'checkbox' };
-      headersWithCheckbox = [headerCheckbox, ...headersWithIndex];
-    }
+    const headerCheckbox: HeaderForRender = (fixedCheckbox.value || hasFixedColumnsFromUser.value) ? {
+      text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 36,
+    } : { text: 'checkbox', value: 'checkbox' };
+    headersWithCheckbox = [headerCheckbox, ...headersWithIndex];
     return headersWithCheckbox;
   });
 
@@ -170,28 +191,53 @@ export default function useHeaders(
     });
   };
 
-  const isMultiSorting = (headerText: string): boolean => {
-    if (serverOptionsComputed.value) {
-      if (Array.isArray(serverOptionsComputed.value.sortBy)) return serverOptionsComputed.value.sortBy.includes(headerText);
+  const filteredClientSortOptions = computed(() => {
+    if (!clientSortOptions.value) return null;
+    if (Array.isArray(clientSortOptions.value.sortBy) && Array.isArray(clientSortOptions.value.sortDesc)) {
+      if (!manageTableProperties.value) return clientSortOptions.value;
+      // If the sortBy property includes the column that is not visible
+      //  it should be excluded from sortBy array because it does not make sense
+      //  to sort by column that is not visible.
+      const nonVisibleSortByColumnKeys = clientSortOptions.value.sortBy.reduce((acc: number[], sortByColumn, idx) => {
+        if (!headerColumns.value.includes(sortByColumn)) {
+          acc.push(idx);
+        }
+        return acc;
+      }, []);
+      const filteredSortBy = clientSortOptions.value.sortBy
+        .filter((_, idx) => !nonVisibleSortByColumnKeys.includes(idx));
+      const filteredSortDesc = clientSortOptions.value.sortDesc
+        .filter((_, idx) => !nonVisibleSortByColumnKeys.includes(idx));
+      return {
+        sortBy: filteredSortBy,
+        sortDesc: filteredSortDesc,
+      };
     }
-    if (clientSortOptions.value && Array.isArray(clientSortOptions.value.sortBy)) {
-      return clientSortOptions.value.sortBy.includes(headerText);
+    return clientSortOptions.value;
+  });
+
+  const isMultiSorting = (headerText: string): boolean => {
+    if (serverOptionsComputed.value && Array.isArray(serverOptionsComputed.value.sortBy)) {
+      return serverOptionsComputed.value.sortBy.includes(headerText);
+    }
+    if (filteredClientSortOptions.value && Array.isArray(filteredClientSortOptions.value.sortBy)) {
+      return filteredClientSortOptions.value.sortBy.includes(headerText);
     }
     return false;
   };
 
   const getMultiSortNumber = (headerText: string) => {
-    if (serverOptionsComputed.value) {
-      if (Array.isArray(serverOptionsComputed.value.sortBy)) return serverOptionsComputed.value.sortBy.indexOf(headerText) + 1;
+    if (serverOptionsComputed.value && Array.isArray(serverOptionsComputed.value.sortBy)) {
+      return serverOptionsComputed.value.sortBy.indexOf(headerText) + 1;
     }
-    if (clientSortOptions.value && Array.isArray(clientSortOptions.value.sortBy)) {
-      return clientSortOptions.value.sortBy.indexOf(headerText) + 1;
+    if (filteredClientSortOptions.value && Array.isArray(filteredClientSortOptions.value.sortBy)) {
+      return filteredClientSortOptions.value.sortBy.indexOf(headerText) + 1;
     }
     return false;
   };
 
   return {
-    clientSortOptions,
+    filteredClientSortOptions,
     headerColumns,
     headersForRender,
     updateSortField,

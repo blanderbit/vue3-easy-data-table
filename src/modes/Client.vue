@@ -20,6 +20,7 @@
       :exact-match="true"
       :is-exact-match-case-sensitive="true"
       :show-index="true"
+      :manage-table-properties="true"
       selectable="single"
       alternating
       border-cell
@@ -163,17 +164,11 @@ import {
 } from '../mock';
 import { tableHeaders, tableItems } from '../data/table-data';
 
-const searchField = ref(null); // null | 'indicator.weight' | ['indicator.weight'] | ['indicator.weight', 'indicator.height']
+// null | 'player' | 'indicator.weight' | ['indicator.weight'] | ['indicator.weight', 'indicator.height']
+const searchField = ref(null);
 const searchValue = ref('');
-const sortBy = ref(['indicator.weight', 'number']);
+const sortBy = ref(['indicator.weight', 'number']); // ['indicator.weight', 'number'] | 'number'
 const sortType = ref<SortType | SortType[] | undefined>(['desc', 'asc']);
-const switchToNested300 = () => {
-  items.value = mockClientNestedItems(300);
-};
-
-const switchToNested = () => {
-  items.value = mockClientNestedItems(100);
-};
 
 const filterOptions = [
   // {
@@ -204,13 +199,20 @@ watch(itemsSelected, (val) => {
   deep: true,
 });
 
+const switchToNested300 = () => {
+  items.value = mockClientNestedItems(300);
+};
+
+const switchToNested = () => {
+  items.value = mockClientNestedItems(100);
+};
+
 const showItem = (item: ClickRowArgument) => {
-  console.log('item');
-  console.log(JSON.stringify(item));
+  console.log('showItem', JSON.stringify(item));
 };
 
 const updateSort = (sortOption: UpdateSortArgument) => {
-  console.log(sortOption);
+  console.log('sortOption', sortOption);
 };
 // filtering
 

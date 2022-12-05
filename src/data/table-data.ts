@@ -4,7 +4,7 @@ export const tableHeaders: Header[] = [
   { text: 'PLAYER', value: 'player' },
   { text: 'TEAM', value: 'team' },
   { text: 'NUMBER', value: 'number', sortable: true },
-  { text: 'POSITION', value: 'position' },
+  { text: 'POSITION', value: 'position', visible: true },
   { text: 'HEIGHT', value: 'indicator.height' },
   { text: 'WEIGHT (lbs)', value: 'indicator.weight', sortable: true },
   { text: 'LAST ATTENDED', value: 'lastAttended', width: 200 },

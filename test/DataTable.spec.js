@@ -1,7 +1,9 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect } from 'vitest';
+import {
+  describe, it, expect, vi,
+} from 'vitest';
 import { mount } from '@vue/test-utils';
 import crypto from 'crypto';
 import DataTable from '../src/components/DataTable.vue';
@@ -17,7 +19,7 @@ import PaginationArrows from '../src/components/PaginationArrows.vue';
 import {
   playerItemsWithDuplicationFixture,
   playerHeadersFixture,
-  playerItemsWithSimilarNameFixture,
+  playerItemsWithSimilarNameFixture, playerItemsSortByFixture,
 } from './fixtures/DataTableFixtures';
 
 Object.defineProperty(global, 'crypto', {
@@ -29,11 +31,19 @@ Object.defineProperty(global, 'crypto', {
 describe('Data Table', () => {
   let wrapper;
   const findWrapperItemByTestId = (testId) => wrapper.find(`[data-test-id='${testId}']`);
+  const findWrapperItemsByTestId = (testId) => wrapper.findAll(`[data-test-id='${testId}']`);
   const findNodeItemByTestId = (node, testId) => node.find(`[data-test-id='${testId}']`);
   const findNodeItemsByTestId = (node, testId) => node.findAll(`[data-test-id='${testId}']`);
 
   function mountDataTableComponent(options) {
-    wrapper = mount(DataTable, options);
+    wrapper = mount(DataTable, {
+      ...options,
+      global: {
+        directives: {
+          clickOutside: vi.fn(),
+        },
+      },
+    });
   }
 
   // Button Pagination
@@ -97,7 +107,7 @@ describe('Data Table', () => {
       expect(secondButton.classes()).include('active');
 
       const tdArr = wrapper.findAll('td');
-      const firstTd = tdArr.at(0);
+      const firstTd = tdArr.at(1);
       expect(firstTd.text()).toBe(mockClientItems(200)[5].name);
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).equal(5);
@@ -326,10 +336,9 @@ describe('Data Table', () => {
       it('Should select only one row by clicking on row', async () => {
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 3,
           },
         });
@@ -353,10 +362,9 @@ describe('Data Table', () => {
         const mockItems = mockClientItems(200);
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockItems,
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 5,
           },
         });
@@ -378,10 +386,9 @@ describe('Data Table', () => {
       it('Should select only one row using ctrl key', async () => {
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 3,
           },
         });
@@ -414,10 +421,9 @@ describe('Data Table', () => {
       it('Should select only one row using shift key', async () => {
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 3,
           },
         });
@@ -450,10 +456,9 @@ describe('Data Table', () => {
       it('Should select only one row by clicking on 2 rows', async () => {
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 3,
           },
         });
@@ -487,10 +492,9 @@ describe('Data Table', () => {
         const mockItems = mockClientItems(200);
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockItems,
             headers: headersMocked,
-            selection: 'single',
+            selectable: 'single',
             rowsPerPage: 5,
           },
         });
@@ -524,7 +528,6 @@ describe('Data Table', () => {
       it('Should not select all rows by clicking on multi select', async () => {
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
             rowsPerPage: 3,
@@ -550,7 +553,6 @@ describe('Data Table', () => {
         const mockItems = mockClientItems(200);
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockItems,
             headers: headersMocked,
             rowsPerPage: 5,
@@ -589,7 +591,6 @@ describe('Data Table', () => {
         const mockItems = mockClientItems(200);
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockItems,
             headers: headersMocked,
             rowsPerPage: 5,
@@ -626,7 +627,6 @@ describe('Data Table', () => {
         const mockItems = mockClientItems(200);
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockItems,
             headers: headersMocked,
             rowsPerPage: 5,
@@ -656,7 +656,6 @@ describe('Data Table', () => {
       it('Should select rows using shift key', async () => {
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockClientItems(7),
             headers: headersMocked,
             rowsPerPage: 5,
@@ -683,7 +682,6 @@ describe('Data Table', () => {
       it('Should select rows using ctrl key', async () => {
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockClientItems(200),
             headers: headersMocked,
             rowsPerPage: 5,
@@ -711,7 +709,6 @@ describe('Data Table', () => {
       it('Should select all rows by clicking on multi select', async () => {
         mountDataTableComponent({
           props: {
-            itemsSelected: [],
             items: mockClientItems(3),
             headers: headersMocked,
             rowsPerPage: 3,
@@ -750,7 +747,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       const firstTr = trArr.at(0);
-      expect(firstTr.findAll('td').at(0).text()).toBe(mockItems[mockItems.length - 1].name);
+      expect(firstTr.findAll('td').at(1).text()).toBe(mockItems[mockItems.length - 1].name);
     });
 
     it('Sorting by height column', async () => {
@@ -770,7 +767,7 @@ describe('Data Table', () => {
 
       const trArr = wrapper.findAll('tbody tr');
       const firstTr = trArr.at(0);
-      expect(firstTr.findAll('td').at(0).text()).toBe(mockItems[0].name);
+      expect(firstTr.findAll('td').at(1).text()).toBe(mockItems[0].name);
     });
   });
 
@@ -807,7 +804,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].address);
+      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[114].address);
     });
 
     it('Searching by specific fields (address and name)', async () => {
@@ -823,7 +820,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].address);
+      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[114].address);
     });
 
     it('Searching by specific fields (address and name)', async () => {
@@ -839,7 +836,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(0).text()).toBe(mockItems[114].name);
+      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].name);
     });
 
     it('Searching by specific nested field (info.out.height)', async () => {
@@ -855,7 +852,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[114].info.out.height.toString());
+      expect(wrapper.findAll('tbody td').at(3).text()).toBe(mockItems[114].info.out.height.toString());
     });
 
     it('Searching by specific nested fields (info.out.height and info.out.weight)', async () => {
@@ -871,7 +868,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[114].info.out.height.toString());
+      expect(wrapper.findAll('tbody td').at(3).text()).toBe(mockItems[114].info.out.height.toString());
     });
 
     it('Searching by specific nested fields (info.out.height and info.out.weight)', async () => {
@@ -887,7 +884,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(3).text()).toBe(mockItems[114].info.out.weight.toString());
+      expect(wrapper.findAll('tbody td').at(4).text()).toBe(mockItems[114].info.out.weight.toString());
     });
 
     it('Searching by all fields', async () => {
@@ -902,7 +899,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(0).text()).toBe(mockItems[114].name);
+      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].name);
     });
 
     it(`
@@ -938,7 +935,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].address);
+      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[114].address);
       expect(findWrapperItemByTestId('table-row-address-column').classes()).toContain('exactMatch');
     });
 
@@ -956,11 +953,11 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].address);
+      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[114].address);
       expect(findWrapperItemByTestId('table-row-address-column').classes()).toContain('exactMatch');
     });
 
-    it('Searching by specific all fields (exact match)', async () => {
+    it('Searching by all fields (exact match)', async () => {
       const mockItems = mockClientItems(200);
       mountDataTableComponent({
         props: {
@@ -973,7 +970,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].address);
+      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[114].address);
       expect(findWrapperItemByTestId('table-row-address-column').classes()).toContain('exactMatch');
     });
 
@@ -992,7 +989,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].address);
+      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[114].address);
       expect(findWrapperItemByTestId('table-row-address-column').classes()).not.toContain('exactMatch');
     });
 
@@ -1011,7 +1008,7 @@ describe('Data Table', () => {
       });
       const trArr = wrapper.findAll('tbody tr');
       expect(trArr.length).toBe(1);
-      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[114].address);
+      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[114].address);
       expect(findWrapperItemByTestId('table-row-address-column').classes()).toContain('exactMatch');
     });
 
@@ -1089,6 +1086,251 @@ describe('Data Table', () => {
     });
   });
 
+  describe('Manage table properties', () => {
+    it('should render menage table properties icon', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          manageTableProperties: true,
+        },
+      });
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      expect(manageTablePropertiesIcon.isVisible()).toBeTruthy();
+
+      let manageTableProperties = findWrapperItemByTestId('manage-table-properties');
+      expect(manageTableProperties.exists()).toBeFalsy();
+      await manageTablePropertiesIcon.trigger('click');
+
+      manageTableProperties = findWrapperItemByTestId('manage-table-properties');
+      expect(manageTableProperties.isVisible()).toBeTruthy();
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      tablePropertiesBlock.forEach((tableProperty) => {
+        expect(findNodeItemByTestId(tableProperty, 'property-item-checkbox').element.checked).toBeTruthy();
+      });
+    });
+
+    it('should not render menage table properties icon', () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          manageTableProperties: false,
+        },
+      });
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      expect(manageTablePropertiesIcon.exists()).toBeFalsy();
+    });
+
+    it('Should hide 1 table property', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          manageTableProperties: true,
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[0].name);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(0);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      expect(firstTablePropertyCheckbox.element.checked).toBeTruthy();
+      await firstTablePropertyCheckbox.setChecked(false);
+      expect(firstTablePropertyCheckbox.element.checked).toBeFalsy();
+      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[0].address);
+    });
+
+    it('Should not hide all table properties, the last one should be disabled', async () => {
+      const mockItems = [
+        {
+          name: 'Test name',
+          address: 'Test address',
+        },
+      ];
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: [
+            { text: 'Name', value: 'name' },
+            { text: 'Address', value: 'address' },
+          ],
+          manageTableProperties: true,
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      expect(wrapper.findAll('tbody td').at(2).text()).toBe(mockItems[0].address);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyCheckbox = findNodeItemByTestId(tablePropertiesBlock.at(0), 'property-item-checkbox');
+      const secondTablePropertyCheckbox = findNodeItemByTestId(tablePropertiesBlock.at(1), 'property-item-checkbox');
+
+      expect(firstTablePropertyCheckbox.element.disabled).toBeFalsy();
+      await secondTablePropertyCheckbox.setChecked(false);
+
+      expect(firstTablePropertyCheckbox.element.disabled).toBeTruthy();
+      expect(wrapper.findAll('tbody td').at(1).text()).toBe(mockItems[0].name);
+    });
+
+    it('Should not search since that field is not visible', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          searchValue: 'name-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(0);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
+    });
+
+    it('Should not search by specific field since that field is not visible', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          searchField: 'name',
+          searchValue: 'name-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(0);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
+    });
+
+    it('Should not search by specific fields since that one of that fields is not visible', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          searchField: ['name', 'address'],
+          searchValue: 'name-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      const manageTablePropertiesIcon = findWrapperItemByTestId('manage-table-properties-icon');
+      await manageTablePropertiesIcon.trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(0);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
+    });
+
+    it('Should not search by specific nested field since that field is not visible', async () => {
+      const mockItems = mockClientNestedItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMockedNestedItems,
+          searchField: 'info.out.height',
+          searchValue: 'height-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      await findWrapperItemByTestId('manage-table-properties-icon').trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(2);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
+    });
+
+    it('Should not search by specific nested fields since that one of that fields is not visible', async () => {
+      const mockItems = mockClientNestedItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMockedNestedItems,
+          searchField: ['info.out.height'],
+          searchValue: 'height-1',
+          manageTableProperties: true,
+        },
+      });
+      let trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(1);
+
+      await findWrapperItemByTestId('manage-table-properties-icon').trigger('click');
+
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(2);
+      const firstTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await firstTablePropertyCheckbox.setChecked(false);
+      trArr = wrapper.findAll('tbody tr');
+      expect(trArr.length).toBe(0);
+    });
+
+    it('Should not sort by specific field since that field is not visible', async () => {
+      mountDataTableComponent({
+        props: {
+          items: playerItemsSortByFixture,
+          headers: playerHeadersFixture,
+          sortBy: 'number',
+          manageTableProperties: true,
+        },
+      });
+      const trArr = wrapper.findAll('tbody tr');
+      const firstTr = trArr.at(0);
+      const secondTr = trArr.at(1);
+      const firstTrNameTd = firstTr.findAll('td').at(1);
+      const secondTrNameTd = secondTr.findAll('td').at(1);
+      expect(firstTrNameTd.text()).toBe(playerItemsSortByFixture.at(1).player);
+      expect(secondTrNameTd.text()).toBe(playerItemsSortByFixture.at(0).player);
+      await findWrapperItemByTestId('manage-table-properties-icon').trigger('click');
+      const tablePropertiesBlock = findWrapperItemsByTestId('property-item');
+      const firstTablePropertyBlock = tablePropertiesBlock.at(2);
+      const widthTablePropertyCheckbox = findNodeItemByTestId(firstTablePropertyBlock, 'property-item-checkbox');
+      await widthTablePropertyCheckbox.setChecked(false);
+      expect(firstTrNameTd.text()).toBe(playerItemsSortByFixture.at(0).player);
+      expect(secondTrNameTd.text()).toBe(playerItemsSortByFixture.at(1).player);
+    });
+  });
+
   // Server side paginate and sort
   describe('Server side paginate and sort', () => {
     it('Click next page button to load from server', async () => {
@@ -1112,7 +1354,7 @@ describe('Data Table', () => {
           headers: headersMocked,
         },
       });
-      expect(wrapper.findAll('tbody td').at(0).text()).toBe(serverCurrentPageItems[0].name);
+      expect(wrapper.findAll('tbody td').at(1).text()).toBe(serverCurrentPageItems[0].name);
 
       const nextPageButton = wrapper.find('.next-page__click-button');
       await nextPageButton.trigger('click');

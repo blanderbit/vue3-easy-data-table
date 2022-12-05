@@ -5,14 +5,21 @@ import type {
   Item, FilterOption, ExactMatchDictionary, RowItem,
 } from '../types/main';
 import type { ClientSortOptions, EmitsEventName } from '../types/internal';
-import { getItemValue, flattenObj } from '../utils';
+import {
+  getItemValue,
+  flattenObj,
+  excludeKeysFromObj,
+  unFlattenObj,
+} from '../utils';
 
 export default function useTotalItems(
+  manageTableProperties: Ref<boolean>,
+  checkedTableProperties: Ref<string[]>,
   exactMatch: Ref<boolean>,
   isExactMatchCaseSensitive: Ref<boolean>,
   headerColumns: Ref<string[]>,
   isMultiSelect: ComputedRef<boolean>,
-  clientSortOptions: Ref<ClientSortOptions | null>,
+  filteredClientSortOptions: ComputedRef<ClientSortOptions | null>,
   filterOptions: Ref<FilterOption[]>,
   isServerSideMode: ComputedRef<boolean>,
   items: Ref<RowItem[]>,
@@ -27,17 +34,14 @@ export default function useTotalItems(
   // which containing the column name as a key, a flag indicating whether
   // there is an exact match as a value.
   const rowsWithExactMatchColumnsDictionary = ref<ExactMatchDictionary>({});
-
-  const excludeControlKeysFromRowKeys = (objectKeys: string[]) => {
-    const ignoreKeys = ['expand', 'index', 'checkbox', 'meta'];
-    return objectKeys.filter((objectKey) => !ignoreKeys.includes(objectKey));
-  };
+  const itemIgnoreKeys = ['expand', 'index', 'checkbox', 'meta'];
 
   const fillRowsWithExactMatchColumnsDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
     if (typeof item !== 'object') return;
-    const itemKeys = Object.keys(item);
+    const itemWithoutControlKeys = excludeKeysFromObj(item, itemIgnoreKeys);
+    const itemKeys = Object.keys(itemWithoutControlKeys);
     if (!itemKeys.length) return;
-    excludeControlKeysFromRowKeys(itemKeys).forEach((itemKey) => {
+    itemKeys.forEach((itemKey) => {
       if (typeof item[itemKey] === 'object') {
         fillRowsWithExactMatchColumnsDictionary(item[itemKey], itemUniqueIndex, itemKey);
       } else {
@@ -56,20 +60,27 @@ export default function useTotalItems(
   };
 
   const generateSearchingTarget = (item: RowItem): string => {
-    if (typeof searchField.value === 'string' && searchField.value !== '') return getItemValue(searchField.value, item);
+    const itemWithoutControlKeys = excludeKeysFromObj(item, itemIgnoreKeys);
+    const flattenItem = flattenObj(itemWithoutControlKeys);
+    // Obtain those header keys that are not visible to exclude it from item.
+    const nonVisibleHeaderKeys = manageTableProperties.value ? Object.keys(flattenItem).filter(
+      (key) => !checkedTableProperties.value.includes(key),
+    ) : [];
+    if (typeof searchField.value === 'string' && searchField.value !== '') {
+      // Exclude non visible header keys from flatten item keys and un flat flatten item.
+      const unFlattenItem = unFlattenObj(excludeKeysFromObj(flattenItem, nonVisibleHeaderKeys));
+      return getItemValue(searchField.value, unFlattenItem);
+    }
     if (Array.isArray(searchField.value)) {
+      const unFlattenItem = unFlattenObj(excludeKeysFromObj(flattenItem, nonVisibleHeaderKeys));
       let searchString = '';
       searchField.value.forEach((field) => {
-        searchString += getItemValue(field, item);
+        searchString += getItemValue(field, unFlattenItem);
       });
       return searchString;
     }
-    const itemWithoutControlKeys = excludeControlKeysFromRowKeys(Object.keys(item))
-      .reduce((acc: Item, key) => {
-        acc[key] = item[key];
-        return acc;
-      }, {});
-    return Object.values(flattenObj(itemWithoutControlKeys)).join(' ');
+    const flattenFilteredItem = excludeKeysFromObj(flattenItem, nonVisibleHeaderKeys);
+    return Object.values(flattenFilteredItem).join(' ');
   };
 
   const moveExactMatchRowsUp = (rows: RowItem[]) => {
@@ -166,11 +177,11 @@ export default function useTotalItems(
     }
   }, { immediate: true, deep: true });
 
-  function recursionMuiltSort(sortByArr: string[], sortDescArr: boolean[], itemsToSort: Item[], index: number): Item[] {
+  function recursionMultiSort(sortByArr: string[], sortDescArr: boolean[], itemsToSort: Item[], index: number): Item[] {
     const sortBy = sortByArr[index];
     const sortDesc = sortDescArr[index];
     const sorted = (index === 0 ? itemsToSort
-      : recursionMuiltSort(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((a: Item, b: Item) => {
+      : recursionMultiSort(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((a: Item, b: Item) => {
       let isAllSame = true;
       for (let i = 0; i < index; i += 1) {
         if (getItemValue(sortByArr[i], a) !== getItemValue(sortByArr[i], b)) {
@@ -192,14 +203,17 @@ export default function useTotalItems(
   // (last step: sorting)
   const totalItems = computed((): Item[] => {
     if (isServerSideMode.value) return items.value;
-    if (clientSortOptions.value === null) return itemsFiltering.value;
-    const { sortBy, sortDesc } = clientSortOptions.value;
+    if (filteredClientSortOptions.value === null) return itemsFiltering.value;
+    const { sortBy, sortDesc } = filteredClientSortOptions.value;
     const itemsFilteringSorted = [...itemsFiltering.value];
     // multi sort
     if (multiSort && Array.isArray(sortBy) && Array.isArray(sortDesc)) {
       if (sortBy.length === 0) return itemsFilteringSorted;
-      return recursionMuiltSort(sortBy, sortDesc, itemsFilteringSorted, sortBy.length - 1);
+      return recursionMultiSort(sortBy, sortDesc, itemsFilteringSorted, sortBy.length - 1);
     }
+    const isSortByColumnVisible = headerColumns.value.includes(sortBy as string);
+    // If sort by column is not visible does not make sense to sort by it.
+    if (!isSortByColumnVisible) return itemsFilteringSorted;
     // eslint-disable-next-line vue/no-side-effects-in-computed-properties
     return itemsFilteringSorted.sort((a, b) => {
       if (getItemValue(sortBy as string, a) < getItemValue(sortBy as string, b)) return sortDesc ? 1 : -1;
