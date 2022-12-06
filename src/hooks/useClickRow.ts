@@ -18,6 +18,7 @@ export default function useClickRow(
 
   const setSelectedMetaForItems = (items: Item[], selected: boolean) => {
     items.forEach((item) => {
+      item.meta.selected = selected;
       const rowItem = initialRows.value.find((initialRow) => initialRow.meta.uniqueIndex === item.meta.uniqueIndex);
       if (rowItem) {
         rowItem.meta.selected = selected;
