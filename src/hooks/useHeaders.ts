@@ -28,6 +28,7 @@ export default function useHeaders(
   updateServerOptionsSort: (newSortBy: string, newSortType: SortType | null) => void,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
+  const groupedHeaders = ref<Header[]>([]);
   const initialHeaders = computed(() => headers.value.map((header) => ({
     ...header,
     visible: header.visible ?? true,
@@ -142,7 +143,7 @@ export default function useHeaders(
       text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 36,
     } : { text: 'checkbox', value: 'checkbox' };
     headersWithCheckbox = [headerCheckbox, ...headersWithIndex];
-    return headersWithCheckbox;
+    return headersWithCheckbox.filter((header) => !header.grouped);
   });
 
   const headerColumns = computed((): string[] => headersForRender.value.map((header) => header.value));
@@ -237,6 +238,7 @@ export default function useHeaders(
   };
 
   return {
+    groupedHeaders,
     filteredClientSortOptions,
     headerColumns,
     headersForRender,

@@ -62,7 +62,7 @@
                   'shadow': header.value === lastFixedColumn,
                   // eslint-disable-next-line max-len
                 }, typeof headerItemClassName === 'string' ? headerItemClassName : headerItemClassName(header as Header, index)]"
-                :style="getFixedDistance(header.value)"
+                :style="[getFixedDistance(header.value), { 'padding-left': `${firstHeaderItemPadding}rem` }]"
                 @click="(header.sortable && header.sortType) ? updateSortField(header.value, header.sortType) : null"
               >
                 <MultipleSelectCheckBox
@@ -97,13 +97,18 @@
                     :key="header.sortType ? header.sortType : 'none'"
                     class="sortType-icon"
                     :class="{'desc': header.sortType === 'desc'}"
-                  ></i>
+                  />
                   <span
                     v-if="multiSort && isMultiSorting(header.value)"
                     class="multi-sort__number"
                   >
                     {{ getMultiSortNumber(header.value) }}
                   </span>
+                  <i
+                    v-if="header.groupable"
+                    class="group-icon fa fa-stream"
+                    @click.stop="group(header)"
+                  />
                 </span>
               </th>
             </tr>
@@ -134,10 +139,25 @@
               }"
             />
             <template
-              v-for="(item, index) in pageItems"
+              v-for="(item, index) in flattenedRows"
               :key="index"
             >
+              <tr v-if="item.groupHeader">
+                <td
+                  colspan="100%"
+                  :style="{ 'padding-left': `${item.groupParent}rem` }"
+                >
+                  <div class="group-column">
+                    <span class="group-column__label">{{ item[item['headerValue']] }}</span>
+                    <i
+                      class="group-column__icon fa fa-times-circle"
+                      @click="ungroup(item.groupHeader)"
+                    />
+                  </div>
+                </td>
+              </tr>
               <tr
+                v-else
                 :class="[{'even-row': (index + 1) % 2 === 0 && !item.meta.selected},
                          {'selected': item.meta.selected},
                          typeof bodyRowClassName === 'string' ? bodyRowClassName : bodyRowClassName(item, index)]"
@@ -152,7 +172,7 @@
                   v-for="(column, i) in headerColumns"
                   :key="i"
                   :data-test-id="`table-row-${column}-column`"
-                  :style="getFixedDistance(column, 'td')"
+                  :style="[getFixedDistance(column, 'td'), { 'padding-left': i === 0 && `${item.meta.groupParent}rem` }]"
                   :class="[{
                     'shadow': column === lastFixedColumn,
                     'can-expand': column === 'expand',
@@ -332,7 +352,14 @@
 
 <script setup lang="ts">
 import {
-  useSlots, computed, toRefs, ref, watch, provide, onMounted, PropType,
+  useSlots,
+  computed,
+  toRefs,
+  ref,
+  watch,
+  provide,
+  onMounted,
+  PropType,
 } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -356,6 +383,7 @@ import useRows from '../hooks/useRows';
 import useServerOptions from '../hooks/useServerOptions';
 import useTotalItems from '../hooks/useTotalItems';
 import useTableProperties from '../hooks/useTableProperties';
+import useGroupBy from '../hooks/useGroupBy';
 
 import type { Header, Item, RowItem } from '../types/main';
 import type { HeaderForRender } from '../types/internal';
@@ -415,6 +443,7 @@ const {
   manageTableProperties,
 } = toRefs(props);
 
+const tableHeaders = ref(headers.value);
 // style related computed variables
 const tableHeightPx = computed(() => (tableHeight.value ? `${tableHeight.value}px` : null));
 const tableMinHeightPx = computed(() => `${tableMinHeight.value}px`);
@@ -474,6 +503,7 @@ const {
 } = useTableProperties();
 
 const {
+  groupedHeaders,
   filteredClientSortOptions,
   headerColumns,
   headersForRender,
@@ -489,7 +519,7 @@ const {
   fixedCheckbox,
   fixedExpand,
   fixedIndex,
-  headers,
+  tableHeaders,
   ifHasExpandSlot,
   indexColumnWidth,
   isServerSideMode,
@@ -504,24 +534,17 @@ const {
 );
 
 const {
+  initialRows,
   rowsItemsComputed,
   rowsPerPageRef,
   updateRowsPerPage,
 } = useRows(
+  items,
   isServerSideMode,
   rowsItems,
   serverOptions,
   rowsPerPage,
 );
-
-const itemsWithMeta = computed((): RowItem[] => items.value.map((item: Item) => ({
-  ...item,
-  meta: {
-    selected: false,
-    uniqueIndex: uuidv4(),
-    isExactMatch: false,
-  },
-})));
 
 const {
   rowsWithExactMatchColumnsDictionary,
@@ -540,7 +563,7 @@ const {
   filteredClientSortOptions,
   filterOptions,
   isServerSideMode,
-  itemsWithMeta,
+  initialRows,
   itemsSelected,
   searchField,
   searchValue,
@@ -578,12 +601,24 @@ const {
 } = usePageItems(
   currentPaginationNumber,
   isServerSideMode,
-  itemsWithMeta,
+  initialRows,
   rowsPerPageRef,
   selectItemsComputed,
   showIndex,
   totalItems,
   totalItemsLength,
+);
+
+const {
+  flattenedRows,
+  flattenedNonGroupedRows,
+  firstHeaderItemPadding,
+  group,
+  ungroup,
+} = useGroupBy(
+  tableHeaders,
+  pageItems,
+  groupedHeaders,
 );
 
 const prevPageEndIndex = computed(() => {
@@ -596,7 +631,7 @@ const {
   updateExpandingItemIndexList,
   clearExpandingItemIndexList,
 } = useExpandableRow(
-  pageItems,
+  flattenedRows,
   prevPageEndIndex,
   emits,
 );
@@ -612,8 +647,9 @@ const {
 const {
   clickRow,
 } = useClickRow(
+  initialRows,
   isMultiSelect,
-  pageItems,
+  flattenedNonGroupedRows, // flattenedNonGroupedRows
   selectItemsComputed,
   clickEventType,
   showIndex,
@@ -666,7 +702,7 @@ watch([currentPaginationNumber, filteredClientSortOptions, searchField, searchVa
 
 const isTestMode = import.meta.env.MODE === 'test';
 const exposeForTest = isTestMode ? {
-  itemsWithMeta,
+  initialRows,
 } : {};
 defineExpose({
   currentPageFirstIndex,
@@ -767,6 +803,23 @@ defineExpose({
     .vue3-easy-data-table__body {
       -webkit-user-select: none; /* Safari */
       user-select: none; /* Standard syntax */
+    }
+
+    .group-icon {
+      cursor: pointer;
+      margin-left: 0.625rem;
+    }
+
+    .group-column {
+      display: flex;
+
+      &__label {
+        flex-grow: 1;
+      }
+
+      &__icon {
+        cursor: pointer;
+      }
     }
 
     tr {

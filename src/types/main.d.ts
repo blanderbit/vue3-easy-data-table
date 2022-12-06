@@ -36,7 +36,10 @@ export type Header = {
   sortable?: boolean
   fixed?: boolean
   visible?: boolean
+  groupable?: boolean
+  grouped?: boolean
   width?: number
+  groupBy?: (value: string | number) => void
 }
 
 export type ServerOptions = {

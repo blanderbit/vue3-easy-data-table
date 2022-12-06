@@ -14,6 +14,8 @@ export type HeaderForRender = {
   sortType?: SortType | 'none',
   fixed?: Boolean,
   width?: number,
+  groupable?: boolean,
+  grouped?: boolean,
 }
 
 export type ClientSortOptions = {

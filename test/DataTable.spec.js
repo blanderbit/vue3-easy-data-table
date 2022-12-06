@@ -343,7 +343,7 @@ describe('Data Table', () => {
           },
         });
 
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         const firstTableRowSelectCheckbox = firstTableRow.findComponent('.easy-checkbox');
@@ -355,7 +355,7 @@ describe('Data Table', () => {
         const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
         expect(updateItemsSelectedEvent).toHaveLength(1);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeTruthy(); // element at 0 index.
-        expect(updateItemsSelectedEvent[0]).toEqual([[itemsWithMeta[0]]]);
+        expect(updateItemsSelectedEvent[0]).toEqual([[initialRows[0]]]);
       });
 
       it('Should select only one row by clicking on 1 select checkboxes', async () => {
@@ -368,7 +368,7 @@ describe('Data Table', () => {
             rowsPerPage: 5,
           },
         });
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         const firstSingleCheckbox = firstTableRow.find('.easy-checkbox');
@@ -380,7 +380,7 @@ describe('Data Table', () => {
         const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
         expect(updateItemsSelectedEvent).toHaveLength(1);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeTruthy(); // element at 0 index.
-        expect(updateItemsSelectedEvent[0]).toEqual([[itemsWithMeta[0]]]);
+        expect(updateItemsSelectedEvent[0]).toEqual([[initialRows[0]]]);
       });
 
       it('Should select only one row using ctrl key', async () => {
@@ -393,7 +393,7 @@ describe('Data Table', () => {
           },
         });
 
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         const secondTableRow = tableRows.at(1);
@@ -415,7 +415,7 @@ describe('Data Table', () => {
         expect(updateItemsSelectedEvent).toHaveLength(2);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
         expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
-        expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[1]]]);
+        expect(updateItemsSelectedEvent[1]).toEqual([[initialRows[1]]]);
       });
 
       it('Should select only one row using shift key', async () => {
@@ -428,7 +428,7 @@ describe('Data Table', () => {
           },
         });
 
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         const secondTableRow = tableRows.at(1);
@@ -450,7 +450,7 @@ describe('Data Table', () => {
         expect(updateItemsSelectedEvent).toHaveLength(2);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
         expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
-        expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[1]]]);
+        expect(updateItemsSelectedEvent[1]).toEqual([[initialRows[1]]]);
       });
 
       it('Should select only one row by clicking on 2 rows', async () => {
@@ -463,7 +463,7 @@ describe('Data Table', () => {
           },
         });
 
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         const secondTableRow = tableRows.at(1);
@@ -485,7 +485,7 @@ describe('Data Table', () => {
         expect(updateItemsSelectedEvent).toHaveLength(2);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
         expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
-        expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[1]]]);
+        expect(updateItemsSelectedEvent[1]).toEqual([[initialRows[1]]]);
       });
 
       it('Should select only one row by clicking on 2 select checkboxes', async () => {
@@ -498,7 +498,7 @@ describe('Data Table', () => {
             rowsPerPage: 5,
           },
         });
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         const secondTableRow = tableRows.at(1);
@@ -522,7 +522,7 @@ describe('Data Table', () => {
         expect(updateItemsSelectedEvent).toHaveLength(2);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
         expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
-        expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[1]]]);
+        expect(updateItemsSelectedEvent[1]).toEqual([[initialRows[1]]]);
       });
 
       it('Should not select all rows by clicking on multi select', async () => {
@@ -534,7 +534,7 @@ describe('Data Table', () => {
             selectable: 'single',
           },
         });
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         tableRows.forEach((tableRow) => {
           expect(tableRow.classes()).not.toContain('selected');
@@ -559,7 +559,7 @@ describe('Data Table', () => {
             selectable: 'multi',
           },
         });
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         const thirdTableRow = tableRows.at(2);
@@ -583,7 +583,7 @@ describe('Data Table', () => {
         expect(firstTableRow.classes()).not.toContain('selected');
         expect(thirdTableRow.classes()).toContain('selected');
         const expected = [[updateItemsSelectedEvent[0][0][0], updateItemsSelectedEvent[1][0][0]]];
-        const received = [[itemsWithMeta[0], itemsWithMeta[2]]];
+        const received = [[initialRows[0], initialRows[2]]];
         expect(expected).toEqual(received);
       });
 
@@ -597,7 +597,7 @@ describe('Data Table', () => {
             selectable: 'multi',
           },
         });
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         const secondTableRow = tableRows.at(1);
@@ -620,7 +620,7 @@ describe('Data Table', () => {
         updateItemsSelectedEvent[1][0].forEach((updateItemsSelectedEventElement) => {
           expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
         });
-        expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[1], itemsWithMeta[0]]]);
+        expect(updateItemsSelectedEvent[1]).toEqual([[initialRows[1], initialRows[0]]]);
       });
 
       it('Should gather data of the the first and sixth row items', async () => {
@@ -633,7 +633,7 @@ describe('Data Table', () => {
             selectable: 'multi',
           },
         });
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const singleCheckboxArr = wrapper.findAll('.easy-checkbox');
         const firstSingleCheckbox = singleCheckboxArr.at(1);
         await firstSingleCheckbox.trigger('click');
@@ -650,7 +650,7 @@ describe('Data Table', () => {
         updateItemsSelectedEvent[1][0].forEach((updateItemsSelectedEventElement) => {
           expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
         });
-        expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[5], itemsWithMeta[0]]]);
+        expect(updateItemsSelectedEvent[1]).toEqual([[initialRows[5], initialRows[0]]]);
       });
 
       it('Should select rows using shift key', async () => {
@@ -662,7 +662,7 @@ describe('Data Table', () => {
             selectable: 'multi',
           },
         });
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         await firstTableRow.trigger('click');
@@ -676,7 +676,7 @@ describe('Data Table', () => {
         updateItemsSelectedEvent[1][0].forEach((updateItemsSelectedEventElement) => {
           expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
         });
-        expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[0], itemsWithMeta[1], itemsWithMeta[2]]]);
+        expect(updateItemsSelectedEvent[1]).toEqual([[initialRows[0], initialRows[1], initialRows[2]]]);
       });
 
       it('Should select rows using ctrl key', async () => {
@@ -688,7 +688,7 @@ describe('Data Table', () => {
             selectable: 'multi',
           },
         });
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         const firstTableRow = tableRows.at(0);
         const thirdTableRow = tableRows.at(2);
@@ -703,7 +703,7 @@ describe('Data Table', () => {
         });
         expect(firstTableRow.classes()).toContain('selected');
         expect(thirdTableRow.classes()).toContain('selected');
-        expect(updateItemsSelectedEvent[1]).toEqual([[itemsWithMeta[2], itemsWithMeta[0]]]);
+        expect(updateItemsSelectedEvent[1]).toEqual([[initialRows[2], initialRows[0]]]);
       });
 
       it('Should select all rows by clicking on multi select', async () => {
@@ -715,7 +715,7 @@ describe('Data Table', () => {
             selectable: 'multi',
           },
         });
-        const { itemsWithMeta } = wrapper.vm;
+        const { initialRows } = wrapper.vm;
         const tableRows = wrapper.findAll("[data-test-id='table-row']");
         tableRows.forEach((tableRow) => {
           expect(tableRow.classes()).not.toContain('selected');
@@ -727,7 +727,7 @@ describe('Data Table', () => {
           expect(tableRows[idx].classes()).toContain('selected');
           expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
         });
-        expect(updateItemsSelectedEvent[0]).toEqual([[itemsWithMeta[0], itemsWithMeta[1], itemsWithMeta[2]]]);
+        expect(updateItemsSelectedEvent[0]).toEqual([[initialRows[0], initialRows[1], initialRows[2]]]);
       });
     });
   });

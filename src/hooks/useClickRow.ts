@@ -1,11 +1,12 @@
 import {
-  Ref, ComputedRef, ref, WritableComputedRef,
+  Ref, ComputedRef, ref, WritableComputedRef, watch,
 } from 'vue';
 
-import type { Item } from '../types/main';
+import type { Item, RowItem } from '../types/main';
 import type { EmitsEventName, ClickEventType } from '../types/internal';
 
 export default function useClickRow(
+  initialRows: Ref<RowItem[]>,
   isMultiSelect: ComputedRef<boolean>,
   pageItems: ComputedRef<Item[]>,
   selectItemsComputed: Ref<Item[]>,
@@ -17,7 +18,10 @@ export default function useClickRow(
 
   const setSelectedMetaForItems = (items: Item[], selected: boolean) => {
     items.forEach((item) => {
-      item.meta.selected = selected;
+      const rowItem = initialRows.value.find((initialRow) => initialRow.meta.uniqueIndex === item.meta.uniqueIndex);
+      if (rowItem) {
+        rowItem.meta.selected = selected;
+      }
     });
   };
 

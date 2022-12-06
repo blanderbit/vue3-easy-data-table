@@ -52,7 +52,7 @@
     >
       <template #expand="item">
         <div style="padding: 15px">
-          {{ item.name }} won championships
+          {{ item.team }} won championships
         </div>
       </template>
 
