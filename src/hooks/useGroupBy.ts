@@ -53,13 +53,13 @@ export default function useGroupBy(tableHeaders: Ref<Header[]>, pageItems: Compu
     }));
   };
 
-  const groupByHeaderRecursive = (items: Item[], groupProperties: Header[], groupPropertiesIdx: number, groupParent: number) => {
+  const groupByRecursive = (items: Item[], groupProperties: Header[], groupPropertiesIdx: number, groupParent: number) => {
     if (groupProperties.length === groupPropertiesIdx) {
       return items;
     }
     items.forEach((item) => {
       item.children = groupBy(item.children, groupProperties[groupPropertiesIdx], groupParent);
-      groupByHeaderRecursive(
+      groupByRecursive(
         item.children,
         groupProperties,
         groupPropertiesIdx + 1,
@@ -89,7 +89,7 @@ export default function useGroupBy(tableHeaders: Ref<Header[]>, pageItems: Compu
     const groupParent = 1;
     const groupedRes = groupBy(pageItems.value, groupedHeaders.value[0], groupParent);
     if (groupedHeaders.value.length > 1) {
-      groupByHeaderRecursive(groupedRes, groupedHeaders.value, 1, groupParent + 1);
+      groupByRecursive(groupedRes, groupedHeaders.value, 1, groupParent + 1);
     }
     setGroupLabelRecursive(groupedRes);
     return groupedRes;
