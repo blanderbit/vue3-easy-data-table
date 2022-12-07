@@ -16,6 +16,7 @@ export type HeaderForRender = {
   width?: number,
   groupable?: boolean,
   grouped?: boolean,
+  groupBy?: (value: string | number) => void
 }
 
 export type ClientSortOptions = {

@@ -28,7 +28,7 @@ export default function useHeaders(
   updateServerOptionsSort: (newSortBy: string, newSortType: SortType | null) => void,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
-  const groupedHeaders = ref<Header[]>([]);
+  const groupedHeaders = ref<HeaderForRender[]>([]);
   const initialHeaders = computed(() => headers.value.map((header) => ({
     ...header,
     visible: header.visible ?? true,

@@ -10,8 +10,13 @@ import {
   unFlattenObj,
   interpolateStr,
 } from '../utils';
+import { HeaderForRender } from '../types/internal';
 
-export default function useGroupBy(tableHeaders: Ref<Header[]>, pageItems: ComputedRef<Item[]>, groupedHeaders: Ref<Header[]>) {
+export default function useGroupBy(
+  tableHeaders: Ref<Header[]>,
+  pageItems: ComputedRef<Item[]>,
+  groupedHeaders: Ref<HeaderForRender[]>,
+) {
   const firstHeaderItemPadding = ref<number | null>(null);
 
   watch(tableHeaders, (currVal) => {
@@ -24,17 +29,17 @@ export default function useGroupBy(tableHeaders: Ref<Header[]>, pageItems: Compu
     immediate: true,
   });
 
-  const group = (headerGroup: Header) => {
+  const group = (headerGroup: HeaderForRender) => {
     headerGroup.grouped = true;
     groupedHeaders.value.push(headerGroup);
   };
 
-  const ungroup = (headerGroup: Header) => {
+  const ungroup = (headerGroup: HeaderForRender) => {
     headerGroup.grouped = false;
     groupedHeaders.value = groupedHeaders.value.filter((header) => header.value !== headerGroup.value);
   };
 
-  const groupBy = (items: Item[], header: Header, groupParent: number) => {
+  const groupBy = (items: Item[], header: HeaderForRender, groupParent: number) => {
     const groupedByColumnRows = items.reduce((acc, item) => {
       item.meta.groupParent = groupParent + 1;
       firstHeaderItemPadding.value = groupParent + 1;
@@ -53,7 +58,7 @@ export default function useGroupBy(tableHeaders: Ref<Header[]>, pageItems: Compu
     }));
   };
 
-  const groupByRecursive = (items: Item[], groupedItems: Header[], groupedItemIdx: number, groupParent: number) => {
+  const groupByRecursive = (items: Item[], groupedItems: HeaderForRender[], groupedItemIdx: number, groupParent: number) => {
     if (groupedItems.length === groupedItemIdx) {
       return items;
     }
