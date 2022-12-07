@@ -142,25 +142,23 @@
 
 <script lang="ts" setup>
 import {
-  computed, ref, reactive, toRefs, watch,
+  computed, ref, watch,
 } from 'vue';
 // import { useRowsPerPage } from 'use-vue3-easy-data-table';
 // import type { UseRowsPerPageReturn } from 'use-vue3-easy-data-table';
 import type {
   Header,
   Item,
-  FilterOption,
   ClickRowArgument,
   UpdateSortArgument,
   HeaderItemClassNameFunction,
   BodyItemClassNameFunction,
   BodyRowClassNameFunction,
-  TextDirection,
   SortType,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 import {
-  mockClientNestedItems, mockClientItems, mockDuplicateClientNestedItems, headersMocked,
+  mockClientNestedItems,
 } from '../mock';
 import { tableHeaders, tableItems } from '../data/table-data';
 

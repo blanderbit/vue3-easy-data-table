@@ -34,35 +34,35 @@ export default function useGroupBy(tableHeaders: Ref<Header[]>, pageItems: Compu
     groupedHeaders.value = groupedHeaders.value.filter((header) => header.value !== headerGroup.value);
   };
 
-  const groupBy = (items: Item[], column: Header, groupParent: number) => {
+  const groupBy = (items: Item[], header: Header, groupParent: number) => {
     const groupedByColumnRows = items.reduce((acc, item) => {
       item.meta.groupParent = groupParent + 1;
       firstHeaderItemPadding.value = groupParent + 1;
       const flattenItem = flattenObj(item);
-      (acc[flattenItem[column.value]] = acc[flattenItem[column.value]] || [])
+      (acc[flattenItem[header.value]] = acc[flattenItem[header.value]] || [])
         .push(unFlattenObj(flattenItem));
       return acc;
     }, {});
     return Object.keys(groupedByColumnRows).map((key) => ({
-      groupBy: column.groupBy instanceof Function ? column.groupBy : null,
-      [column.value]: key,
-      headerValue: column.value,
+      groupBy: header.groupBy instanceof Function ? header.groupBy : null,
+      [header.value]: key,
+      headerValue: header.value,
       children: groupedByColumnRows[key],
-      groupHeader: column,
+      groupHeader: header,
       groupParent,
     }));
   };
 
-  const groupByRecursive = (items: Item[], groupProperties: Header[], groupPropertiesIdx: number, groupParent: number) => {
-    if (groupProperties.length === groupPropertiesIdx) {
+  const groupByRecursive = (items: Item[], groupedItems: Header[], groupedItemIdx: number, groupParent: number) => {
+    if (groupedItems.length === groupedItemIdx) {
       return items;
     }
     items.forEach((item) => {
-      item.children = groupBy(item.children, groupProperties[groupPropertiesIdx], groupParent);
+      item.children = groupBy(item.children, groupedItems[groupedItemIdx], groupParent);
       groupByRecursive(
         item.children,
-        groupProperties,
-        groupPropertiesIdx + 1,
+        groupedItems,
+        groupedItemIdx + 1,
         groupParent + 1,
       );
     });
