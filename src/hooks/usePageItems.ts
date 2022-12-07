@@ -1,5 +1,5 @@
 import {
-  Ref, computed, ComputedRef, WritableComputedRef,
+  Ref, computed, ComputedRef,
 } from 'vue';
 import type { Item } from '../types/main';
 import type { MultipleSelectStatus } from '../types/internal';

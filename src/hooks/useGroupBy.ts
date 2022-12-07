@@ -44,7 +44,7 @@ export default function useGroupBy(tableHeaders: Ref<Header[]>, pageItems: Compu
       return acc;
     }, {});
     return Object.keys(groupedByColumnRows).map((key) => ({
-      groupBy: column.groupBy instanceof Function ? column.groupBy : column.text,
+      groupBy: column.groupBy instanceof Function ? column.groupBy : null,
       [column.value]: key,
       headerValue: column.value,
       children: groupedByColumnRows[key],
