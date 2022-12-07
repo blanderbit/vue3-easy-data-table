@@ -10,7 +10,7 @@
           data-test-id="manage-table-properties-icon"
           @click.stop="toggleManageTablePropertiesVisibility"
         />
-        <manage-table-properties
+        <ManageTableProperties
           v-if="isManageTablePropertiesVisible"
           v-model="checkedTableProperties"
           data-test-id="manage-table-properties"
@@ -62,8 +62,8 @@
                   'shadow': header.value === lastFixedColumn,
                   // eslint-disable-next-line max-len
                 }, typeof headerItemClassName === 'string' ? headerItemClassName : headerItemClassName(header as Header, index)]"
-                :style="[getFixedDistance(header.value), { 'padding-left': `${firstHeaderItemPadding}rem` }]"
-                @click="(header.sortable && header.sortType) ? updateSortField(header.value, header.sortType) : null"
+                :style="[getFixedDistance(header.value), { 'padding-left': !index && `${firstHeaderItemPadding}rem` }]"
+                @click="header.sortable && header.sortType && updateSortField(header.value, header.sortType)"
               >
                 <MultipleSelectCheckBox
                   v-if="header.text === 'checkbox'"
@@ -150,9 +150,9 @@
                   <div class="group-column">
                     <span
                       class="group-column__label"
-                      @click="(item.groupHeader.sortable && item.groupHeader.sortType)
-                        ? updateSortField(item.groupHeader.value, item.groupHeader.sortType)
-                        : null"
+                      @click="item.groupHeader.sortable &&
+                        item.groupHeader.sortType &&
+                        updateSortField(item.groupHeader.value, item.groupHeader.sortType)"
                     >
                       {{ item[item['headerValue']] }}
                       <i
@@ -188,7 +188,7 @@
                   v-for="(column, i) in headerColumns"
                   :key="i"
                   :data-test-id="`table-row-${column}-column`"
-                  :style="[getFixedDistance(column, 'td'), { 'padding-left': i === 0 && `${item.meta.groupParent}rem` }]"
+                  :style="[getFixedDistance(column, 'td'), { 'padding-left': !i && `${item.meta.groupParent}rem` }]"
                   :class="[{
                     'shadow': column === lastFixedColumn,
                     'can-expand': column === 'expand',
@@ -377,7 +377,6 @@ import {
   onMounted,
   PropType,
 } from 'vue';
-import { v4 as uuidv4 } from 'uuid';
 
 import MultipleSelectCheckBox from './MultipleSelectCheckBox.vue';
 import SingleSelectCheckBox from './SingleSelectCheckBox.vue';
@@ -401,7 +400,7 @@ import useTotalItems from '../hooks/useTotalItems';
 import useTableProperties from '../hooks/useTableProperties';
 import useGroupBy from '../hooks/useGroupBy';
 
-import type { Header, Item, RowItem } from '../types/main';
+import type { Header, Item } from '../types/main';
 import type { HeaderForRender } from '../types/internal';
 
 // eslint-disable-next-line import/extensions
