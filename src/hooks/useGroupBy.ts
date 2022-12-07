@@ -25,19 +25,13 @@ export default function useGroupBy(tableHeaders: Ref<Header[]>, pageItems: Compu
   });
 
   const group = (headerGroup: Header) => {
-    const header = tableHeaders.value.find((h) => h.value === headerGroup.value);
-    if (header) {
-      header.grouped = true;
-      groupedHeaders.value.push(header);
-    }
+    headerGroup.grouped = true;
+    groupedHeaders.value.push(headerGroup);
   };
 
   const ungroup = (headerGroup: Header) => {
-    const tableHeaderIdx = tableHeaders.value.findIndex((h) => h.value === headerGroup.value);
-    if (tableHeaderIdx !== -1) {
-      tableHeaders.value[tableHeaderIdx].grouped = false;
-      groupedHeaders.value = groupedHeaders.value.filter((header) => header.value !== headerGroup.value);
-    }
+    headerGroup.grouped = false;
+    groupedHeaders.value = groupedHeaders.value.filter((header) => header.value !== headerGroup.value);
   };
 
   const groupBy = (items: Item[], column: Header, groupParent: number) => {

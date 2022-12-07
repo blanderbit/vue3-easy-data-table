@@ -148,7 +148,23 @@
                   :style="{ 'padding-left': `${item.groupParent}rem` }"
                 >
                   <div class="group-column">
-                    <span class="group-column__label">{{ item[item['headerValue']] }}</span>
+                    <span
+                      class="group-column__label"
+                      @click="(item.groupHeader.sortable && item.groupHeader.sortType)
+                        ? updateSortField(item.groupHeader.value, item.groupHeader.sortType)
+                        : null"
+                    >
+                      {{ item[item['headerValue']] }}
+                      <i
+                        v-if="item.groupHeader.sortable"
+                        class="sort-icon fa"
+                        :class="
+                          {
+                            'fa-sort-up': item.groupHeader.sortType === 'asc',
+                            'fa-sort-down': item.groupHeader.sortType === 'desc',
+                          }"
+                      />
+                    </span>
                     <i
                       class="group-column__icon fa fa-times-circle"
                       @click="ungroup(item.groupHeader)"
@@ -814,7 +830,12 @@ defineExpose({
       display: flex;
 
       &__label {
+        cursor: pointer;
         flex-grow: 1;
+
+        .sort-icon {
+          margin-left: 0.5rem;
+        }
       }
 
       &__icon {
