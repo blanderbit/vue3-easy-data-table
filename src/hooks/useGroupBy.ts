@@ -2,7 +2,9 @@ import {
   computed,
   ComputedRef,
   Ref,
-  ref, watch,
+  ref,
+  watch,
+  watchEffect,
 } from 'vue';
 import { Header, Item, RowItem } from '../types/main';
 import { GroupByItem, HeaderForRender } from '../types/internal';
@@ -100,14 +102,19 @@ export default function useGroupBy(
     });
   };
 
-  const groupedRows = computed(() => {
-    if (!groupedHeaders.value.length) return pageItems.value;
-    const groupParent = 1;
-    gropedByRows.value = groupBy(pageItems.value, groupedHeaders.value[0], groupParent);
-    if (groupedHeaders.value.length > 1) {
-      groupByRecursive(gropedByRows.value, groupedHeaders.value, 1, groupParent + 1);
+  watchEffect(() => {
+    if (groupedHeaders.value.length) {
+      const groupParent = 1;
+      gropedByRows.value = groupBy(pageItems.value, groupedHeaders.value[0], groupParent);
+      if (groupedHeaders.value.length > 1) {
+        groupByRecursive(gropedByRows.value, groupedHeaders.value, 1, groupParent + 1);
+      }
+      setGroupLabelRecursive(gropedByRows.value);
     }
-    setGroupLabelRecursive(gropedByRows.value);
+  });
+
+  const groupedRows = computed((): (GroupByItem | RowItem)[] => {
+    if (!groupedHeaders.value.length) return pageItems.value;
     return gropedByRows.value;
   });
 
