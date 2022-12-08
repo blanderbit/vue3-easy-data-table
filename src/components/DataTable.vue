@@ -150,11 +150,16 @@
                   <div class="group-column">
                     <span
                       class="group-column__label"
-                      @click="item.groupHeader.sortable &&
-                        item.groupHeader.sortType &&
-                        updateSortField(item.groupHeader.value, item.groupHeader.sortType)"
+                      @click="toggleGroupChildrenVisibility(item)"
                     >
-                      {{ item[item['headerValue']] }}
+                      <i
+                        class="square-icon fa"
+                        :class="{
+                          'fa-minus-square': item.showChildren,
+                          'fa-plus-square': !item.showChildren
+                        }"
+                      />
+                      <span>{{ item[item['headerValue']] }}</span>
                       <i
                         v-if="item.groupHeader.sortable"
                         class="sort-icon fa"
@@ -162,7 +167,9 @@
                           {
                             'fa-sort-up': item.groupHeader.sortType === 'asc',
                             'fa-sort-down': item.groupHeader.sortType === 'desc',
+                            'fa-sort': item.groupHeader.sortType === 'none'
                           }"
+                        @click.stop="item.groupHeader.sortType && updateGroupSortField(item.groupHeader)"
                       />
                     </span>
                     <i
@@ -210,7 +217,7 @@
                   <template v-else-if="column === 'expand'">
                     <i
                       class="expand-icon"
-                      :class="{'expanding': expandingItemIndexList.includes(prevPageEndIndex + index)}"
+                      :class="{'expanding': expandingItemIndexList.includes(item.meta.uniqueIndex)}"
                     />
                   </template>
                   <template v-else-if="column === 'checkbox'">
@@ -225,7 +232,7 @@
                 </td>
               </tr>
               <tr
-                v-if="ifHasExpandSlot && expandingItemIndexList.includes(index + prevPageEndIndex)"
+                v-if="ifHasExpandSlot && !item.groupHeader && expandingItemIndexList.includes(item.meta.uniqueIndex)"
                 :class="[
                   { 'even-row': (index + 1) % 2 === 0},
                   typeof bodyExpandRowClassName === 'string' ?
@@ -525,6 +532,7 @@ const {
   updateSortField,
   isMultiSorting,
   getMultiSortNumber,
+  updateGroupSortField,
 } = useHeaders(
   tableProperties,
   manageTableProperties,
@@ -630,6 +638,7 @@ const {
   firstHeaderItemPadding,
   group,
   ungroup,
+  toggleGroupChildrenVisibility,
 } = useGroupBy(
   tableHeaders,
   pageItems,
@@ -646,7 +655,7 @@ const {
   updateExpandingItemIndexList,
   clearExpandingItemIndexList,
 } = useExpandableRow(
-  flattenedRows,
+  flattenedNonGroupedRows,
   prevPageEndIndex,
   emits,
 );
@@ -664,7 +673,7 @@ const {
 } = useClickRow(
   initialRows,
   isMultiSelect,
-  flattenedNonGroupedRows, // flattenedNonGroupedRows
+  flattenedNonGroupedRows,
   selectItemsComputed,
   clickEventType,
   showIndex,
@@ -826,7 +835,13 @@ defineExpose({
     }
 
     .group-column {
+      padding-right: 0.5rem;
       display: flex;
+
+      .square-icon {
+        cursor: pointer;
+        margin-right: 0.5rem;
+      }
 
       &__label {
         cursor: pointer;

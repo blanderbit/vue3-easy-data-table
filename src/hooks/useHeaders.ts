@@ -3,11 +3,14 @@ import {
 } from 'vue';
 import type { Header, SortType } from '../types/main';
 import type {
-  ServerOptionsComputed, HeaderForRender, ClientSortOptions, EmitsEventName,
+  ServerOptionsComputed,
+  HeaderForRender,
+  ClientSortOptions,
+  EmitsEventName,
 } from '../types/internal';
 
 export default function useHeaders(
-  tableProperties: Ref<Header[]>,
+  tableProperties: Ref<HeaderForRender[]>,
   manageTableProperties: Ref<boolean>,
   checkedTableProperties: Ref<string[]>,
   checkboxColumnWidth: Ref<number>,
@@ -148,15 +151,20 @@ export default function useHeaders(
 
   const headerColumns = computed((): string[] => headersForRender.value.map((header) => header.value));
 
-  const updateSortField = (newSortBy: string, oldSortType: SortType | 'none') => {
+  const getNewSortType = (oldSortType: SortType | 'none', isGroup: boolean = false) => {
     let newSortType: SortType | null = null;
     if (oldSortType === 'none') {
       newSortType = 'asc';
     } else if (oldSortType === 'asc') {
       newSortType = 'desc';
     } else {
-      newSortType = (mustSort.value) ? 'asc' : null;
+      newSortType = (mustSort.value || isGroup) ? 'asc' : null;
     }
+    return newSortType;
+  };
+
+  const updateSortField = (newSortBy: string, oldSortType: SortType | 'none') => {
+    const newSortType = getNewSortType(oldSortType);
 
     if (isServerSideMode.value) {
       // update server options
@@ -192,6 +200,11 @@ export default function useHeaders(
     });
   };
 
+  const updateGroupSortField = (groupHeader: HeaderForRender) => {
+    updateSortField(groupHeader.value, groupHeader.sortType as SortType);
+    groupHeader.sortType = getNewSortType(groupHeader.sortType as SortType, true) as SortType;
+  };
+
   const filteredClientSortOptions = computed(() => {
     if (!clientSortOptions.value) return null;
     if (Array.isArray(clientSortOptions.value.sortBy) && Array.isArray(clientSortOptions.value.sortDesc)) {
@@ -200,7 +213,9 @@ export default function useHeaders(
       //  it should be excluded from sortBy array because it does not make sense
       //  to sort by column that is not visible.
       const nonVisibleSortByColumnKeys = clientSortOptions.value.sortBy.reduce((acc: number[], sortByColumn, idx) => {
-        if (!headerColumns.value.includes(sortByColumn)) {
+        const groupedHeadersHasSortByColumn = Boolean(groupedHeaders.value
+          .find(((groupedHeader) => groupedHeader.value === sortByColumn)));
+        if (!headerColumns.value.includes(sortByColumn) && !groupedHeadersHasSortByColumn) {
           acc.push(idx);
         }
         return acc;
@@ -245,5 +260,7 @@ export default function useHeaders(
     updateSortField,
     isMultiSorting,
     getMultiSortNumber,
+    getNewSortType,
+    updateGroupSortField,
   };
 }

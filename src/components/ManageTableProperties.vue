@@ -39,13 +39,13 @@
 import {
   computed, PropType, ref, toRefs, watch,
 } from 'vue';
-import { Item } from '../types/main';
 import useDetectOutsideClick from '../hooks/useDetectOutsideClick';
+import { HeaderForRender } from '../types/internal';
 
 const emits = defineEmits(['set-checked-table-properties', 'close']);
 
 const props = defineProps({
-  columns: { type: Array as PropType<Item[]>, required: true },
+  columns: { type: Array as PropType<HeaderForRender[]>, required: true },
   modelValue: { type: Array as PropType<string[]>, required: true },
 });
 const { columns, modelValue } = toRefs(props);
@@ -56,12 +56,16 @@ const selectedTablePropertyColumns = ref<string[]>([]);
 const manageTablePropertiesRef = ref<HTMLElement | null>(null);
 
 const transformedTablePropertyColumns = computed(() => columns.value.map((column) => {
-  column.disabled = column.grouped || (selectedTablePropertyColumns.value.length === 1
+  const disabled = column.grouped || (selectedTablePropertyColumns.value.length === 1
           && selectedTablePropertyColumns.value[0] === column.value);
-  column.shortTitle = column.text.length > COLUMN_TITLE_PROPERTY_LENGTH_LIMIT
+  const shortTitle = column.text.length > COLUMN_TITLE_PROPERTY_LENGTH_LIMIT
     ? `${column.text.slice(0, COLUMN_TITLE_PROPERTY_LENGTH_LIMIT)}...`
     : column.text;
-  return column;
+  return {
+    ...column,
+    disabled,
+    shortTitle,
+  };
 }));
 
 watch(modelValue, (val) => {

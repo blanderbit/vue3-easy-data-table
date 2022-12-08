@@ -63,7 +63,7 @@ the default width of header will be `100px`.
 - `groupBy`: *(type: Function, default: `null`)* This function convert the cell value to another value.
 The row will be grouped by the returned value.
   It has one parameter:
-    - `value`: *(type: mixed)* The default cell value.  The `groupBy` function can return just usual string like
+    - `value`: *(type: string)* The default cell value.  The `groupBy` function can return just usual string like
 ```js
 groupBy: (value) => {
   return `Some string - ${value}`;

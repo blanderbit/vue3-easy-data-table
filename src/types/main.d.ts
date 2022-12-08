@@ -9,6 +9,7 @@ export type RowItem = Item & {
     selected: boolean,
     uniqueIndex: string,
     isExactMatch: boolean,
+    groupParent: number,
   }
 };
 
@@ -36,10 +37,10 @@ export type Header = {
   sortable?: boolean
   fixed?: boolean
   visible?: boolean
+  width?: number
   groupable?: boolean
   grouped?: boolean
-  width?: number
-  groupBy?: (value: string | number) => void
+  groupBy?: (value: string) => string
 };
 
 export type ServerOptions = {

@@ -4,20 +4,23 @@ import {
   Ref,
   ref, watch,
 } from 'vue';
-import { Header, Item } from '../types/main';
+import { Header, Item, RowItem } from '../types/main';
+import { GroupByItem, HeaderForRender } from '../types/internal';
 import {
   flattenObj,
   unFlattenObj,
   interpolateStr,
 } from '../utils';
-import { HeaderForRender } from '../types/internal';
+
+type FlattenItems = (GroupByItem | RowItem)[]
 
 export default function useGroupBy(
   tableHeaders: Ref<Header[]>,
-  pageItems: ComputedRef<Item[]>,
+  pageItems: ComputedRef<RowItem[]>,
   groupedHeaders: Ref<HeaderForRender[]>,
 ) {
   const firstHeaderItemPadding = ref<number | null>(null);
+  const gropedByRows = ref<GroupByItem[]>([]);
 
   watch(tableHeaders, (currVal) => {
     currVal.forEach((tableHeader) => {
@@ -30,16 +33,22 @@ export default function useGroupBy(
   });
 
   const group = (headerGroup: HeaderForRender) => {
-    headerGroup.grouped = true;
-    groupedHeaders.value.push(headerGroup);
+    const header = tableHeaders.value.find((tableHeader) => tableHeader.value === headerGroup.value);
+    if (header) {
+      header.grouped = true;
+      groupedHeaders.value.push(headerGroup);
+    }
   };
 
   const ungroup = (headerGroup: HeaderForRender) => {
-    headerGroup.grouped = false;
-    groupedHeaders.value = groupedHeaders.value.filter((header) => header.value !== headerGroup.value);
+    const header = tableHeaders.value.find((tableHeader) => tableHeader.value === headerGroup.value);
+    if (header) {
+      header.grouped = false;
+      groupedHeaders.value = groupedHeaders.value.filter((groupedHeader) => groupedHeader.value !== headerGroup.value);
+    }
   };
 
-  const groupBy = (items: Item[], header: HeaderForRender, groupParent: number) => {
+  const groupBy = (items: Item[], header: HeaderForRender, groupParent: number): GroupByItem[] => {
     const groupedByColumnRows = items.reduce((acc, item) => {
       item.meta.groupParent = groupParent + 1;
       firstHeaderItemPadding.value = groupParent + 1;
@@ -55,6 +64,8 @@ export default function useGroupBy(
       children: groupedByColumnRows[key],
       groupHeader: header,
       groupParent,
+      showChildren: true,
+      isGroup: true,
     }));
   };
 
@@ -92,16 +103,16 @@ export default function useGroupBy(
   const groupedRows = computed(() => {
     if (!groupedHeaders.value.length) return pageItems.value;
     const groupParent = 1;
-    const groupedRes = groupBy(pageItems.value, groupedHeaders.value[0], groupParent);
+    gropedByRows.value = groupBy(pageItems.value, groupedHeaders.value[0], groupParent);
     if (groupedHeaders.value.length > 1) {
-      groupByRecursive(groupedRes, groupedHeaders.value, 1, groupParent + 1);
+      groupByRecursive(gropedByRows.value, groupedHeaders.value, 1, groupParent + 1);
     }
-    setGroupLabelRecursive(groupedRes);
-    return groupedRes;
+    setGroupLabelRecursive(gropedByRows.value);
+    return gropedByRows.value;
   });
 
-  const flattenArr = (rows: Item[]): Item[] => rows.reduce((flattenedRowsAcc: Item[], row) => {
-    const flattenedChildren = row.children?.length
+  const flattenArr = (rows: FlattenItems): FlattenItems => rows.reduce((flattenedRowsAcc: FlattenItems, row) => {
+    const flattenedChildren = row.showChildren && row.children?.length
       ? flattenArr(row.children)
       : [];
     return flattenedRowsAcc.concat([
@@ -111,7 +122,11 @@ export default function useGroupBy(
   }, []);
 
   const flattenedRows = computed(() => flattenArr(groupedRows.value));
-  const flattenedNonGroupedRows = computed(() => flattenedRows.value.filter((row) => !row.groupBy));
+  const flattenedNonGroupedRows = computed(() => flattenedRows.value.filter((row): row is RowItem => !row.isGroup));
+
+  const toggleGroupChildrenVisibility = (groupItem: GroupByItem) => {
+    groupItem.showChildren = !groupItem.showChildren;
+  };
 
   return {
     flattenedRows,
@@ -119,5 +134,6 @@ export default function useGroupBy(
     firstHeaderItemPadding,
     group,
     ungroup,
+    toggleGroupChildrenVisibility,
   };
 }

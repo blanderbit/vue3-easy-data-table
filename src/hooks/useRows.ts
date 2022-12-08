@@ -16,6 +16,7 @@ export default function useRows(
       selected: false,
       uniqueIndex: uuidv4(),
       isExactMatch: false,
+      groupParent: 0,
     },
   })));
 
