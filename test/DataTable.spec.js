@@ -11,7 +11,6 @@ import {
   mockClientItems,
   headersMocked,
   mockServerItems,
-  mockDuplicateClientNestedItems,
   mockClientNestedItems,
   headersMockedNestedItems,
 } from '../src/mock';
@@ -762,7 +761,8 @@ describe('Data Table', () => {
         },
       });
       const sortableTh = wrapper.find('.sortable');
-      await sortableTh.trigger('click');
+      const sortableThSpan = sortableTh.find('.header');
+      await sortableThSpan.trigger('click');
       expect(sortableTh.classes()).include('none');
 
       const trArr = wrapper.findAll('tbody tr');

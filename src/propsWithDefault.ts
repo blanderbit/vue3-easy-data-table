@@ -214,4 +214,8 @@ export default {
     type: Boolean,
     default: false,
   },
+  columnsResizable: {
+    type: Boolean,
+    default: false,
+  },
 };

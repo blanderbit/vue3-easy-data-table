@@ -60,10 +60,10 @@
                   'desc': header.sortable && header.sortType === 'desc',
                   'asc': header.sortable && header.sortType === 'asc',
                   'shadow': header.value === lastFixedColumn,
+                  resizable: columnsResizable,
                   // eslint-disable-next-line max-len
                 }, typeof headerItemClassName === 'string' ? headerItemClassName : headerItemClassName(header as Header, index)]"
                 :style="[getFixedDistance(header.value)]"
-                @click="header.sortable && header.sortType && updateSortField(header.value, header.sortType)"
               >
                 <MultipleSelectCheckBox
                   v-if="header.text === 'checkbox'"
@@ -75,6 +75,7 @@
                   v-else
                   class="header"
                   :class="`direction-${headerTextDirection}`"
+                  @click="header.sortable && header.sortType && updateSortField(header.value, header.sortType)"
                 >
                   <slot
                     v-if="slots[`header-${header.value}`]"
@@ -823,6 +824,11 @@ defineExpose({
 }
 
 .vue3-easy-data-table {
+  .resizable {
+    resize: horizontal;
+    overflow: auto;
+  }
+
   .vue3-easy-data-table__main {
     min-height: v-bind(tableMinHeightPx);
 
