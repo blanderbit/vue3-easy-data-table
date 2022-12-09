@@ -62,7 +62,7 @@
                   'shadow': header.value === lastFixedColumn,
                   // eslint-disable-next-line max-len
                 }, typeof headerItemClassName === 'string' ? headerItemClassName : headerItemClassName(header as Header, index)]"
-                :style="[getFixedDistance(header.value), { 'padding-left': !index && `${firstHeaderItemPadding}rem` }]"
+                :style="[getFixedDistance(header.value)]"
                 @click="header.sortable && header.sortType && updateSortField(header.value, header.sortType)"
               >
                 <MultipleSelectCheckBox
@@ -195,7 +195,10 @@
                   v-for="(column, i) in headerColumns"
                   :key="i"
                   :data-test-id="`table-row-${column}-column`"
-                  :style="[getFixedDistance(column, 'td'), { 'padding-left': !i && `${item.meta.groupParent}rem` }]"
+                  :style="[
+                    getFixedDistance(column, 'td'),
+                    !i && item.meta.groupParent && { 'padding-left': `${item.meta.groupParent}rem` }
+                  ]"
                   :class="[{
                     'shadow': column === lastFixedColumn,
                     'can-expand': column === 'expand',
@@ -635,7 +638,6 @@ const {
 const {
   flattenedRows,
   flattenedNonGroupedRows,
-  firstHeaderItemPadding,
   group,
   ungroup,
   toggleGroupChildrenVisibility,

@@ -21,7 +21,6 @@ export default function useGroupBy(
   pageItems: ComputedRef<RowItem[]>,
   groupedHeaders: Ref<HeaderForRender[]>,
 ) {
-  const firstHeaderItemPadding = ref<number | null>(null);
   const gropedByRows = ref<GroupByItem[]>([]);
 
   watch(tableHeaders, (currVal) => {
@@ -52,8 +51,7 @@ export default function useGroupBy(
 
   const groupBy = (items: Item[], header: HeaderForRender, groupParent: number): GroupByItem[] => {
     const groupedByColumnRows = items.reduce((acc, item) => {
-      item.meta.groupParent = groupParent + 1;
-      firstHeaderItemPadding.value = groupParent + 1;
+      item.meta.groupParent = groupParent * 0.5;
       const flattenItem = flattenObj(item);
       (acc[flattenItem[header.value]] = acc[flattenItem[header.value]] || [])
         .push(unFlattenObj(flattenItem));
@@ -102,6 +100,14 @@ export default function useGroupBy(
     });
   };
 
+  watch(groupedHeaders, (val) => {
+    if (!val.length) {
+      pageItems.value.forEach((pageItem) => {
+        pageItem.meta.groupParent = 0;
+      });
+    }
+  });
+
   watchEffect(() => {
     if (groupedHeaders.value.length) {
       const groupParent = 1;
@@ -138,7 +144,6 @@ export default function useGroupBy(
   return {
     flattenedRows,
     flattenedNonGroupedRows,
-    firstHeaderItemPadding,
     group,
     ungroup,
     toggleGroupChildrenVisibility,
