@@ -1,8 +1,8 @@
 import { ref } from 'vue';
-import { Header } from '../types/main';
+import { HeaderForRender } from '../types/internal';
 
 export default function useTableProperties() {
-  const tableProperties = ref<Header[]>([]);
+  const tableProperties = ref<HeaderForRender[]>([]);
   const checkedTableProperties = ref<string[]>([]);
   const isManageTablePropertiesVisible = ref(false);
 

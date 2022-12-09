@@ -1,14 +1,17 @@
 import {
-  Ref, ComputedRef, ref, WritableComputedRef,
+  Ref,
+  ComputedRef,
+  ref,
 } from 'vue';
 
-import type { Item } from '../types/main';
+import type { Item, RowItem } from '../types/main';
 import type { EmitsEventName, ClickEventType } from '../types/internal';
 
 export default function useClickRow(
+  initialRows: Ref<RowItem[]>,
   isMultiSelect: ComputedRef<boolean>,
-  pageItems: ComputedRef<Item[]>,
-  selectItemsComputed: Ref<Item[]>,
+  pageItems: ComputedRef<RowItem[]>,
+  selectItemsComputed: Ref<RowItem[]>,
   clickEventType: Ref<ClickEventType>,
   showIndex: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
@@ -18,6 +21,10 @@ export default function useClickRow(
   const setSelectedMetaForItems = (items: Item[], selected: boolean) => {
     items.forEach((item) => {
       item.meta.selected = selected;
+      const rowItem = initialRows.value.find((initialRow) => initialRow.meta.uniqueIndex === item.meta.uniqueIndex);
+      if (rowItem) {
+        rowItem.meta.selected = selected;
+      }
     });
   };
 
@@ -42,7 +49,7 @@ export default function useClickRow(
     selectItemsComputed.value = pageItemsRange;
   };
 
-  const handleCtrlKey = (row: Item) => {
+  const handleCtrlKey = (row: RowItem) => {
     const isAlreadySelected = row.meta.selected;
     if (!isMultiSelect.value) {
       clearSelection();
@@ -62,7 +69,7 @@ export default function useClickRow(
     }
   };
 
-  const clickRow = (event: PointerEvent, item: Item, clickType: ClickEventType) => {
+  const clickRow = (event: PointerEvent, item: RowItem, clickType: ClickEventType) => {
     if (clickEventType.value !== clickType) return;
 
     if (event.shiftKey && isMultiSelect.value) {

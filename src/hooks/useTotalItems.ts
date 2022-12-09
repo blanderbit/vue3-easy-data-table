@@ -22,7 +22,7 @@ export default function useTotalItems(
   filteredClientSortOptions: ComputedRef<ClientSortOptions | null>,
   filterOptions: Ref<FilterOption[]>,
   isServerSideMode: ComputedRef<boolean>,
-  items: Ref<RowItem[]>,
+  items: ComputedRef<RowItem[]>,
   itemsSelected: Ref<Item[]>,
   searchField: Ref<string | string[]>,
   searchValue: Ref<string>,
@@ -136,7 +136,7 @@ export default function useTotalItems(
   });
 
   // items filtering
-  const itemsFiltering = computed((): Item[] => {
+  const itemsFiltering = computed((): RowItem[] => {
     let itemsFiltered = [...itemsSearching.value];
     if (filterOptions.value) {
       filterOptions.value.forEach((option: FilterOption) => {
@@ -177,11 +177,11 @@ export default function useTotalItems(
     }
   }, { immediate: true, deep: true });
 
-  function recursionMultiSort(sortByArr: string[], sortDescArr: boolean[], itemsToSort: Item[], index: number): Item[] {
+  function recursionMultiSort(sortByArr: string[], sortDescArr: boolean[], itemsToSort: RowItem[], index: number): RowItem[] {
     const sortBy = sortByArr[index];
     const sortDesc = sortDescArr[index];
     const sorted = (index === 0 ? itemsToSort
-      : recursionMultiSort(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((a: Item, b: Item) => {
+      : recursionMultiSort(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((a: RowItem, b: RowItem) => {
       let isAllSame = true;
       for (let i = 0; i < index; i += 1) {
         if (getItemValue(sortByArr[i], a) !== getItemValue(sortByArr[i], b)) {
@@ -201,7 +201,7 @@ export default function useTotalItems(
 
   // flow: searching => filtering => sorting
   // (last step: sorting)
-  const totalItems = computed((): Item[] => {
+  const totalItems = computed((): RowItem[] => {
     if (isServerSideMode.value) return items.value;
     if (filteredClientSortOptions.value === null) return itemsFiltering.value;
     const { sortBy, sortDesc } = filteredClientSortOptions.value;
@@ -225,7 +225,7 @@ export default function useTotalItems(
   // eslint-disable-next-line max-len
   const totalItemsLength = computed((): number => (isServerSideMode.value ? serverItemsLength.value : totalItems.value.length));
 
-  const selectItemsComputed: Ref<Item[]> = ref([]);
+  const selectItemsComputed: Ref<RowItem[]> = ref([]);
   watch(selectItemsComputed, (val) => {
     emits('update:itemsSelected', val);
   }, {
@@ -245,7 +245,7 @@ export default function useTotalItems(
     }
   };
 
-  const toggleSelectItem = (item: Item):void => {
+  const toggleSelectItem = (item: RowItem):void => {
     const isAlreadySelected = item.meta.selected;
     item.meta.selected = !item.meta.selected;
     if (isAlreadySelected) {
@@ -255,7 +255,7 @@ export default function useTotalItems(
       selectItemsComputed.value[0].meta.selected = false;
       selectItemsComputed.value = [item];
     } else {
-      const selectItemsArr: Item[] = selectItemsComputed.value;
+      const selectItemsArr: RowItem[] = selectItemsComputed.value;
       selectItemsArr.unshift(item);
       selectItemsComputed.value = selectItemsArr;
     }

@@ -1,14 +1,47 @@
 import { Header, Item } from '../types/main';
 
 export const tableHeaders: Header[] = [
-  { text: 'PLAYER', value: 'player' },
-  { text: 'TEAM', value: 'team' },
-  { text: 'NUMBER', value: 'number', sortable: true },
-  { text: 'POSITION', value: 'position', visible: true },
-  { text: 'HEIGHT', value: 'indicator.height' },
-  { text: 'WEIGHT (lbs)', value: 'indicator.weight', sortable: true },
-  { text: 'LAST ATTENDED', value: 'lastAttended', width: 200 },
-  { text: 'COUNTRY', value: 'country' },
+  {
+    text: 'PLAYER',
+    value: 'player',
+  },
+  {
+    text: 'TEAM',
+    value: 'team',
+    groupable: true,
+    groupBy(value) {
+      return `${value} team ({rowsLength} Item{rowsLength > 1 ? "s" : ""})`;
+    },
+  },
+  {
+    text: 'NUMBER',
+    value: 'number',
+    sortable: true,
+  },
+  {
+    text: 'POSITION',
+    value: 'position',
+    visible: true,
+  },
+  {
+    text: 'HEIGHT',
+    value: 'indicator.height',
+  },
+  {
+    text: 'WEIGHT (lbs)',
+    value: 'indicator.weight',
+    groupable: true,
+    sortable: true,
+  },
+  {
+    text: 'LAST ATTENDED',
+    value: 'lastAttended',
+    width: 200,
+  },
+  {
+    text: 'COUNTRY',
+    value: 'country',
+  },
 ];
 
 export const tableItems: Item[] = [

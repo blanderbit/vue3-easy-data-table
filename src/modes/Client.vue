@@ -52,7 +52,7 @@
     >
       <template #expand="item">
         <div style="padding: 15px">
-          {{ item.name }} won championships
+          {{ item.team }} won championships
         </div>
       </template>
 
@@ -142,33 +142,31 @@
 
 <script lang="ts" setup>
 import {
-  computed, ref, reactive, toRefs, watch,
+  computed, ref, watch,
 } from 'vue';
 // import { useRowsPerPage } from 'use-vue3-easy-data-table';
 // import type { UseRowsPerPageReturn } from 'use-vue3-easy-data-table';
 import type {
   Header,
   Item,
-  FilterOption,
   ClickRowArgument,
   UpdateSortArgument,
   HeaderItemClassNameFunction,
   BodyItemClassNameFunction,
   BodyRowClassNameFunction,
-  TextDirection,
   SortType,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 import {
-  mockClientNestedItems, mockClientItems, mockDuplicateClientNestedItems, headersMocked,
+  mockClientNestedItems,
 } from '../mock';
 import { tableHeaders, tableItems } from '../data/table-data';
 
 // null | 'player' | 'indicator.weight' | ['indicator.weight'] | ['indicator.weight', 'indicator.height']
 const searchField = ref(null);
 const searchValue = ref('');
-const sortBy = ref(['indicator.weight', 'number']); // ['indicator.weight', 'number'] | 'number'
-const sortType = ref<SortType | SortType[] | undefined>(['desc', 'asc']);
+const sortBy = ref([]); // ['indicator.weight', 'number'] | 'number'
+const sortType = ref<SortType | SortType[] | undefined>([]); // ['desc', 'asc']
 
 const filterOptions = [
   // {

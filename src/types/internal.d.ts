@@ -1,4 +1,4 @@
-import type { SortType } from './main';
+import type { RowItem, SortType } from './main';
 
 export type ServerOptionsComputed = {
   page: number
@@ -14,6 +14,19 @@ export type HeaderForRender = {
   sortType?: SortType | 'none',
   fixed?: Boolean,
   width?: number,
+  groupable?: boolean,
+  grouped?: boolean,
+  groupBy?: (value: string) => string
+}
+
+export type GroupByItem = {
+  groupBy: ((value: string) => string) | null,
+  headerValue: string
+  children: RowItem[],
+  groupHeader: HeaderForRender,
+  groupParent: number
+  showChildren: boolean
+  isGroup: boolean
 }
 
 export type ClientSortOptions = {

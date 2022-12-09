@@ -17,9 +17,11 @@ module.exports = {
   plugins: [
     'vue',
     '@typescript-eslint',
+    'unused-imports',
   ],
   rules: {
     'no-unused-vars': 'off',
+    'unused-imports/no-unused-imports': 'error',
     'max-len': [2, { code: 130, ignoreUrls: true }],
     'vue/html-self-closing': 'off',
     'no-obj-calls': 'off',
