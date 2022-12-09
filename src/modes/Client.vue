@@ -32,6 +32,7 @@
       :rows-per-page="10"
       :buttons-pagination="false"
       :pagination-with-input="true"
+      :columns-resizable="true"
       :sort-by="sortBy"
       :sort-type="sortType"
       theme-color="#1d90ff"

@@ -129,7 +129,10 @@ table {
   }
 
   &.sortable {
-    cursor: pointer;
+    .header {
+      cursor: pointer;
+    }
+
     .sortType-icon {
       border: 5px solid transparent;
       margin-top: -3px;
