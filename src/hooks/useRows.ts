@@ -1,4 +1,9 @@
-import { ref, Ref, computed } from 'vue';
+import {
+  ref,
+  Ref,
+  computed,
+  watch,
+} from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import type { ServerOptions } from '../types/main';
 import { Item, RowItem } from '../types/main';
@@ -10,15 +15,32 @@ export default function useRows(
   serverOptions: Ref<ServerOptions | null>,
   rowsPerPage: Ref<number>,
 ) {
-  const initialRows = computed((): RowItem[] => items.value.map((item: Item) => ({
-    ...item,
-    meta: {
-      selected: false,
-      uniqueIndex: uuidv4(),
-      isExactMatch: false,
-      groupParent: 0,
-    },
-  })));
+  const initialRows = ref<RowItem[]>([]);
+
+  const initializeRows = (rows: Item[], groupParent = 0) => rows.map((row) => {
+    const rowChildren: RowItem[] = Array.isArray(row._children) && row._children.length
+      ? initializeRows(row._children, groupParent + 2)
+      : [];
+    return {
+      ...row,
+      meta: {
+        selected: false,
+        uniqueIndex: uuidv4(),
+        isExactMatch: false,
+        groupParent,
+        children: rowChildren,
+        showChildren: row._showChildren || false,
+      },
+    } as RowItem;
+  });
+
+  watch(items, (currValue) => {
+    initialRows.value = initializeRows(currValue);
+  }, {
+    immediate: true,
+  });
+
+  const rowsHaveChildren = computed(() => initialRows.value.some((row) => row.meta.children.length));
 
   const rowsItemsComputed = computed((): number[] => {
     if (!isServerSideMode.value && rowsItems.value.findIndex((item) => item === rowsPerPage.value) === -1) {
@@ -33,10 +55,17 @@ export default function useRows(
     rowsPerPageRef.value = option;
   };
 
+  const toggleChildrenVisibility = (event: Event, row: RowItem) => {
+    event.stopPropagation();
+    row.meta.showChildren = !row.meta.showChildren;
+  };
+
   return {
     initialRows,
     rowsItemsComputed,
     rowsPerPageRef,
+    rowsHaveChildren,
     updateRowsPerPage,
+    toggleChildrenVisibility,
   };
 }

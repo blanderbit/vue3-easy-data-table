@@ -27,7 +27,7 @@ Common props can be used both in client-side mode and server-side mode.
 | header-item-class-name         | false    | (item: Header, index: number) =&gt; string or string | ''                  | Function that returns custom class names for a header item, or a string assigning class names for every header item                                                                                                                                                                                                  |
 | header-text-direction          | false    | 'left' or 'center' or 'right'                        | 'left'              | Text direction of header item                                                                                                                                                                                                                                                                                        |
 | index-column-width             | false    | number                                               | 60                  | Width of index column. Click [here](https://hc200ok.github.io/vue3-easy-data-table-doc/features/fixed-column.html) for more information                                                                                                                                                                              |
-| items                          | true     | Item[] (Item: Record<string, any>)                   | []                  | Table body items                                                                                                                                                                                                                                                                                                     |
+| items                          | true     | Item[] (Item: Record<string, any>)                   | []                  | Table body items. See [rows](#rows) for more information                                                                                                                                                                                                                                                             |
 | loading                        | false    | boolean                                              | false               | If true and no items are provided, then a loading animation and will be shown                                                                                                                                                                                                                                        |
 | must-sort                      | false    | boolean                                              | false               | If true then one can not disable sorting, it will always switch between ascending and descending                                                                                                                                                                                                                     |
 | no-hover                       | false    | boolean                                              | false               | Set to true to forbidden change color when hovering table row                                                                                                                                                                                                                                                        |
@@ -82,6 +82,12 @@ groupBy: (value) => {
 ```
 The following reserved properties can be passed into string:
 - `rowsLength` - the length of grouped rows by specific column.
+
+### Rows
+Rows are listed in a row array as plain objects. Each object contains the row data (any key and value pair) and metadata.
+Metadata is prefixed with a `_`, to separate/distinguish from non object metadata:
+- `_children`: *(type: array, default: `[]`)* An array with plain child objects. The structure is the same as the parent list of rows.
+- `_showChildren`: *(type: boolean, default: `false`)* Indicates if the children has to be shown on initialization.
 
 # Client side mode props
 

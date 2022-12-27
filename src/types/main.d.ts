@@ -10,6 +10,9 @@ export type RowItem = Item & {
     uniqueIndex: string,
     isExactMatch: boolean,
     groupParent: number,
+    isGrouped: boolean,
+    children: RowItem[],
+    showChildren: boolean,
   }
 };
 

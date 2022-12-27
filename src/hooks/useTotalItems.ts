@@ -22,7 +22,7 @@ export default function useTotalItems(
   filteredClientSortOptions: ComputedRef<ClientSortOptions | null>,
   filterOptions: Ref<FilterOption[]>,
   isServerSideMode: ComputedRef<boolean>,
-  items: ComputedRef<RowItem[]>,
+  items: Ref<RowItem[]>,
   itemsSelected: Ref<Item[]>,
   searchField: Ref<string | string[]>,
   searchValue: Ref<string>,

@@ -7,7 +7,7 @@ import type { MultipleSelectStatus } from '../types/internal';
 export default function usePageItems(
   currentPaginationNumber: Ref<number>,
   isServerSideMode: ComputedRef<boolean>,
-  items: ComputedRef<RowItem[]>,
+  items: Ref<RowItem[]>,
   rowsPerPageRef: Ref<number>,
   selectItemsComputed: Ref<RowItem[]>,
   showIndex: Ref<boolean>,

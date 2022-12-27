@@ -22,12 +22,16 @@ export type HeaderForRender = {
 export type GroupByItem = {
   groupBy: ((value: string) => string) | null,
   headerValue: string
-  children: RowItem[],
   groupHeader: HeaderForRender,
-  groupParent: number
-  showChildren: boolean
-  isGroup: boolean
+  meta: {
+    groupParent: number
+    showChildren: boolean
+    children: RowItem[] | GroupByItem[],
+    isGroup: boolean
+  }
 }
+
+export type FlattenRows = (GroupByItem | RowItem)[]
 
 export type ClientSortOptions = {
   sortBy: string | string[],
