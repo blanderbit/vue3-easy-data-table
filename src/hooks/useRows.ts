@@ -7,6 +7,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import type { ServerOptions } from '../types/main';
 import { Item, RowItem } from '../types/main';
+import { GROUP_PARENT_SHIFT } from '../constants';
 
 export default function useRows(
   items: Ref<Item[]>,
@@ -19,7 +20,7 @@ export default function useRows(
 
   const initializeRows = (rows: Item[], groupParent = 0) => rows.map((row) => {
     const rowChildren: RowItem[] = Array.isArray(row._children) && row._children.length
-      ? initializeRows(row._children, groupParent + 2)
+      ? initializeRows(row._children, groupParent + GROUP_PARENT_SHIFT)
       : [];
     return {
       ...row,

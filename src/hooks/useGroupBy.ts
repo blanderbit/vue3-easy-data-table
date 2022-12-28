@@ -16,6 +16,7 @@ import {
   flattenObj,
   interpolateStr,
 } from '../utils';
+import { GROUP_SHIFT, GROUP_PARENT_SHIFT, ZERO } from '../constants';
 
 export default function useGroupBy(
   tableHeaders: Ref<Header[]>,
@@ -23,10 +24,11 @@ export default function useGroupBy(
   groupedHeaders: Ref<HeaderForRender[]>,
 ) {
   const gropedByRows = ref<GroupByItem[]>([]);
-  const multipleCheckboxShift = ref(0);
+  const multipleCheckboxShift = ref(ZERO);
 
   const group = (headerGroup: HeaderForRender) => {
-    const header = tableHeaders.value.find((tableHeader) => tableHeader.value === headerGroup.value);
+    const header = tableHeaders.value
+      .find((tableHeader) => tableHeader.value === headerGroup.value);
     if (header) {
       header.grouped = true;
       groupedHeaders.value.push(headerGroup);
@@ -37,7 +39,8 @@ export default function useGroupBy(
     const header = tableHeaders.value.find((tableHeader) => tableHeader.value === headerGroup.value);
     if (header) {
       header.grouped = false;
-      groupedHeaders.value = groupedHeaders.value.filter((groupedHeader) => groupedHeader.value !== headerGroup.value);
+      groupedHeaders.value = groupedHeaders.value
+        .filter((groupedHeader) => groupedHeader.value !== headerGroup.value);
     }
   };
 
@@ -49,27 +52,31 @@ export default function useGroupBy(
       ...row,
       meta: {
         ...row.meta,
-        groupParent: parentRow.meta.groupParent + 2,
+        groupParent: parentRow.meta.groupParent + GROUP_PARENT_SHIFT,
         children: itemChildren,
       },
     };
   });
 
-  const groupBy = (items: RowItem[], header: HeaderForRender, groupParent: number): GroupByItem[] => {
-    const itemsHaveChildren = items.some((item) => item.meta.children.length);
-    if (itemsHaveChildren) {
-      multipleCheckboxShift.value = 2;
-    }
-    const groupedByColumnRows = items.reduce((acc: Record<string, RowItem[]>, item) => {
-      item.meta.isGrouped = true;
-      const flattenItem = flattenObj(item);
-      const hasItemChildren = Boolean(item.meta.children.length);
-      item.meta.groupParent = itemsHaveChildren ? groupParent + 1 : 0;
+  const groupBy = (
+    items: RowItem[],
+    header: HeaderForRender,
+    groupShift: number,
+    pageItemsHaveAtLeastOneChildren: boolean,
+  ): GroupByItem[] => {
+    const groupedByColumnRows = items.reduce((acc: Record<string, RowItem[]>, rowItem) => {
+      rowItem.meta.isGrouped = true;
+      const flattenItem = flattenObj(rowItem);
+      const hasItemChildren = Boolean(rowItem.meta.children.length);
+      if (pageItemsHaveAtLeastOneChildren) {
+        rowItem.meta.groupParent = groupShift + GROUP_PARENT_SHIFT;
+        multipleCheckboxShift.value = rowItem.meta.groupParent;
+      }
       if (hasItemChildren) {
-        item.meta.children = updateChildrenGroupParent(item.meta.children, item);
+        rowItem.meta.children = updateChildrenGroupParent(rowItem.meta.children, rowItem);
       }
       (acc[flattenItem[header.value]] = acc[flattenItem[header.value]] || [])
-        .push(item);
+        .push(rowItem);
       return acc;
     }, {});
     return Object.keys(groupedByColumnRows).map((key) => ({
@@ -78,7 +85,7 @@ export default function useGroupBy(
       [header.value]: key,
       headerValue: header.value,
       meta: {
-        groupParent,
+        groupParent: groupShift,
         children: groupedByColumnRows[key],
         showChildren: true,
         isGroup: true,
@@ -87,21 +94,26 @@ export default function useGroupBy(
   };
 
   const groupByRecursive = (
-    items: GroupByItem[],
-    groupedItems: HeaderForRender[],
-    groupedItemIdx: number,
+    groupedRows: GroupByItem[],
+    groupedHeaderIdx: number,
     groupParent: number,
+    pageItemsHaveAtLeastOneChildren: boolean,
   ) => {
-    if (groupedItems.length === groupedItemIdx) {
-      return items;
+    if (groupedHeaders.value.length === groupedHeaderIdx) {
+      return groupedRows;
     }
-    items.forEach((item) => {
-      item.meta.children = groupBy(item.meta.children as RowItem[], groupedItems[groupedItemIdx], groupParent);
+    groupedRows.forEach((groupRow) => {
+      groupRow.meta.children = groupBy(
+          groupRow.meta.children as RowItem[],
+          groupedHeaders.value[groupedHeaderIdx],
+          groupParent,
+          pageItemsHaveAtLeastOneChildren,
+      );
       groupByRecursive(
-        item.meta.children,
-        groupedItems,
-        groupedItemIdx + 1,
+        groupRow.meta.children,
+        groupedHeaderIdx + 1,
         groupParent + 1,
+        pageItemsHaveAtLeastOneChildren,
       );
     });
     return null;
@@ -131,11 +143,11 @@ export default function useGroupBy(
     immediate: true,
   });
 
-  watch(groupedHeaders, (val) => {
-    if (!val.length) {
-      multipleCheckboxShift.value = 0;
+  watch(groupedHeaders, (currVal) => {
+    if (!currVal.length) {
+      multipleCheckboxShift.value = ZERO;
       pageItems.value.forEach((pageItem) => {
-        pageItem.meta.groupParent = 0;
+        pageItem.meta.groupParent = ZERO;
         pageItem.meta.isGrouped = false;
       });
     }
@@ -143,10 +155,10 @@ export default function useGroupBy(
 
   watchEffect(() => {
     if (groupedHeaders.value.length) {
-      const groupParent = 1;
-      const grouped = groupBy(pageItems.value, groupedHeaders.value[0], groupParent);
-      if (groupedHeaders.value.length > 1) {
-        groupByRecursive(grouped, groupedHeaders.value, 1, groupParent + 1);
+      const pageItemsHaveAtLeastOneChildren = pageItems.value.some((pageItem) => pageItem.meta.children.length);
+      const grouped = groupBy(pageItems.value, groupedHeaders.value[ZERO], GROUP_SHIFT, pageItemsHaveAtLeastOneChildren);
+      if (groupedHeaders.value.length) {
+        groupByRecursive(grouped, 1, GROUP_PARENT_SHIFT, pageItemsHaveAtLeastOneChildren);
       }
       setGroupLabelRecursive(grouped);
       gropedByRows.value = grouped;
