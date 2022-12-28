@@ -12,6 +12,7 @@ export type RowItem = Item & {
     groupParent: number,
     isGrouped: boolean,
     children: RowItem[],
+    initialChildren: RowItem[],
     showChildren: boolean,
   }
 };

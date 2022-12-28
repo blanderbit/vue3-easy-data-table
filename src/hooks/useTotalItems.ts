@@ -116,21 +116,38 @@ export default function useTotalItems(
     rows.sort((a, b) => (a.index > b.index ? 1 : -1));
   };
 
+  const handleExactMatch = (rowItems: RowItem[]) => {
+    rowItems.forEach((rowItem) => {
+      fillRowsWithExactMatchColumnsDictionary(rowItem, rowItem.meta.uniqueIndex);
+      rowItem.meta.isExactMatch = Object.values(rowsWithExactMatchColumnsDictionary.value[rowItem.meta.uniqueIndex])
+        .some((dictionaryItemKey) => dictionaryItemKey);
+    });
+    moveExactMatchRowsUp(rowItems);
+  };
+
+  const rowMatch = (rowItem: RowItem) => {
+    rowItem.meta.children = rowItem.meta.initialChildren.filter(rowMatch);
+    if (rowItem.meta.children.length) {
+      if (exactMatch.value) {
+        handleExactMatch(rowItem.meta.children);
+      }
+      rowItem.meta.showChildren = true;
+    }
+    const isRowMatch = new RegExp(searchValue.value, 'i').test(generateSearchingTarget(rowItem));
+    return isRowMatch || rowItem.meta.children.length;
+  };
+
   // items searching
   const itemsSearching = computed((): RowItem[] => {
     rowsWithExactMatchColumnsDictionary.value = {};
     let entities = items.value;
     // searching feature is not available in server-side mode
-    if (!isServerSideMode.value && searchValue.value !== '') {
-      entities = items.value.filter((item) => new RegExp(searchValue.value, 'i').test(generateSearchingTarget(item)));
+    if (isServerSideMode.value || !searchValue.value) {
+      return entities;
     }
-    if (exactMatch.value && searchValue.value !== '') {
-      entities.forEach((item) => {
-        fillRowsWithExactMatchColumnsDictionary(item, item.meta.uniqueIndex);
-        item.meta.isExactMatch = Object.values(rowsWithExactMatchColumnsDictionary.value[item.meta.uniqueIndex])
-          .some((dictionaryItemKey) => dictionaryItemKey);
-      });
-      moveExactMatchRowsUp(entities);
+    entities = entities.filter(rowMatch);
+    if (exactMatch.value) {
+      handleExactMatch(entities);
     }
     return entities;
   });

@@ -30,6 +30,7 @@ export default function useRows(
         isExactMatch: false,
         groupParent,
         children: rowChildren,
+        initialChildren: rowChildren,
         showChildren: row._showChildren || false,
       },
     } as RowItem;

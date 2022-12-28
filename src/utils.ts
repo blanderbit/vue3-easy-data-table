@@ -130,3 +130,16 @@ export function interpolateStr(str: string, data: Item) {
     return key === null ? '' : key;
   });
 }
+
+/**
+ * Create debounce function.
+ */
+export function createDebounce() {
+  let timeout = 0;
+  return (fn: () => void, delayMs: number = 500) => {
+    clearTimeout(timeout);
+    timeout = window.setTimeout(() => {
+      fn();
+    }, delayMs);
+  };
+}
