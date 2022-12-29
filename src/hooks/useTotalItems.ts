@@ -1,8 +1,6 @@
 import {
   Ref, computed, ComputedRef, watch, ref,
 } from 'vue';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { cloneDeep } from 'lodash';
 import type {
   Item, FilterOption, ExactMatchDictionary, RowItem,
 } from '../types/main';
@@ -126,8 +124,15 @@ export default function useTotalItems(
     moveExactMatchRowsUp(rowItems);
   };
 
+  const isFiltering = computed(() => searchValue.value !== '');
+
   const rowMatch = (rowItem: RowItem) => {
     rowItem.meta.children = rowItem.meta.initialChildren.filter(rowMatch);
+
+    if (!isFiltering.value) {
+      return true;
+    }
+
     if (rowItem.meta.children.length) {
       if (exactMatch.value) {
         handleExactMatch(rowItem.meta.children);
@@ -141,11 +146,11 @@ export default function useTotalItems(
   // items searching
   const itemsSearching = computed((): RowItem[] => {
     // searching feature is not available in server-side mode
-    if (isServerSideMode.value || !searchValue.value) {
+    if (isServerSideMode.value) {
       return items.value;
     }
-    const entities = cloneDeep(items.value).filter(rowMatch);
-    if (exactMatch.value) {
+    const entities = items.value.filter(rowMatch);
+    if (isFiltering.value && exactMatch.value) {
       handleExactMatch(entities);
     }
     return entities;
