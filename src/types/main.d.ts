@@ -13,6 +13,7 @@ export type RowItem = Item & {
     isGrouped: boolean,
     children: RowItem[],
     initialChildren: RowItem[],
+    index: number,
     showChildren: boolean,
   }
 };

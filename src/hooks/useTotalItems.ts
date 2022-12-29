@@ -1,6 +1,8 @@
 import {
   Ref, computed, ComputedRef, watch, ref,
 } from 'vue';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { cloneDeep } from 'lodash';
 import type {
   Item, FilterOption, ExactMatchDictionary, RowItem,
 } from '../types/main';
@@ -9,8 +11,9 @@ import {
   getItemValue,
   flattenObj,
   excludeKeysFromObj,
-  unFlattenObj,
+  unFlattenObj, isValidDate,
 } from '../utils';
+import { ZERO } from '../constants';
 
 export default function useTotalItems(
   manageTableProperties: Ref<boolean>,
@@ -106,14 +109,12 @@ export default function useTotalItems(
       }
     });
 
-    rows.forEach((item) => {
-      if (exactMatchRowsDictionary.has(item)) {
-        const { index } = exactMatchRowsDictionary.get(item);
-        item.index = index;
+    rows.forEach((rowItem) => {
+      if (exactMatchRowsDictionary.has(rowItem)) {
+        const { index } = exactMatchRowsDictionary.get(rowItem);
+        rowItem.meta.index = index;
       }
     });
-
-    rows.sort((a, b) => (a.index > b.index ? 1 : -1));
   };
 
   const handleExactMatch = (rowItems: RowItem[]) => {
@@ -139,13 +140,11 @@ export default function useTotalItems(
 
   // items searching
   const itemsSearching = computed((): RowItem[] => {
-    rowsWithExactMatchColumnsDictionary.value = {};
-    let entities = items.value;
     // searching feature is not available in server-side mode
     if (isServerSideMode.value || !searchValue.value) {
-      return entities;
+      return items.value;
     }
-    entities = entities.filter(rowMatch);
+    const entities = cloneDeep(items.value).filter(rowMatch);
     if (exactMatch.value) {
       handleExactMatch(entities);
     }
@@ -188,55 +187,95 @@ export default function useTotalItems(
     return itemsSearching.value;
   });
 
+  watch(searchValue, (currVal, prevVal) => {
+    if (currVal !== prevVal) {
+      rowsWithExactMatchColumnsDictionary.value = {};
+    }
+  });
+
   watch(itemsFiltering, (newVal) => {
     if (filterOptions.value) {
       emits('updateFilter', newVal);
     }
   }, { immediate: true, deep: true });
 
-  function recursionMultiSort(sortByArr: string[], sortDescArr: boolean[], itemsToSort: RowItem[], index: number): RowItem[] {
+  const resetMetaIndex = (rows: RowItem[]) => {
+    if (!rows.length) {
+      return rows;
+    }
+    rows.forEach((rowItem) => {
+      resetMetaIndex(rowItem.meta.children || []);
+    });
+    return rows.sort((rowA, rowB) => rowA.meta.index - rowB.meta.index);
+  };
+
+  const sortRows = (sortByArr: string[], sortDescArr: boolean[], itemsToSort: RowItem[], index: number): RowItem[] => {
     const sortBy = sortByArr[index];
     const sortDesc = sortDescArr[index];
     const sorted = (index === 0 ? itemsToSort
-      : recursionMultiSort(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((a: RowItem, b: RowItem) => {
+      : sortRows(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((rowA: RowItem, rowB: RowItem) => {
       let isAllSame = true;
       for (let i = 0; i < index; i += 1) {
-        if (getItemValue(sortByArr[i], a) !== getItemValue(sortByArr[i], b)) {
+        if (getItemValue(sortByArr[i], rowA) !== getItemValue(sortByArr[i], rowB)) {
           isAllSame = false;
           break;
         }
       }
       if (isAllSame) {
-        if (getItemValue(sortBy as string, a) < getItemValue(sortBy as string, b)) return sortDesc ? 1 : -1;
-        if (getItemValue(sortBy as string, a) > getItemValue(sortBy as string, b)) return sortDesc ? -1 : 1;
+        const direction = sortDescArr[index] ? -1 : 1;
+        const sortValueA = getItemValue(sortBy, rowA);
+        const sortValueB = getItemValue(sortBy, rowB);
+
+        if (sortValueA < sortValueB) {
+          return -direction;
+        }
+
+        if (sortValueA > sortValueB) {
+          return direction;
+        }
+
+        if (typeof sortValueA === 'string' && typeof sortValueB === 'string') {
+          if (isValidDate(sortValueA) && isValidDate(sortValueB)) {
+            return direction > 0
+              ? new Date(sortValueA).getTime() - new Date(sortValueB).getTime()
+              : new Date(sortValueB).getTime() - new Date(sortValueA).getTime();
+          }
+          return direction * sortValueA.localeCompare(sortValueB);
+        }
         return 0;
       }
       return 0;
     });
+
+    // Recursively sort child elements.
+    itemsToSort
+      .filter((row) => row.meta.children.length)
+      .forEach((row) => {
+        row.meta.children = sortRows(sortByArr, sortDescArr, row.meta.children, index);
+      });
     return sorted;
-  }
+  };
 
   // flow: searching => filtering => sorting
   // (last step: sorting)
   const totalItems = computed((): RowItem[] => {
     if (isServerSideMode.value) return items.value;
-    if (filteredClientSortOptions.value === null) return itemsFiltering.value;
+    if (filteredClientSortOptions.value === null) {
+      return resetMetaIndex(itemsFiltering.value);
+    }
     const { sortBy, sortDesc } = filteredClientSortOptions.value;
     const itemsFilteringSorted = [...itemsFiltering.value];
     // multi sort
     if (multiSort && Array.isArray(sortBy) && Array.isArray(sortDesc)) {
-      if (sortBy.length === 0) return itemsFilteringSorted;
-      return recursionMultiSort(sortBy, sortDesc, itemsFilteringSorted, sortBy.length - 1);
+      if (!sortBy.length) {
+        return resetMetaIndex(itemsFilteringSorted);
+      }
+      return sortRows(sortBy, sortDesc, itemsFilteringSorted, sortBy.length - 1);
     }
     const isSortByColumnVisible = headerColumns.value.includes(sortBy as string);
     // If sort by column is not visible does not make sense to sort by it.
     if (!isSortByColumnVisible) return itemsFilteringSorted;
-    // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-    return itemsFilteringSorted.sort((a, b) => {
-      if (getItemValue(sortBy as string, a) < getItemValue(sortBy as string, b)) return sortDesc ? 1 : -1;
-      if (getItemValue(sortBy as string, a) > getItemValue(sortBy as string, b)) return sortDesc ? -1 : 1;
-      return 0;
-    });
+    return sortRows([sortBy as string], [sortDesc as boolean], itemsFilteringSorted, ZERO);
   });
 
   // eslint-disable-next-line max-len

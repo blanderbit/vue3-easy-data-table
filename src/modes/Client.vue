@@ -182,8 +182,8 @@ const filterOptions = [
 // const headers: Header[] = headersMocked;
 
 const updateFilter = (items: Item[]) => {
-  console.log('filter items');
-  console.log(JSON.stringify(items));
+  // console.log('filter items');
+  // console.log(JSON.stringify(items));
 };
 
 const items = ref(tableItems);

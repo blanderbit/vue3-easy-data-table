@@ -925,6 +925,14 @@ defineExpose({
         }
       }
 
+      &.even-row {
+        td {
+          &.exactMatch {
+            background: var(--easy-table-body-exact-match-row-column-background-color);
+          }
+        }
+      }
+
       td {
         &.exactMatch {
           background: var(--easy-table-body-exact-match-row-column-background-color);

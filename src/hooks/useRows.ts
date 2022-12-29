@@ -18,7 +18,7 @@ export default function useRows(
 ) {
   const initialRows = ref<RowItem[]>([]);
 
-  const initializeRows = (rows: Item[], groupParent = 0) => rows.map((row) => {
+  const initializeRows = (rows: Item[], groupParent = 0) => rows.map((row, index) => {
     const rowChildren: RowItem[] = Array.isArray(row._children) && row._children.length
       ? initializeRows(row._children, groupParent + GROUP_PARENT_SHIFT)
       : [];
@@ -32,6 +32,7 @@ export default function useRows(
         children: rowChildren,
         initialChildren: rowChildren,
         showChildren: row._showChildren || false,
+        index,
       },
     } as RowItem;
   });
