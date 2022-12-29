@@ -1,15 +1,23 @@
 import {
-  Ref, computed, ComputedRef, watch, ref,
+  computed,
+  ComputedRef,
+  Ref,
+  ref,
+  watch,
 } from 'vue';
 import type {
-  Item, FilterOption, ExactMatchDictionary, RowItem,
+  ExactMatchDictionary,
+  FilterOption,
+  Item,
+  RowItem,
 } from '../types/main';
 import type { ClientSortOptions, EmitsEventName } from '../types/internal';
 import {
-  getItemValue,
-  flattenObj,
   excludeKeysFromObj,
-  unFlattenObj, isValidDate,
+  flattenObj,
+  getItemValue,
+  unFlattenObj,
+  isValidDate,
 } from '../utils';
 import { ZERO } from '../constants';
 
@@ -35,6 +43,7 @@ export default function useTotalItems(
   // which containing the column name as a key, a flag indicating whether
   // there is an exact match as a value.
   const rowsWithExactMatchColumnsDictionary = ref<ExactMatchDictionary>({});
+  const selectedItems: Ref<RowItem[]> = ref([]);
   const itemIgnoreKeys = ['expand', 'index', 'checkbox', 'meta'];
 
   const fillRowsWithExactMatchColumnsDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
@@ -116,10 +125,12 @@ export default function useTotalItems(
   };
 
   const handleExactMatch = (rowItems: RowItem[]) => {
+    if (!rowItems.length) return;
     rowItems.forEach((rowItem) => {
       fillRowsWithExactMatchColumnsDictionary(rowItem, rowItem.meta.uniqueIndex);
       rowItem.meta.isExactMatch = Object.values(rowsWithExactMatchColumnsDictionary.value[rowItem.meta.uniqueIndex])
         .some((dictionaryItemKey) => dictionaryItemKey);
+      handleExactMatch(rowItem.meta.children || []);
     });
     moveExactMatchRowsUp(rowItems);
   };
@@ -134,9 +145,6 @@ export default function useTotalItems(
     }
 
     if (rowItem.meta.children.length) {
-      if (exactMatch.value) {
-        handleExactMatch(rowItem.meta.children);
-      }
       rowItem.meta.showChildren = true;
     }
     const isRowMatch = new RegExp(searchValue.value, 'i').test(generateSearchingTarget(rowItem));
@@ -149,11 +157,7 @@ export default function useTotalItems(
     if (isServerSideMode.value) {
       return items.value;
     }
-    const entities = items.value.filter(rowMatch);
-    if (isFiltering.value && exactMatch.value) {
-      handleExactMatch(entities);
-    }
-    return entities;
+    return items.value.filter(rowMatch);
   });
 
   // items filtering
@@ -191,18 +195,6 @@ export default function useTotalItems(
     }
     return itemsSearching.value;
   });
-
-  watch(searchValue, (currVal, prevVal) => {
-    if (currVal !== prevVal) {
-      rowsWithExactMatchColumnsDictionary.value = {};
-    }
-  });
-
-  watch(itemsFiltering, (newVal) => {
-    if (filterOptions.value) {
-      emits('updateFilter', newVal);
-    }
-  }, { immediate: true, deep: true });
 
   const resetMetaIndex = (rows: RowItem[]) => {
     if (!rows.length) {
@@ -253,7 +245,7 @@ export default function useTotalItems(
     });
 
     // Recursively sort child elements.
-    itemsToSort
+    sorted
       .filter((row) => row.meta.children.length)
       .forEach((row) => {
         row.meta.children = sortRows(sortByArr, sortDescArr, row.meta.children, index);
@@ -265,6 +257,9 @@ export default function useTotalItems(
   // (last step: sorting)
   const totalItems = computed((): RowItem[] => {
     if (isServerSideMode.value) return items.value;
+    if (isFiltering.value && exactMatch.value) {
+      handleExactMatch(itemsFiltering.value);
+    }
     if (filteredClientSortOptions.value === null) {
       return resetMetaIndex(itemsFiltering.value);
     }
@@ -286,8 +281,19 @@ export default function useTotalItems(
   // eslint-disable-next-line max-len
   const totalItemsLength = computed((): number => (isServerSideMode.value ? serverItemsLength.value : totalItems.value.length));
 
-  const selectItemsComputed: Ref<RowItem[]> = ref([]);
-  watch(selectItemsComputed, (val) => {
+  watch(searchValue, (currVal, prevVal) => {
+    if (currVal !== prevVal) {
+      rowsWithExactMatchColumnsDictionary.value = {};
+    }
+  });
+
+  watch(itemsFiltering, (newVal) => {
+    if (filterOptions.value) {
+      emits('updateFilter', newVal);
+    }
+  }, { immediate: true, deep: true });
+
+  watch(selectedItems, (val) => {
     emits('update:itemsSelected', val);
   }, {
     deep: true,
@@ -297,12 +303,12 @@ export default function useTotalItems(
     if (!isMultiSelect.value) {
       return;
     }
-    selectItemsComputed.value = totalItems.value.map((item) => {
+    selectedItems.value = totalItems.value.map((item) => {
       item.meta.selected = isChecked;
       return item;
     });
     if (!isChecked) {
-      selectItemsComputed.value = [];
+      selectedItems.value = [];
     }
   };
 
@@ -310,22 +316,22 @@ export default function useTotalItems(
     const isAlreadySelected = item.meta.selected;
     item.meta.selected = !item.meta.selected;
     if (isAlreadySelected) {
-      selectItemsComputed.value = selectItemsComputed.value
+      selectedItems.value = selectedItems.value
         .filter((selectedItem) => item.meta.uniqueIndex !== selectedItem.meta.uniqueIndex);
-    } else if (!isMultiSelect.value && selectItemsComputed.value.length === 1) {
-      selectItemsComputed.value[0].meta.selected = false;
-      selectItemsComputed.value = [item];
+    } else if (!isMultiSelect.value && selectedItems.value.length === 1) {
+      selectedItems.value[0].meta.selected = false;
+      selectedItems.value = [item];
     } else {
-      const selectItemsArr: RowItem[] = selectItemsComputed.value;
+      const selectItemsArr: RowItem[] = selectedItems.value;
       selectItemsArr.unshift(item);
-      selectItemsComputed.value = selectItemsArr;
+      selectedItems.value = selectItemsArr;
     }
   };
 
   return {
     rowsWithExactMatchColumnsDictionary,
     totalItems,
-    selectItemsComputed,
+    selectedItems,
     totalItemsLength,
     toggleSelectAll,
     toggleSelectItem,
