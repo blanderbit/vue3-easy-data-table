@@ -95,7 +95,7 @@ export default function useTotalItems(
 
   const moveExactMatchRowsUp = (rows: RowItem[]) => {
     const exactMatchRowsDictionary = new Map();
-    let exactMatchCounter = 1;
+    let exactMatchCounter = ZERO;
     rows.forEach((item, idx) => {
       let index = idx;
       if (item.meta.isExactMatch) {
@@ -122,6 +122,8 @@ export default function useTotalItems(
         rowItem.meta.index = index;
       }
     });
+    // Move rows with exact match up.
+    rows.sort((rowA, rowB) => rowA.meta.index - rowB.meta.index);
   };
 
   const handleExactMatch = (rowItems: RowItem[]) => {
@@ -209,10 +211,10 @@ export default function useTotalItems(
   const sortRows = (sortByArr: string[], sortDescArr: boolean[], itemsToSort: RowItem[], index: number): RowItem[] => {
     const sortBy = sortByArr[index];
     const sortDesc = sortDescArr[index];
-    const sorted = (index === 0 ? itemsToSort
+    const sorted = (index === ZERO ? itemsToSort
       : sortRows(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((rowA: RowItem, rowB: RowItem) => {
       let isAllSame = true;
-      for (let i = 0; i < index; i += 1) {
+      for (let i = ZERO; i < index; i += 1) {
         if (getItemValue(sortByArr[i], rowA) !== getItemValue(sortByArr[i], rowB)) {
           isAllSame = false;
           break;
@@ -233,15 +235,15 @@ export default function useTotalItems(
 
         if (typeof sortValueA === 'string' && typeof sortValueB === 'string') {
           if (isValidDate(sortValueA) && isValidDate(sortValueB)) {
-            return direction > 0
+            return direction > ZERO
               ? new Date(sortValueA).getTime() - new Date(sortValueB).getTime()
               : new Date(sortValueB).getTime() - new Date(sortValueA).getTime();
           }
           return direction * sortValueA.localeCompare(sortValueB);
         }
-        return 0;
+        return ZERO;
       }
-      return 0;
+      return ZERO;
     });
 
     // Recursively sort child elements.
@@ -256,26 +258,27 @@ export default function useTotalItems(
   // flow: searching => filtering => sorting
   // (last step: sorting)
   const totalItems = computed((): RowItem[] => {
-    if (isServerSideMode.value) return items.value;
+    const entities = isServerSideMode.value ? items.value : itemsFiltering.value;
+    const itemsFilteringReset = resetMetaIndex(entities);
     if (isFiltering.value && exactMatch.value) {
-      handleExactMatch(itemsFiltering.value);
+      handleExactMatch(itemsFilteringReset);
     }
+    if (isServerSideMode.value) return entities;
     if (filteredClientSortOptions.value === null) {
-      return resetMetaIndex(itemsFiltering.value);
+      return itemsFilteringReset;
     }
     const { sortBy, sortDesc } = filteredClientSortOptions.value;
-    const itemsFilteringSorted = [...itemsFiltering.value];
     // multi sort
     if (multiSort && Array.isArray(sortBy) && Array.isArray(sortDesc)) {
       if (!sortBy.length) {
-        return resetMetaIndex(itemsFilteringSorted);
+        return itemsFilteringReset;
       }
-      return sortRows(sortBy, sortDesc, itemsFilteringSorted, sortBy.length - 1);
+      return sortRows(sortBy, sortDesc, itemsFilteringReset, sortBy.length - 1);
     }
     const isSortByColumnVisible = headerColumns.value.includes(sortBy as string);
     // If sort by column is not visible does not make sense to sort by it.
-    if (!isSortByColumnVisible) return itemsFilteringSorted;
-    return sortRows([sortBy as string], [sortDesc as boolean], itemsFilteringSorted, ZERO);
+    if (!isSortByColumnVisible) return itemsFilteringReset;
+    return sortRows([sortBy as string], [sortDesc as boolean], itemsFilteringReset, ZERO);
   });
 
   // eslint-disable-next-line max-len
