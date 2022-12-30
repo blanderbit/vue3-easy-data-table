@@ -182,9 +182,9 @@
                           {
                             'fa-sort-up': item.groupHeader.sortType === 'asc',
                             'fa-sort-down': item.groupHeader.sortType === 'desc',
-                            'fa-sort': item.groupHeader.sortType === 'none'
+                            'fa-sort': item.groupHeader.sortType === 'none' || !item.groupHeader.sortType
                           }"
-                        @click.stop="item.groupHeader.sortType && updateGroupSortField(item.groupHeader)"
+                        @click.stop="updateGroupSortField(item.groupHeader)"
                       />
                     </span>
                     <i

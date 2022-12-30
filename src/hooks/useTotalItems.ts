@@ -122,8 +122,6 @@ export default function useTotalItems(
         rowItem.meta.index = index;
       }
     });
-    // Move rows with exact match up.
-    rows.sort((rowA, rowB) => rowA.meta.index - rowB.meta.index);
   };
 
   const handleExactMatch = (rowItems: RowItem[]) => {
@@ -259,26 +257,26 @@ export default function useTotalItems(
   // (last step: sorting)
   const totalItems = computed((): RowItem[] => {
     const entities = isServerSideMode.value ? items.value : itemsFiltering.value;
-    const itemsFilteringReset = resetMetaIndex(entities);
     if (isFiltering.value && exactMatch.value) {
-      handleExactMatch(itemsFilteringReset);
+      handleExactMatch(itemsFiltering.value);
     }
     if (isServerSideMode.value) return entities;
     if (filteredClientSortOptions.value === null) {
-      return itemsFilteringReset;
+      return resetMetaIndex(itemsFiltering.value);
     }
     const { sortBy, sortDesc } = filteredClientSortOptions.value;
+    const itemsFilteringSorted = [...itemsFiltering.value];
     // multi sort
     if (multiSort && Array.isArray(sortBy) && Array.isArray(sortDesc)) {
       if (!sortBy.length) {
-        return itemsFilteringReset;
+        return resetMetaIndex(itemsFilteringSorted);
       }
-      return sortRows(sortBy, sortDesc, itemsFilteringReset, sortBy.length - 1);
+      return sortRows(sortBy, sortDesc, itemsFilteringSorted, sortBy.length - 1);
     }
     const isSortByColumnVisible = headerColumns.value.includes(sortBy as string);
     // If sort by column is not visible does not make sense to sort by it.
-    if (!isSortByColumnVisible) return itemsFilteringReset;
-    return sortRows([sortBy as string], [sortDesc as boolean], itemsFilteringReset, ZERO);
+    if (!isSortByColumnVisible) return itemsFilteringSorted;
+    return sortRows([sortBy as string], [sortDesc as boolean], itemsFilteringSorted, ZERO);
   });
 
   // eslint-disable-next-line max-len

@@ -32,6 +32,10 @@ export const tableHeaders: Header[] = [
     value: 'indicator.weight',
     groupable: true,
     sortable: true,
+    // grouped: true,
+    // groupBy(value) {
+    //   return `${value} weight ({rowsLength} Item{rowsLength > 1 ? "s" : ""})`;
+    // },
   },
   {
     text: 'LAST ATTENDED',

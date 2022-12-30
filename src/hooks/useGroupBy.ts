@@ -6,6 +6,7 @@ import {
   watch,
   watchEffect,
 } from 'vue';
+import { cloneDeep } from 'lodash';
 import { Header, RowItem } from '../types/main';
 import {
   GroupByItem,
@@ -155,8 +156,9 @@ export default function useGroupBy(
 
   watchEffect(() => {
     if (groupedHeaders.value.length) {
-      const pageItemsHaveAtLeastOneChildren = pageItems.value.some((pageItem) => pageItem.meta.children.length);
-      const grouped = groupBy(pageItems.value, groupedHeaders.value[ZERO], GROUP_SHIFT, pageItemsHaveAtLeastOneChildren);
+      const pageItemsCloneDeep: RowItem[] = cloneDeep(pageItems.value);
+      const pageItemsHaveAtLeastOneChildren = pageItemsCloneDeep.some((pageItem) => pageItem.meta.children.length);
+      const grouped = groupBy(pageItemsCloneDeep, groupedHeaders.value[ZERO], GROUP_SHIFT, pageItemsHaveAtLeastOneChildren);
       if (groupedHeaders.value.length) {
         groupByRecursive(grouped, 1, GROUP_PARENT_SHIFT, pageItemsHaveAtLeastOneChildren);
       }
