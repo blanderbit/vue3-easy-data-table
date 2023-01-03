@@ -67,7 +67,6 @@ export default function useGroupBy(
     pageItemsHaveAtLeastOneChildren: boolean,
   ): GroupByHeader[] => {
     const groupedByColumnRows = items.reduce((acc: Record<string, Row[]>, rowItem) => {
-      rowItem.meta.isGrouped = true;
       const flattenItem = flattenObj(rowItem);
       const hasItemChildren = Boolean(rowItem.meta.children.length);
       if (pageItemsHaveAtLeastOneChildren) {
@@ -163,7 +162,6 @@ export default function useGroupBy(
       multipleCheckboxShift.value = ZERO;
       pageItems.value.forEach((pageItem) => {
         pageItem.meta.groupParent = ZERO;
-        pageItem.meta.isGrouped = false;
       });
     }
   });
