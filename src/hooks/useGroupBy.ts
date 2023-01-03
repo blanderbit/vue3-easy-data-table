@@ -6,10 +6,11 @@ import {
   watch,
   watchEffect,
 } from 'vue';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { cloneDeep } from 'lodash';
-import { Header, RowItem } from '../types/main';
+import { Header, Row } from '../types/main';
 import {
-  GroupByItem,
+  GroupByHeader,
   HeaderForRender,
   FlattenRows,
 } from '../types/internal';
@@ -21,10 +22,10 @@ import { GROUP_SHIFT, GROUP_PARENT_SHIFT, ZERO } from '../constants';
 
 export default function useGroupBy(
   tableHeaders: Ref<Header[]>,
-  pageItems: ComputedRef<RowItem[]>,
+  pageItems: ComputedRef<Row[]>,
   groupedHeaders: Ref<HeaderForRender[]>,
 ) {
-  const gropedByRows = ref<GroupByItem[]>([]);
+  const gropedByRows = ref<GroupByHeader[]>([]);
   const multipleCheckboxShift = ref(ZERO);
 
   const group = (headerGroup: HeaderForRender) => {
@@ -45,27 +46,27 @@ export default function useGroupBy(
     }
   };
 
-  const updateChildrenGroupParent = (rows: RowItem[], parentRow: RowItem) => rows.map((row) => {
-    const itemChildren: RowItem[] = Array.isArray(row.meta.children) && row.meta.children.length
+  const updateChildrenGroupParent = (rows: Row[], parentRow: Row) => rows.map((row) => {
+    const itemChildren: Row[] = Array.isArray(row.meta.children) && row.meta.children.length
       ? updateChildrenGroupParent(row.meta.children, row)
       : [];
     return {
       ...row,
       meta: {
         ...row.meta,
-        groupParent: parentRow.meta.groupParent + GROUP_PARENT_SHIFT,
+        groupParent: row.meta.groupParent + parentRow.meta.groupParent,
         children: itemChildren,
       },
     };
   });
 
   const groupBy = (
-    items: RowItem[],
+    items: Row[],
     header: HeaderForRender,
     groupShift: number,
     pageItemsHaveAtLeastOneChildren: boolean,
-  ): GroupByItem[] => {
-    const groupedByColumnRows = items.reduce((acc: Record<string, RowItem[]>, rowItem) => {
+  ): GroupByHeader[] => {
+    const groupedByColumnRows = items.reduce((acc: Record<string, Row[]>, rowItem) => {
       rowItem.meta.isGrouped = true;
       const flattenItem = flattenObj(rowItem);
       const hasItemChildren = Boolean(rowItem.meta.children.length);
@@ -80,22 +81,35 @@ export default function useGroupBy(
         .push(rowItem);
       return acc;
     }, {});
-    return Object.keys(groupedByColumnRows).map((key) => ({
+
+    return Object.keys(groupedByColumnRows).map((groupKey) => ({
       groupBy: header.groupBy instanceof Function ? header.groupBy : null,
       groupHeader: header,
-      [header.value]: key,
-      headerValue: header.value,
+      groupKey,
       meta: {
         groupParent: groupShift,
-        children: groupedByColumnRows[key],
+        children: groupedByColumnRows[groupKey],
         showChildren: true,
         isGroup: true,
       },
-    }));
+    })).sort((groupA, groupB) => {
+      const direction = groupA.groupHeader.sortType === 'desc' ? -1 : 1;
+      const sortValueA = groupA.groupKey;
+      const sortValueB = groupB.groupKey;
+
+      if (sortValueA < sortValueB) {
+        return -direction;
+      }
+
+      if (sortValueA > sortValueB) {
+        return direction;
+      }
+      return 0;
+    });
   };
 
   const groupByRecursive = (
-    groupedRows: GroupByItem[],
+    groupedRows: GroupByHeader[],
     groupedHeaderIdx: number,
     groupParent: number,
     pageItemsHaveAtLeastOneChildren: boolean,
@@ -105,7 +119,7 @@ export default function useGroupBy(
     }
     groupedRows.forEach((groupRow) => {
       groupRow.meta.children = groupBy(
-          groupRow.meta.children as RowItem[],
+          groupRow.meta.children as Row[],
           groupedHeaders.value[groupedHeaderIdx],
           groupParent,
           pageItemsHaveAtLeastOneChildren,
@@ -124,8 +138,8 @@ export default function useGroupBy(
     if (!items.length) return;
     items.forEach((groupedRow) => {
       if (groupedRow.groupBy instanceof Function) {
-        groupedRow[groupedRow.headerValue as keyof GroupByItem] = interpolateStr(
-          groupedRow.groupBy(groupedRow[groupedRow.headerValue as keyof GroupByItem]),
+        groupedRow.groupKey = interpolateStr(
+          groupedRow.groupBy(groupedRow.groupKey),
           {
             rowsLength: groupedRow.meta.children.length,
           },
@@ -154,12 +168,13 @@ export default function useGroupBy(
     }
   });
 
+  // Use watch effect to set up grouped rows.
   watchEffect(() => {
     if (groupedHeaders.value.length) {
-      const pageItemsCloneDeep: RowItem[] = cloneDeep(pageItems.value);
+      const pageItemsCloneDeep: Row[] = cloneDeep(pageItems.value);
       const pageItemsHaveAtLeastOneChildren = pageItemsCloneDeep.some((pageItem) => pageItem.meta.children.length);
       const grouped = groupBy(pageItemsCloneDeep, groupedHeaders.value[ZERO], GROUP_SHIFT, pageItemsHaveAtLeastOneChildren);
-      if (groupedHeaders.value.length) {
+      if (groupedHeaders.value.length > 1) {
         groupByRecursive(grouped, 1, GROUP_PARENT_SHIFT, pageItemsHaveAtLeastOneChildren);
       }
       setGroupLabelRecursive(grouped);
@@ -184,9 +199,9 @@ export default function useGroupBy(
 
   const flattenedRows = computed(() => flattenArr(groupedRows.value));
   const flattenedNonGroupedRows = computed(() => flattenedRows.value
-    .filter((row) => !(row as GroupByItem).meta.isGroup) as RowItem[]);
+    .filter((row) => !(row as GroupByHeader).meta.isGroup) as Row[]);
 
-  const toggleGroupChildrenVisibility = (groupItem: GroupByItem) => {
+  const toggleGroupChildrenVisibility = (groupItem: GroupByHeader) => {
     groupItem.meta.showChildren = !groupItem.meta.showChildren;
   };
 

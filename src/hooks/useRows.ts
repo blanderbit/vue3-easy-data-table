@@ -6,7 +6,7 @@ import {
 } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import type { ServerOptions } from '../types/main';
-import { Item, RowItem } from '../types/main';
+import { Item, Row } from '../types/main';
 import { GROUP_PARENT_SHIFT } from '../constants';
 
 export default function useRows(
@@ -16,26 +16,29 @@ export default function useRows(
   serverOptions: Ref<ServerOptions | null>,
   rowsPerPage: Ref<number>,
 ) {
-  const initialRows = ref<RowItem[]>([]);
+  const initialRows = ref<Row[]>([]);
 
-  const initializeRows = (rows: Item[], groupParent = 0) => rows.map((row, index) => {
-    const rowChildren: RowItem[] = Array.isArray(row._children) && row._children.length
-      ? initializeRows(row._children, groupParent + GROUP_PARENT_SHIFT)
-      : [];
-    return {
-      ...row,
-      meta: {
-        selected: false,
-        uniqueIndex: uuidv4(),
-        isExactMatch: false,
-        groupParent,
-        children: rowChildren,
-        initialChildren: rowChildren,
-        showChildren: row._showChildren || false,
-        index,
-      },
-    } as RowItem;
-  });
+  const initializeRows = (rows: Item[], groupParent = 0) => rows
+    .map(({ _children, _showChildren, ...restRow }, index) => {
+      const rowChildren: Row[] = Array.isArray(_children) && _children.length
+        ? initializeRows(_children, groupParent + GROUP_PARENT_SHIFT)
+        : [];
+      return {
+        ...restRow,
+        meta: {
+          selected: false,
+          uniqueIndex: uuidv4(),
+          isExactMatch: false,
+          groupParent,
+          children: rowChildren,
+          initialChildren: rowChildren,
+          showChildren: _showChildren || false,
+          index,
+          originalIndex: index,
+          exactMatchColumns: [] as string[],
+        },
+      } as Row;
+    });
 
   watch(items, (currValue) => {
     initialRows.value = initializeRows(currValue);
@@ -58,7 +61,7 @@ export default function useRows(
     rowsPerPageRef.value = option;
   };
 
-  const toggleChildrenVisibility = (event: Event, row: RowItem) => {
+  const toggleChildrenVisibility = (event: Event, row: Row) => {
     event.stopPropagation();
     row.meta.showChildren = !row.meta.showChildren;
   };

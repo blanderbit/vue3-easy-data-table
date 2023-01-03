@@ -9,6 +9,7 @@ export const tableHeaders: Header[] = [
     text: 'TEAM',
     value: 'team',
     groupable: true,
+    // sortable: true,
     groupBy(value) {
       return `${value} team ({rowsLength} Item{rowsLength > 1 ? "s" : ""})`;
     },

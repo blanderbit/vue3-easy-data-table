@@ -174,7 +174,7 @@
                           'fa-plus-square': !item.meta.showChildren
                         }"
                       />
-                      <span>{{ item[item['headerValue']] }}</span>
+                      <span>{{ item.groupKey }}</span>
                       <i
                         v-if="item.groupHeader.sortable"
                         class="sort-icon fa"
@@ -217,7 +217,7 @@
                   :class="[{
                     'shadow': column === lastFixedColumn,
                     'can-expand': column === 'expand',
-                    'exactMatch': rowsWithExactMatchColumnsDictionary[item.meta.uniqueIndex]?.[column],
+                    'exactMatch': item.meta.exactMatchColumns.includes(column),
                     // eslint-disable-next-line max-len
                   }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
                   @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
@@ -602,7 +602,6 @@ const {
 );
 
 const {
-  rowsWithExactMatchColumnsDictionary,
   totalItems,
   selectedItems,
   totalItemsLength,

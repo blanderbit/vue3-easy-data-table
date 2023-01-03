@@ -6,10 +6,9 @@ import {
   watch,
 } from 'vue';
 import type {
-  ExactMatchDictionary,
   FilterOption,
   Item,
-  RowItem,
+  Row,
 } from '../types/main';
 import type { ClientSortOptions, EmitsEventName } from '../types/internal';
 import {
@@ -31,7 +30,7 @@ export default function useTotalItems(
   filteredClientSortOptions: ComputedRef<ClientSortOptions | null>,
   filterOptions: Ref<FilterOption[]>,
   isServerSideMode: ComputedRef<boolean>,
-  items: Ref<RowItem[]>,
+  items: Ref<Row[]>,
   itemsSelected: Ref<Item[]>,
   searchField: Ref<string | string[]>,
   searchValue: Ref<string>,
@@ -39,37 +38,10 @@ export default function useTotalItems(
   multiSort: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
-  // A dictionary containing unique row IDs as keys and as values an object,
-  // which containing the column name as a key, a flag indicating whether
-  // there is an exact match as a value.
-  const rowsWithExactMatchColumnsDictionary = ref<ExactMatchDictionary>({});
-  const selectedItems: Ref<RowItem[]> = ref([]);
+  const selectedItems: Ref<Row[]> = ref([]);
   const itemIgnoreKeys = ['expand', 'index', 'checkbox', 'meta'];
 
-  const fillRowsWithExactMatchColumnsDictionary = (item: Item, itemUniqueIndex: string, dictionaryKey: string | null = null) => {
-    if (typeof item !== 'object') return;
-    const itemWithoutControlKeys = excludeKeysFromObj(item, itemIgnoreKeys);
-    const itemKeys = Object.keys(itemWithoutControlKeys);
-    if (!itemKeys.length) return;
-    itemKeys.forEach((itemKey) => {
-      if (typeof item[itemKey] === 'object') {
-        fillRowsWithExactMatchColumnsDictionary(item[itemKey], itemUniqueIndex, itemKey);
-      } else {
-        const exactMatchDictionaryKey = dictionaryKey ? `${dictionaryKey}.${itemKey}` : itemKey;
-        const hasDictionaryItemsByRowUniqueIdx = Object
-          .keys(rowsWithExactMatchColumnsDictionary.value[itemUniqueIndex] || {}).length;
-        const isExactMatch = (isExactMatchCaseSensitive.value
-          ? item[itemKey].toString() === searchValue.value
-          : item[itemKey].toString().toLowerCase() === searchValue.value.toLowerCase());
-        rowsWithExactMatchColumnsDictionary.value[itemUniqueIndex] = {
-          ...(hasDictionaryItemsByRowUniqueIdx && rowsWithExactMatchColumnsDictionary.value[itemUniqueIndex]),
-          [exactMatchDictionaryKey]: isExactMatch,
-        };
-      }
-    });
-  };
-
-  const generateSearchingTarget = (item: RowItem): string => {
+  const generateSearchingTarget = (item: Row): string => {
     const itemWithoutControlKeys = excludeKeysFromObj(item, itemIgnoreKeys);
     const flattenItem = flattenObj(itemWithoutControlKeys);
     // Obtain those header keys that are not visible to exclude it from item.
@@ -93,18 +65,18 @@ export default function useTotalItems(
     return Object.values(flattenFilteredItem).join(' ');
   };
 
-  const moveExactMatchRowsUp = (rows: RowItem[]) => {
+  const updateExactMatchRowsMetaIndex = (rows: Row[]) => {
     const exactMatchRowsDictionary = new Map();
     let exactMatchCounter = ZERO;
-    rows.forEach((item, idx) => {
+    rows.forEach((rowItem, idx) => {
       let index = idx;
-      if (item.meta.isExactMatch) {
+      if (rowItem.meta.isExactMatch) {
         index = exactMatchCounter;
         exactMatchCounter += 1;
       }
-      exactMatchRowsDictionary.set(item, {
+      exactMatchRowsDictionary.set(rowItem, {
         index,
-        exactMatch: item.meta.isExactMatch,
+        exactMatch: rowItem.meta.isExactMatch,
       });
     });
 
@@ -124,20 +96,29 @@ export default function useTotalItems(
     });
   };
 
-  const handleExactMatch = (rowItems: RowItem[]) => {
+  const handleExactMatch = (rowItems: Row[]) => {
     if (!rowItems.length) return;
     rowItems.forEach((rowItem) => {
-      fillRowsWithExactMatchColumnsDictionary(rowItem, rowItem.meta.uniqueIndex);
-      rowItem.meta.isExactMatch = Object.values(rowsWithExactMatchColumnsDictionary.value[rowItem.meta.uniqueIndex])
-        .some((dictionaryItemKey) => dictionaryItemKey);
-      handleExactMatch(rowItem.meta.children || []);
+      rowItem.meta.exactMatchColumns = [];
+      const rowItemWithoutControlKeys = flattenObj(excludeKeysFromObj(rowItem, itemIgnoreKeys));
+      const rowItemKeys = Object.keys(rowItemWithoutControlKeys);
+      rowItemKeys.forEach((rowItemKey) => {
+        const hasColumnExactMatch = (isExactMatchCaseSensitive.value
+          ? rowItemWithoutControlKeys[rowItemKey].toString() === searchValue.value
+          : rowItemWithoutControlKeys[rowItemKey].toString().toLowerCase() === searchValue.value.toLowerCase());
+        if (hasColumnExactMatch) {
+          rowItem.meta.exactMatchColumns.push(rowItemKey);
+        }
+      });
+      rowItem.meta.isExactMatch = Boolean(rowItem.meta.exactMatchColumns.length);
+      handleExactMatch(rowItem.meta.children);
     });
-    moveExactMatchRowsUp(rowItems);
+    updateExactMatchRowsMetaIndex(rowItems);
   };
 
   const isFiltering = computed(() => searchValue.value !== '');
 
-  const rowMatch = (rowItem: RowItem) => {
+  const rowMatch = (rowItem: Row) => {
     rowItem.meta.children = rowItem.meta.initialChildren.filter(rowMatch);
 
     if (!isFiltering.value) {
@@ -152,7 +133,7 @@ export default function useTotalItems(
   };
 
   // items searching
-  const itemsSearching = computed((): RowItem[] => {
+  const itemsSearching = computed((): Row[] => {
     // searching feature is not available in server-side mode
     if (isServerSideMode.value) {
       return items.value;
@@ -161,7 +142,7 @@ export default function useTotalItems(
   });
 
   // items filtering
-  const itemsFiltering = computed((): RowItem[] => {
+  const itemsFiltering = computed((): Row[] => {
     let itemsFiltered = [...itemsSearching.value];
     if (filterOptions.value) {
       filterOptions.value.forEach((option: FilterOption) => {
@@ -196,21 +177,21 @@ export default function useTotalItems(
     return itemsSearching.value;
   });
 
-  const resetMetaIndex = (rows: RowItem[]) => {
+  const moveRowsToTheirPosition = (rows: Row[]) => {
     if (!rows.length) {
       return rows;
     }
     rows.forEach((rowItem) => {
-      resetMetaIndex(rowItem.meta.children || []);
+      moveRowsToTheirPosition(rowItem.meta.children);
     });
     return rows.sort((rowA, rowB) => rowA.meta.index - rowB.meta.index);
   };
 
-  const sortRows = (sortByArr: string[], sortDescArr: boolean[], itemsToSort: RowItem[], index: number): RowItem[] => {
+  const sortRows = (sortByArr: string[], sortDescArr: boolean[], itemsToSort: Row[], index: number): Row[] => {
     const sortBy = sortByArr[index];
     const sortDesc = sortDescArr[index];
     const sorted = (index === ZERO ? itemsToSort
-      : sortRows(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((rowA: RowItem, rowB: RowItem) => {
+      : sortRows(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((rowA: Row, rowB: Row) => {
       let isAllSame = true;
       for (let i = ZERO; i < index; i += 1) {
         if (getItemValue(sortByArr[i], rowA) !== getItemValue(sortByArr[i], rowB)) {
@@ -255,21 +236,21 @@ export default function useTotalItems(
 
   // flow: searching => filtering => sorting
   // (last step: sorting)
-  const totalItems = computed((): RowItem[] => {
+  const totalItems = computed((): Row[] => {
     const entities = isServerSideMode.value ? items.value : itemsFiltering.value;
     if (isFiltering.value && exactMatch.value) {
-      handleExactMatch(itemsFiltering.value);
+      handleExactMatch(entities);
     }
-    if (isServerSideMode.value) return entities;
-    if (filteredClientSortOptions.value === null) {
-      return resetMetaIndex(itemsFiltering.value);
+    moveRowsToTheirPosition(entities);
+    if (isServerSideMode.value || filteredClientSortOptions.value === null) {
+      return entities;
     }
     const { sortBy, sortDesc } = filteredClientSortOptions.value;
-    const itemsFilteringSorted = [...itemsFiltering.value];
+    const itemsFilteringSorted = [...entities];
     // multi sort
     if (multiSort && Array.isArray(sortBy) && Array.isArray(sortDesc)) {
       if (!sortBy.length) {
-        return resetMetaIndex(itemsFilteringSorted);
+        return itemsFilteringSorted;
       }
       return sortRows(sortBy, sortDesc, itemsFilteringSorted, sortBy.length - 1);
     }
@@ -282,10 +263,18 @@ export default function useTotalItems(
   // eslint-disable-next-line max-len
   const totalItemsLength = computed((): number => (isServerSideMode.value ? serverItemsLength.value : totalItems.value.length));
 
-  watch(searchValue, (currVal, prevVal) => {
-    if (currVal !== prevVal) {
-      rowsWithExactMatchColumnsDictionary.value = {};
-    }
+  const clearSearching = (rows: Row[]) => {
+    if (!rows.length) return;
+    rows.forEach((rowItem) => {
+      if (rowItem.meta.index !== rowItem.meta.originalIndex) {
+        rowItem.meta.index = rowItem.meta.originalIndex;
+      }
+      clearSearching(rowItem.meta.children);
+    });
+  };
+
+  watch(searchValue, () => {
+    clearSearching(items.value);
   });
 
   watch(itemsFiltering, (newVal) => {
@@ -313,7 +302,7 @@ export default function useTotalItems(
     }
   };
 
-  const toggleSelectItem = (item: RowItem):void => {
+  const toggleSelectItem = (item: Row):void => {
     const isAlreadySelected = item.meta.selected;
     item.meta.selected = !item.meta.selected;
     if (isAlreadySelected) {
@@ -323,14 +312,13 @@ export default function useTotalItems(
       selectedItems.value[0].meta.selected = false;
       selectedItems.value = [item];
     } else {
-      const selectItemsArr: RowItem[] = selectedItems.value;
+      const selectItemsArr: Row[] = selectedItems.value;
       selectItemsArr.unshift(item);
       selectedItems.value = selectItemsArr;
     }
   };
 
   return {
-    rowsWithExactMatchColumnsDictionary,
     totalItems,
     selectedItems,
     totalItemsLength,

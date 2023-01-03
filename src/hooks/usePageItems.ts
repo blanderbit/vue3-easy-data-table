@@ -1,17 +1,17 @@
 import {
   Ref, computed, ComputedRef,
 } from 'vue';
-import type { RowItem } from '../types/main';
+import type { Row } from '../types/main';
 import type { MultipleSelectStatus } from '../types/internal';
 
 export default function usePageItems(
   currentPaginationNumber: Ref<number>,
   isServerSideMode: ComputedRef<boolean>,
-  items: Ref<RowItem[]>,
+  items: Ref<Row[]>,
   rowsPerPageRef: Ref<number>,
-  selectedItems: Ref<RowItem[]>,
+  selectedItems: Ref<Row[]>,
   showIndex: Ref<boolean>,
-  totalItems: ComputedRef<RowItem[]>,
+  totalItems: ComputedRef<Row[]>,
   totalItemsLength: ComputedRef<number>,
 ) {
   const currentPageFirstIndex = computed((): number => (currentPaginationNumber.value - 1)
@@ -36,9 +36,8 @@ export default function usePageItems(
   // items for render
   const pageItems = computed(() => {
     if (showIndex.value) {
-      return itemsInPage.value.map((item, idx) => {
-        item.index = currentPageFirstIndex.value + idx;
-        return item;
+      itemsInPage.value.forEach((rowItem, idx) => {
+        rowItem.index = currentPageFirstIndex.value + idx;
       });
     }
     return itemsInPage.value;

@@ -1,4 +1,4 @@
-import type { RowItem, SortType } from './main';
+import type { Row, SortType } from './main';
 
 export type ServerOptionsComputed = {
   page: number
@@ -19,19 +19,19 @@ export type HeaderForRender = {
   groupBy?: (value: string) => string
 }
 
-export type GroupByItem = {
+export type GroupByHeader = {
   groupBy: ((value: string) => string) | null,
-  headerValue: string
   groupHeader: HeaderForRender,
+  groupKey: string,
   meta: {
     groupParent: number
     showChildren: boolean
-    children: RowItem[] | GroupByItem[],
+    children: Row[] | GroupByHeader[],
     isGroup: boolean
   }
 }
 
-export type FlattenRows = (GroupByItem | RowItem)[]
+export type FlattenRows = (GroupByHeader | Row)[]
 
 export type ClientSortOptions = {
   sortBy: string | string[],

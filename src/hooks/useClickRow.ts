@@ -4,14 +4,14 @@ import {
   ref,
 } from 'vue';
 
-import type { Item, RowItem } from '../types/main';
+import type { Item, Row } from '../types/main';
 import type { EmitsEventName, ClickEventType } from '../types/internal';
 
 export default function useClickRow(
-  initialRows: Ref<RowItem[]>,
+  initialRows: Ref<Row[]>,
   isMultiSelect: ComputedRef<boolean>,
-  pageItems: ComputedRef<RowItem[]>,
-  selectedItems: Ref<RowItem[]>,
+  pageItems: ComputedRef<Row[]>,
+  selectedItems: Ref<Row[]>,
   clickEventType: Ref<ClickEventType>,
   showIndex: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
@@ -49,7 +49,7 @@ export default function useClickRow(
     selectedItems.value = pageItemsRange;
   };
 
-  const handleCtrlKey = (row: RowItem) => {
+  const handleCtrlKey = (row: Row) => {
     const isAlreadySelected = row.meta.selected;
     if (!isMultiSelect.value) {
       clearSelection();
@@ -69,7 +69,7 @@ export default function useClickRow(
     }
   };
 
-  const clickRow = (event: PointerEvent, item: RowItem, clickType: ClickEventType) => {
+  const clickRow = (event: PointerEvent, item: Row, clickType: ClickEventType) => {
     if (clickEventType.value !== clickType) return;
 
     if (event.shiftKey && isMultiSelect.value) {
