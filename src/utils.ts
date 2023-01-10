@@ -130,3 +130,25 @@ export function interpolateStr(str: string, data: Item) {
     return key === null ? '' : key;
   });
 }
+
+/**
+ * Create debounce function.
+ */
+export function createDebounce() {
+  let timeout = 0;
+  return (fn: () => void, delayMs: number = 500) => {
+    clearTimeout(timeout);
+    timeout = window.setTimeout(() => {
+      fn();
+    }, delayMs);
+  };
+}
+
+/**
+ * Check if passed value is a valid Date type.
+ * @param {String|Date} value - The value to validate.
+ * @returns {boolean}
+ */
+export function isValidDate(value: any) {
+  return Boolean(Date.parse(value));
+}

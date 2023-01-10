@@ -163,9 +163,8 @@ export default function useHeaders(
     return newSortType;
   };
 
-  const updateSortField = (newSortBy: string, oldSortType: SortType | 'none') => {
-    const newSortType = getNewSortType(oldSortType);
-
+  const updateSortField = (newSortBy: string, oldSortType: SortType | 'none', isGroup: boolean = false) => {
+    const newSortType = getNewSortType(oldSortType, isGroup);
     if (isServerSideMode.value) {
       // update server options
       updateServerOptionsSort(newSortBy, newSortType);
@@ -201,7 +200,7 @@ export default function useHeaders(
   };
 
   const updateGroupSortField = (groupHeader: HeaderForRender) => {
-    updateSortField(groupHeader.value, groupHeader.sortType as SortType);
+    updateSortField(groupHeader.value, groupHeader.sortType as SortType, true);
     groupHeader.sortType = getNewSortType(groupHeader.sortType as SortType, true) as SortType;
   };
 

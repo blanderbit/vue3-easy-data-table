@@ -63,14 +63,28 @@
                   resizable: columnsResizable,
                   // eslint-disable-next-line max-len
                 }, typeof headerItemClassName === 'string' ? headerItemClassName : headerItemClassName(header as Header, index)]"
-                :style="[getFixedDistance(header.value)]"
+                :style="[
+                  getFixedDistance(header.value),
+                  header.text === 'checkbox' && !index && multipleCheckboxShift
+                    && { 'padding-left': `${multipleCheckboxShift}rem`}
+                ]"
               >
-                <MultipleSelectCheckBox
+                <div
                   v-if="header.text === 'checkbox'"
-                  :key="multipleSelectStatus"
-                  :status="multipleSelectStatus"
-                  @change="toggleSelectAll"
-                />
+                  class="checkbox-container"
+                >
+                  <i
+                    v-if="rowsHaveChildren"
+                    class="expand-children-icon fa fa-plus-square"
+                    :style="{ 'visibility': 'hidden' }"
+                  />
+                  <MultipleSelectCheckBox
+                    :key="multipleSelectStatus"
+                    :status="multipleSelectStatus"
+                    :class="{ 'has-children': rowsHaveChildren }"
+                    @change="toggleSelectAll"
+                  />
+                </div>
                 <span
                   v-else
                   class="header"
@@ -146,7 +160,7 @@
               <tr v-if="item.groupHeader">
                 <td
                   colspan="100%"
-                  :style="{ 'padding-left': `${item.groupParent}rem` }"
+                  :style="{ 'padding-left': `${item.meta.groupParent}rem` }"
                 >
                   <div class="group-column">
                     <span
@@ -156,11 +170,11 @@
                       <i
                         class="square-icon fa"
                         :class="{
-                          'fa-minus-square': item.showChildren,
-                          'fa-plus-square': !item.showChildren
+                          'fa-minus-square': item.meta.showChildren,
+                          'fa-plus-square': !item.meta.showChildren
                         }"
                       />
-                      <span>{{ item[item['headerValue']] }}</span>
+                      <span>{{ item.groupKey }}</span>
                       <i
                         v-if="item.groupHeader.sortable"
                         class="sort-icon fa"
@@ -168,9 +182,9 @@
                           {
                             'fa-sort-up': item.groupHeader.sortType === 'asc',
                             'fa-sort-down': item.groupHeader.sortType === 'desc',
-                            'fa-sort': item.groupHeader.sortType === 'none'
+                            'fa-sort': item.groupHeader.sortType === 'none' || !item.groupHeader.sortType
                           }"
-                        @click.stop="item.groupHeader.sortType && updateGroupSortField(item.groupHeader)"
+                        @click.stop="updateGroupSortField(item.groupHeader)"
                       />
                     </span>
                     <i
@@ -203,7 +217,7 @@
                   :class="[{
                     'shadow': column === lastFixedColumn,
                     'can-expand': column === 'expand',
-                    'exactMatch': rowsWithExactMatchColumnsDictionary[item.meta.uniqueIndex]?.[column],
+                    'exactMatch': item.meta.exactMatchColumns.includes(column),
                     // eslint-disable-next-line max-len
                   }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
                   @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
@@ -225,10 +239,22 @@
                     />
                   </template>
                   <template v-else-if="column === 'checkbox'">
-                    <SingleSelectCheckBox
-                      :checked="item.meta.selected"
-                      @change="toggleSelectItem(item)"
-                    />
+                    <div
+                      class="checkbox-container"
+                    >
+                      <i
+                        v-if="rowsHaveChildren"
+                        class="expand-children-icon fa"
+                        :class="{ 'fa-plus-square': !item.meta.showChildren, 'fa-minus-square': item.meta.showChildren }"
+                        :style="{ 'visibility': item.meta.children?.length ? 'visible' : 'hidden' }"
+                        @click="toggleChildrenVisibility($event, item)"
+                      />
+                      <SingleSelectCheckBox
+                        :checked="item.meta.selected"
+                        :class="{ 'has-children': rowsHaveChildren }"
+                        @change="toggleSelectItem(item)"
+                      />
+                    </div>
                   </template>
                   <template v-else>
                     {{ generateColumnContent(column, item) }}
@@ -564,7 +590,9 @@ const {
   initialRows,
   rowsItemsComputed,
   rowsPerPageRef,
+  rowsHaveChildren,
   updateRowsPerPage,
+  toggleChildrenVisibility,
 } = useRows(
   items,
   isServerSideMode,
@@ -574,9 +602,8 @@ const {
 );
 
 const {
-  rowsWithExactMatchColumnsDictionary,
   totalItems,
-  selectItemsComputed,
+  selectedItems,
   totalItemsLength,
   toggleSelectAll,
   toggleSelectItem,
@@ -630,13 +657,14 @@ const {
   isServerSideMode,
   initialRows,
   rowsPerPageRef,
-  selectItemsComputed,
+  selectedItems,
   showIndex,
   totalItems,
   totalItemsLength,
 );
 
 const {
+  multipleCheckboxShift,
   flattenedRows,
   flattenedNonGroupedRows,
   group,
@@ -677,7 +705,7 @@ const {
   initialRows,
   isMultiSelect,
   flattenedNonGroupedRows,
-  selectItemsComputed,
+  selectedItems,
   clickEventType,
   showIndex,
   emits,
@@ -824,17 +852,35 @@ defineExpose({
 }
 
 .vue3-easy-data-table {
+  $easy-data-table: &;
+
   .resizable {
     resize: horizontal;
     overflow: auto;
   }
 
-  .vue3-easy-data-table__main {
+  &__main {
     min-height: v-bind(tableMinHeightPx);
 
-    .vue3-easy-data-table__body {
+    #{$easy-data-table}__body {
       -webkit-user-select: none; /* Safari */
       user-select: none; /* Standard syntax */
+    }
+
+    .easy-checkbox {
+      &.has-children {
+        margin: 0;
+      }
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+
+      .expand-children-icon {
+        cursor: pointer;
+        margin-right: 0.375rem;
+      }
     }
 
     .group-icon {
@@ -874,6 +920,14 @@ defineExpose({
 
           &.exactMatch {
             background: var(--easy-table-body-selected-row-and-exact-match-row-column-background-color);
+          }
+        }
+      }
+
+      &.even-row {
+        td {
+          &.exactMatch {
+            background: var(--easy-table-body-exact-match-row-column-background-color);
           }
         }
       }

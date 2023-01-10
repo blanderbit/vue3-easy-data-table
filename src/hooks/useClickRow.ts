@@ -4,14 +4,14 @@ import {
   ref,
 } from 'vue';
 
-import type { Item, RowItem } from '../types/main';
+import type { Item, Row } from '../types/main';
 import type { EmitsEventName, ClickEventType } from '../types/internal';
 
 export default function useClickRow(
-  initialRows: Ref<RowItem[]>,
+  initialRows: Ref<Row[]>,
   isMultiSelect: ComputedRef<boolean>,
-  pageItems: ComputedRef<RowItem[]>,
-  selectItemsComputed: Ref<RowItem[]>,
+  pageItems: ComputedRef<Row[]>,
+  selectedItems: Ref<Row[]>,
   clickEventType: Ref<ClickEventType>,
   showIndex: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
@@ -46,10 +46,10 @@ export default function useClickRow(
     clearSelection();
     const pageItemsRange = pageItems.value.slice(minKey, maxKey + 1);
     setSelectedMetaForItems(pageItemsRange, true);
-    selectItemsComputed.value = pageItemsRange;
+    selectedItems.value = pageItemsRange;
   };
 
-  const handleCtrlKey = (row: RowItem) => {
+  const handleCtrlKey = (row: Row) => {
     const isAlreadySelected = row.meta.selected;
     if (!isMultiSelect.value) {
       clearSelection();
@@ -57,19 +57,19 @@ export default function useClickRow(
     firstSelectedRowIndex.value = row.meta.uniqueIndex;
     row.meta.selected = !isAlreadySelected;
     if (isAlreadySelected) {
-      selectItemsComputed.value = selectItemsComputed.value
+      selectedItems.value = selectedItems.value
         .filter((selectedItem) => row.meta.uniqueIndex !== selectedItem.meta.uniqueIndex);
-    } else if (!isMultiSelect.value && selectItemsComputed.value.length === 1) {
+    } else if (!isMultiSelect.value && selectedItems.value.length === 1) {
       // If multi select is not allowed, then we need to reset selected flag for
       //  current item and replace array el with the clicked row.
-      selectItemsComputed.value[0].meta.selected = false;
-      selectItemsComputed.value = [row];
+      selectedItems.value[0].meta.selected = false;
+      selectedItems.value = [row];
     } else {
-      selectItemsComputed.value.unshift(row);
+      selectedItems.value.unshift(row);
     }
   };
 
-  const clickRow = (event: PointerEvent, item: RowItem, clickType: ClickEventType) => {
+  const clickRow = (event: PointerEvent, item: Row, clickType: ClickEventType) => {
     if (clickEventType.value !== clickType) return;
 
     if (event.shiftKey && isMultiSelect.value) {
@@ -80,7 +80,7 @@ export default function useClickRow(
       clearSelection();
       firstSelectedRowIndex.value = item.meta.uniqueIndex;
       item.meta.selected = true;
-      selectItemsComputed.value = [item];
+      selectedItems.value = [item];
     }
 
     const clickRowArgument = { ...item };

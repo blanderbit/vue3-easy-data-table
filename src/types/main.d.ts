@@ -4,12 +4,18 @@ export type FilterComparison = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'between';
 
 export type Item = Record<string, any>;
 
-export type RowItem = Item & {
+export type Row = Item & {
   meta: {
     selected: boolean,
     uniqueIndex: string,
     isExactMatch: boolean,
     groupParent: number,
+    children: Row[],
+    initialChildren: Row[],
+    index: number,
+    originalIndex: number,
+    showChildren: boolean,
+    exactMatchColumns: string[],
   }
 };
 
@@ -50,19 +56,13 @@ export type ServerOptions = {
   sortType?: SortType | SortType[]
 };
 
-export type ClickRowArgument = RowItem & {
+export type ClickRowArgument = Row & {
   indexInCurrentPage?: number
 };
 
 export type UpdateSortArgument = {
   sortType: SortType | null
   sortBy: string
-};
-
-export type ExactMatchDictionary = {
-  [key: string]: {
-    [key: string]: boolean
-  }
 };
 
 export type HeaderItemClassNameFunction = (header: Header, index: number) => string;

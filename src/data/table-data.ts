@@ -9,6 +9,7 @@ export const tableHeaders: Header[] = [
     text: 'TEAM',
     value: 'team',
     groupable: true,
+    // sortable: true,
     groupBy(value) {
       return `${value} team ({rowsLength} Item{rowsLength > 1 ? "s" : ""})`;
     },
@@ -32,6 +33,10 @@ export const tableHeaders: Header[] = [
     value: 'indicator.weight',
     groupable: true,
     sortable: true,
+    // grouped: true,
+    // groupBy(value) {
+    //   return `${value} weight ({rowsLength} Item{rowsLength > 1 ? "s" : ""})`;
+    // },
   },
   {
     text: 'LAST ATTENDED',
@@ -62,6 +67,56 @@ export const tableItems: Item[] = [
     indicator: { height: '6-10', weight: 240 },
     lastAttended: 'Texas-Austin',
     country: 'USA',
+    _children: [
+      {
+        player: 'Kyle Anderson',
+        team: 'MIN',
+        number: 5,
+        position: 'F-G',
+        indicator: { height: '6-9', weight: 230 },
+        lastAttended: 'UCLA',
+        country: 'USA',
+        _showChildren: true,
+        _children: [
+          {
+            player: 'Jose Alvarado',
+            team: 'NOP',
+            number: 15,
+            position: 'G',
+            indicator: { height: '6-0', weight: 179 },
+            lastAttended: 'Georgia Tech',
+            country: 'USA',
+          },
+          {
+            player: 'Lonzo Ball',
+            team: 'CHI',
+            number: 2,
+            position: 'G',
+            indicator: { height: '6-6', weight: 190 },
+            lastAttended: 'UCLA',
+            country: 'USA',
+          },
+        ],
+      },
+      {
+        player: 'HC 1',
+        team: 'ORL',
+        number: 52,
+        position: 'F',
+        indicator: { height: '6-9', weight: 220 },
+        lastAttended: 'Filathlitikos',
+        country: 'Greece',
+      },
+      {
+        player: 'Cole Anthony',
+        team: 'ORL',
+        number: 50,
+        position: 'G',
+        indicator: { height: '6-3', weight: 185 },
+        lastAttended: 'North Carolina',
+        country: 'USA',
+      },
+    ],
   },
   {
     player: 'HC 1',

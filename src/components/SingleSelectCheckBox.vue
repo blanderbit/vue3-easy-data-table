@@ -4,10 +4,11 @@
     @click.stop.prevent="emits('change')"
   >
     <input
+      id="checkbox"
       type="checkbox"
       :checked="checked"
     >
-    <label for="checbox" />
+    <label for="checkbox" />
   </div>
 </template>
 

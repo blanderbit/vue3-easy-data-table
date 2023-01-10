@@ -39,6 +39,7 @@ module.exports = {
         tsx: 'never',
       },
     ],
+    'no-underscore-dangle': ['error', { allow: ['_children', '_showChildren'] }],
     'linebreak-style': ['error', process.platform === 'win32' ? 'windows' : 'unix'],
   },
   settings: {

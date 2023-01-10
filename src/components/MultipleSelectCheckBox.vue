@@ -4,11 +4,12 @@
     @click.stop.prevent="toggleChecked"
   >
     <input
+      id="checkbox"
       type="checkbox"
       :checked="isChecked"
       :class="status"
     >
-    <label for="checbox" />
+    <label for="checkbox" />
   </div>
 </template>
 

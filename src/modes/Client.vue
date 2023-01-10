@@ -9,8 +9,9 @@
 
   <span>search value: </span>
   <input
-    v-model="searchValue"
     type="text"
+    :value="searchValue"
+    @input="debouncedInput"
   >
   <div>
     <DataTable
@@ -162,6 +163,7 @@ import {
   mockClientNestedItems,
 } from '../mock';
 import { tableHeaders, tableItems } from '../data/table-data';
+import { createDebounce } from '../utils';
 
 // null | 'player' | 'indicator.weight' | ['indicator.weight'] | ['indicator.weight', 'indicator.height']
 const searchField = ref(null);
@@ -180,8 +182,8 @@ const filterOptions = [
 // const headers: Header[] = headersMocked;
 
 const updateFilter = (items: Item[]) => {
-  console.log('filter items');
-  console.log(JSON.stringify(items));
+  // console.log('filter items');
+  // console.log(JSON.stringify(items));
 };
 
 const items = ref(tableItems);
@@ -282,6 +284,13 @@ const rowsPerPageActiveOption = computed(() => dataTable.value?.rowsPerPageActiv
 
 const updateRowsPerPageSelect = (e: Event) => {
   dataTable.value.updateRowsPerPageActiveOption(Number((e.target as HTMLInputElement).value));
+};
+
+const debouncedInput = (event: InputEvent) => {
+  createDebounce()(() => {
+    const { value } = event.target as HTMLInputElement;
+    searchValue.value = value;
+  });
 };
 
 // const {
