@@ -32,7 +32,6 @@
           'fixed-header': fixedHeader,
           'fixed-height': tableHeight,
           'show-shadow': showShadow,
-          'table-fixed': fixedHeaders.length,
           'hoverable': !noHover,
           'border-cell': borderCell,
         }"
@@ -443,7 +442,7 @@ import type { HeaderForRender } from '../types/internal';
 // eslint-disable-next-line import/extensions
 import { generateColumnContent } from '../utils';
 import propsWithDefault from '../propsWithDefault';
-import { SelectableEnum } from '../enums/main';
+import { SELECTABLE } from '../constants';
 
 const props = defineProps({
   ...propsWithDefault,
@@ -533,7 +532,7 @@ const emits = defineEmits([
 ]);
 
 const isServerSideMode = computed((): boolean => serverOptions.value !== null);
-const isMultiSelect = computed((): boolean => selectable.value === SelectableEnum.MULTIPLE);
+const isMultiSelect = computed((): boolean => selectable.value === SELECTABLE.MULTIPLE);
 
 const {
   serverOptionsComputed,
@@ -713,7 +712,7 @@ const {
 
 // template style generation function
 const getColStyle = (header: HeaderForRender): string | undefined => {
-  const width = header.width ?? (fixedHeaders.value.length ? 100 : null);
+  const width = header.width ?? (header.fixed ? 100 : null);
   if (width) return `width: ${width}px; min-width: ${width}px;`;
   return undefined;
 };
@@ -856,7 +855,7 @@ defineExpose({
 
   .resizable {
     resize: horizontal;
-    overflow: auto;
+    overflow: hidden;
   }
 
   &__main {

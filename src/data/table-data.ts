@@ -9,6 +9,7 @@ export const tableHeaders: Header[] = [
     text: 'TEAM',
     value: 'team',
     groupable: true,
+    // grouped: true,
     // sortable: true,
     groupBy(value) {
       return `${value} team ({rowsLength} Item{rowsLength > 1 ? "s" : ""})`;
@@ -17,6 +18,8 @@ export const tableHeaders: Header[] = [
   {
     text: 'NUMBER',
     value: 'number',
+    // fixed: true,
+    // width: 150,
     sortable: true,
   },
   {
@@ -67,6 +70,7 @@ export const tableItems: Item[] = [
     indicator: { height: '6-10', weight: 240 },
     lastAttended: 'Texas-Austin',
     country: 'USA',
+    _showChildren: false,
     _children: [
       {
         player: 'Kyle Anderson',

@@ -46,15 +46,15 @@ export default function useGroupBy(
     }
   };
 
-  const updateChildrenGroupParent = (rows: Row[], parentRow: Row) => rows.map((row) => {
+  const updateChildrenGroupParent = (rows: Row[]) => rows.map((row) => {
     const itemChildren: Row[] = Array.isArray(row.meta.children) && row.meta.children.length
-      ? updateChildrenGroupParent(row.meta.children, row)
+      ? updateChildrenGroupParent(row.meta.children)
       : [];
     return {
       ...row,
       meta: {
         ...row.meta,
-        groupParent: row.meta.groupParent + parentRow.meta.groupParent,
+        groupParent: row.meta.groupParent + GROUP_PARENT_SHIFT,
         children: itemChildren,
       },
     };
@@ -74,7 +74,7 @@ export default function useGroupBy(
         multipleCheckboxShift.value = rowItem.meta.groupParent;
       }
       if (hasItemChildren) {
-        rowItem.meta.children = updateChildrenGroupParent(rowItem.meta.children, rowItem);
+        rowItem.meta.children = updateChildrenGroupParent(rowItem.meta.children);
       }
       (acc[flattenItem[header.value]] = acc[flattenItem[header.value]] || [])
         .push(rowItem);

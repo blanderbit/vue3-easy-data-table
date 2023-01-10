@@ -33,11 +33,6 @@
     background-color: var(--easy-table-scrollbar-corner-color);
   }
 
-  &.table-fixed {
-    table {
-      table-layout: fixed;
-    }
-  }
   &.show-shadow {
     th.shadow, td.shadow {
       &::after {

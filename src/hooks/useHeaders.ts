@@ -143,7 +143,7 @@ export default function useHeaders(
     // checkbox
     let headersWithCheckbox: HeaderForRender[] = [];
     const headerCheckbox: HeaderForRender = (fixedCheckbox.value || hasFixedColumnsFromUser.value) ? {
-      text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 36,
+      text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 70,
     } : { text: 'checkbox', value: 'checkbox' };
     headersWithCheckbox = [headerCheckbox, ...headersWithIndex];
     return headersWithCheckbox.filter((header) => !header.grouped);
