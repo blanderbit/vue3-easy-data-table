@@ -346,7 +346,7 @@
             v-if="paginationWithInput"
             data-test-id="pagination-with-input-text"
           >
-            {{ currentPaginationNumber }} of {{ maxPaginationNumber }}
+            {{ currentPaginationNumber }} {{ rowsOfPageSeparatorMessage }} {{ maxPaginationNumber }}
           </span>
           <span
             v-else
@@ -813,6 +813,8 @@ defineExpose({
     --easy-table-footer-font-color: #212121;
     --easy-table-footer-font-size: 12px;
     --easy-table-footer-pagination-input-width: 1.875rem;
+    --easy-table-footer-pagination-arrow-background-color: #fff;
+    --easy-table-footer-pagination-arrow-disabled-background-color: #000;
     --easy-table-footer-padding: 0px 5px;
     --easy-table-footer-height: 36px;
     /**footer-rowsPerPage**/

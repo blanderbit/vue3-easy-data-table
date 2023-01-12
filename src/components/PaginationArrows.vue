@@ -6,13 +6,9 @@
     :class="{'first-page': isFirstPage}"
     @click="emits('clickFirstPage')"
   >
-    <span
+    <i
       data-test-id="arrow-right-icon"
-      class="arrow arrow-right"
-    />
-    <span
-      data-test-id="arrow-right-icon"
-      class="arrow arrow-right"
+      class="arrow arrow-right fa fa-angles-left fa-lg"
     />
   </div>
   <div
@@ -20,7 +16,7 @@
     :class="{'first-page': isFirstPage}"
     @click="emits('clickPrevPage')"
   >
-    <span class="arrow arrow-right"></span>
+    <i class="arrow arrow-right fa fa-angle-left fa-lg" />
   </div>
   <slot
     v-if="slots.buttonsPagination"
@@ -35,7 +31,7 @@
     :class="{'last-page': isLastPage}"
     @click="emits('clickNextPage')"
   >
-    <span class="arrow arrow-left"></span>
+    <i class="arrow arrow-left fa fa-angle-right fa-lg" />
   </div>
   <div
     v-if="hasDoubleArrows"
@@ -44,13 +40,9 @@
     :class="{'last-page': isLastPage}"
     @click="emits('clickLastPage')"
   >
-    <span
+    <i
       data-test-id="arrow-left-icon"
-      class="arrow arrow-left"
-    />
-    <span
-      data-test-id="arrow-left-icon"
-      class="arrow arrow-left"
+      class="arrow arrow-left fa fa-angles-right fa-lg"
     />
   </div>
 </template>
@@ -69,31 +61,25 @@ const emits = defineEmits(['clickFirstPage', 'clickPrevPage', 'clickNextPage', '
 const slots = useSlots();
 </script>
 <style lang="scss" scoped>
-  .previous-page__click-button,
-  .next-page__click-button,
-  .first-page__click-button,
-  .last-page__click-button {
-    margin: 0px 5px;
+.previous-page__click-button,
+.next-page__click-button,
+.first-page__click-button,
+.last-page__click-button {
+  margin: 0 4px;
+
+  .arrow {
     cursor: pointer;
-    .arrow {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-top: 2px solid #000;
-      border-left: 2px solid #000;
-      &.arrow-left {
-        transform: rotate(135deg);
-      }
-      &.arrow-right {
-        transform: rotate(-45deg);
-      }
-    }
+    color: var(--easy-table-footer-pagination-arrow-background-color);
   }
-  .previous-page__click-button.first-page, .next-page__click-button.last-page,
-  .first-page__click-button.first-page, .last-page__click-button.last-page {
+}
+
+.previous-page__click-button.first-page,
+.next-page__click-button.last-page,
+.first-page__click-button.first-page,
+.last-page__click-button.last-page {
+  .arrow {
     cursor: not-allowed;
-    .arrow {
-      border-color: #e0e0e0;
-    }
+    color: var(--easy-table-footer-pagination-arrow-disabled-background-color);
   }
+}
 </style>

@@ -129,8 +129,8 @@ describe('Data Table', () => {
       expect(lastPageButton.exists()).toBe(true);
       const firstPageDoubleArrow = findNodeItemsByTestId(firstPageButton, 'arrow-right-icon');
       const lastPageDoubleArrow = findNodeItemsByTestId(lastPageButton, 'arrow-left-icon');
-      expect(firstPageDoubleArrow.length).equal(2);
-      expect(lastPageDoubleArrow.length).equal(2);
+      expect(firstPageDoubleArrow.length).equal(1);
+      expect(lastPageDoubleArrow.length).equal(1);
     });
 
     it('should not display left and right double arrows', async () => {

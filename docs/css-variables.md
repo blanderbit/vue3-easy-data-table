@@ -39,6 +39,8 @@
 | --easy-table-footer-pagination-input-width                                 | 1.875rem           | Set pagination input width                                                                                                   |
 | --easy-table-body-exact-match-row-column-background-color                  | #4c4c12;           | Set the background color for exactly matching columns in row(s)                                                              |
 | --easy-table-body-selected-row-and-exact-match-row-column-background-color | #778f0e;           | Set the background color for exactly matching columns in row(s) if there is an exact match in the row(s) that is selected    |
+| --easy-table-footer-pagination-arrow-background-color                      | #fff;              | Set the background color for pagination arrow                                                                                |
+| --easy-table-footer-pagination-arrow-disabled-background-color             | #000;              | Set the background color for disabled pagination arrow                                                                       |
 
 
 ## Example
