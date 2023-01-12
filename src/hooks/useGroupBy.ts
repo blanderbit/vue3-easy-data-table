@@ -7,7 +7,6 @@ import {
   watchEffect,
 } from 'vue';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { cloneDeep } from 'lodash';
 import { Header, Row } from '../types/main';
 import {
   GroupByHeader,
@@ -27,6 +26,7 @@ export default function useGroupBy(
 ) {
   const gropedByRows = ref<GroupByHeader[]>([]);
   const multipleCheckboxShift = ref(ZERO);
+  const groupParentDictionary = ref<Record<string, number>>({});
 
   const group = (headerGroup: HeaderForRender) => {
     const header = tableHeaders.value
@@ -46,19 +46,16 @@ export default function useGroupBy(
     }
   };
 
-  const updateChildrenGroupParent = (rows: Row[]) => rows.map((row) => {
-    const itemChildren: Row[] = Array.isArray(row.meta.children) && row.meta.children.length
-      ? updateChildrenGroupParent(row.meta.children)
-      : [];
-    return {
-      ...row,
-      meta: {
-        ...row.meta,
-        groupParent: row.meta.groupParent + GROUP_PARENT_SHIFT,
-        children: itemChildren,
-      },
-    };
-  });
+  const fillGroupParentDictionary = (rows: Row[], shift: number) => {
+    if (!rows.length) return;
+    rows.forEach((row) => {
+      const groupParent = row.meta.groupParent < shift ? shift : row.meta.groupParent;
+      groupParentDictionary.value[row.meta.uniqueIndex] = groupParent + GROUP_PARENT_SHIFT;
+      if (row.meta.children.length) {
+        fillGroupParentDictionary(row.meta.children, groupParent + GROUP_PARENT_SHIFT);
+      }
+    });
+  };
 
   const groupBy = (
     items: Row[],
@@ -69,15 +66,16 @@ export default function useGroupBy(
     const groupedByColumnRows = items.reduce((acc: Record<string, Row[]>, rowItem) => {
       const flattenItem = flattenObj(rowItem);
       const hasItemChildren = Boolean(rowItem.meta.children.length);
+      let parentRowGroupParent = 0;
       if (pageItemsHaveAtLeastOneChildren) {
-        rowItem.meta.groupParent = groupShift + GROUP_PARENT_SHIFT;
-        multipleCheckboxShift.value = rowItem.meta.groupParent;
+        parentRowGroupParent = groupShift + GROUP_PARENT_SHIFT;
+        groupParentDictionary.value[rowItem.meta.uniqueIndex] = groupShift + GROUP_PARENT_SHIFT;
+        multipleCheckboxShift.value = parentRowGroupParent;
       }
       if (hasItemChildren) {
-        rowItem.meta.children = updateChildrenGroupParent(rowItem.meta.children);
+        fillGroupParentDictionary(rowItem.meta.children, parentRowGroupParent);
       }
-      (acc[flattenItem[header.value]] = acc[flattenItem[header.value]] || [])
-        .push(rowItem);
+      (acc[flattenItem[header.value]] = acc[flattenItem[header.value]] || []).push(rowItem);
       return acc;
     }, {});
 
@@ -159,6 +157,7 @@ export default function useGroupBy(
 
   watch(groupedHeaders, (currVal) => {
     if (!currVal.length) {
+      groupParentDictionary.value = {};
       multipleCheckboxShift.value = ZERO;
       pageItems.value.forEach((pageItem) => {
         pageItem.meta.groupParent = ZERO;
@@ -169,9 +168,8 @@ export default function useGroupBy(
   // Use watch effect to set up grouped rows.
   watchEffect(() => {
     if (groupedHeaders.value.length) {
-      const pageItemsCloneDeep: Row[] = cloneDeep(pageItems.value);
-      const pageItemsHaveAtLeastOneChildren = pageItemsCloneDeep.some((pageItem) => pageItem.meta.children.length);
-      const grouped = groupBy(pageItemsCloneDeep, groupedHeaders.value[ZERO], GROUP_SHIFT, pageItemsHaveAtLeastOneChildren);
+      const pageItemsHaveAtLeastOneChildren = pageItems.value.some((pageItem) => pageItem.meta.children.length);
+      const grouped = groupBy(pageItems.value, groupedHeaders.value[ZERO], GROUP_SHIFT, pageItemsHaveAtLeastOneChildren);
       if (groupedHeaders.value.length > 1) {
         groupByRecursive(grouped, 1, GROUP_PARENT_SHIFT, pageItemsHaveAtLeastOneChildren);
       }
@@ -204,6 +202,7 @@ export default function useGroupBy(
   };
 
   return {
+    groupParentDictionary,
     multipleCheckboxShift,
     flattenedRows,
     flattenedNonGroupedRows,

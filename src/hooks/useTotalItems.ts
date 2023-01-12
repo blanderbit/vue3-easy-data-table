@@ -266,6 +266,7 @@ export default function useTotalItems(
   const clearSearching = (rows: Row[]) => {
     if (!rows.length) return;
     rows.forEach((rowItem) => {
+      rowItem.meta.exactMatchColumns = [];
       if (rowItem.meta.index !== rowItem.meta.originalIndex) {
         rowItem.meta.index = rowItem.meta.originalIndex;
       }

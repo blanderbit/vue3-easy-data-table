@@ -211,7 +211,9 @@
                   :data-test-id="`table-row-${column}-column`"
                   :style="[
                     getFixedDistance(column, 'td'),
-                    !i && item.meta.groupParent && { 'padding-left': `${item.meta.groupParent}rem` }
+                    !i && item.meta.groupParent && { 'padding-left': `${item.meta.groupParent}rem` },
+                    !i && groupParentDictionary[item.meta.uniqueIndex]
+                      && { 'padding-left': `${ groupParentDictionary[item.meta.uniqueIndex]}rem` },
                   ]"
                   :class="[{
                     'shadow': column === lastFixedColumn,
@@ -314,7 +316,7 @@
               v-if="ifHasLoadingSlot"
               name="loading"
             />
-            <Loading v-else></Loading>
+            <Loading v-else />
           </div>
         </div>
 
@@ -663,6 +665,7 @@ const {
 );
 
 const {
+  groupParentDictionary,
   multipleCheckboxShift,
   flattenedRows,
   flattenedNonGroupedRows,
@@ -701,7 +704,6 @@ const {
 const {
   clickRow,
 } = useClickRow(
-  initialRows,
   isMultiSelect,
   flattenedNonGroupedRows,
   selectedItems,
