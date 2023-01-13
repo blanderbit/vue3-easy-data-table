@@ -9,6 +9,7 @@ export const tableHeaders: Header[] = [
     text: 'TEAM',
     value: 'team',
     groupable: true,
+    // hideOnGroup: false,
     // grouped: true,
     // sortable: true,
     groupBy(value) {
@@ -36,6 +37,7 @@ export const tableHeaders: Header[] = [
     value: 'indicator.weight',
     groupable: true,
     sortable: true,
+    // hideOnGroup: false,
     // grouped: true,
     // groupBy(value) {
     //   return `${value} weight ({rowsLength} Item{rowsLength > 1 ? "s" : ""})`;

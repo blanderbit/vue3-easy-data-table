@@ -49,6 +49,7 @@ export type Header = {
   width?: number
   groupable?: boolean
   grouped?: boolean
+  hideOnGroup?: boolean
   groupBy?: (value: string) => string
 };
 

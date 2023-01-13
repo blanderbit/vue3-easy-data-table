@@ -61,6 +61,7 @@ Common props can be used both in client-side mode and server-side mode.
 the default width of header will be `100px`.
 - `groupable`: *(type: boolean, default: `false`)* Indicates if table rows can be grouped by this header.
 - `grouped`: *(type: boolean, default: `false`)* Table rows grouped by this header.
+- `hideOnGroup`: *(type: boolean, default: `true`)* Hide the column if the rows are grouped by this column.
 - `groupBy`: *(type: Function, default: `null`)* This function convert the cell value to another value.
 The row will be grouped by the returned value.
   It has one parameter:

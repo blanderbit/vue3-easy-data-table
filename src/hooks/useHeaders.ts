@@ -32,10 +32,22 @@ export default function useHeaders(
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
   const groupedHeaders = ref<HeaderForRender[]>([]);
-  const initialHeaders = computed(() => headers.value.map((header) => ({
-    ...header,
-    visible: header.visible ?? true,
-  })));
+  const initialHeaders = ref<Header[]>([]);
+
+  watch(headers, (currVal) => {
+    initialHeaders.value = currVal.map((header) => ({
+      ...header,
+      sortable: header.sortable ?? false,
+      visible: header.visible ?? true,
+      fixed: header.fixed ?? false,
+      groupable: header.groupable ?? false,
+      grouped: header.grouped ?? false,
+      hideOnGroup: header.hideOnGroup ?? true,
+    }));
+  }, {
+    immediate: true,
+  });
+
   const initialVisibleHeaders = computed(() => initialHeaders.value.filter((header) => header.visible));
 
   watch(initialVisibleHeaders, (currVal) => {
@@ -146,25 +158,31 @@ export default function useHeaders(
       text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 70,
     } : { text: 'checkbox', value: 'checkbox' };
     headersWithCheckbox = [headerCheckbox, ...headersWithIndex];
-    return headersWithCheckbox.filter((header) => !header.grouped);
+    return headersWithCheckbox.filter((header) => {
+      if (header.grouped && !header.hideOnGroup) {
+        return true;
+      }
+      return !header.groupable || !header.grouped;
+    });
   });
 
   const headerColumns = computed((): string[] => headersForRender.value.map((header) => header.value));
 
-  const getNewSortType = (oldSortType: SortType | 'none', isGroup: boolean = false) => {
+  const getNewSortType = (oldSortType: SortType | 'none') => {
     let newSortType: SortType | null = null;
     if (oldSortType === 'none') {
       newSortType = 'asc';
     } else if (oldSortType === 'asc') {
       newSortType = 'desc';
     } else {
-      newSortType = (mustSort.value || isGroup) ? 'asc' : null;
+      newSortType = mustSort.value ? 'asc' : null;
     }
     return newSortType;
   };
 
-  const updateSortField = (newSortBy: string, oldSortType: SortType | 'none', isGroup: boolean = false) => {
-    const newSortType = getNewSortType(oldSortType, isGroup);
+  const updateSortField = (header: HeaderForRender) => {
+    const newSortBy = header.value;
+    const newSortType = getNewSortType(header.sortType as SortType);
     if (isServerSideMode.value) {
       // update server options
       updateServerOptionsSort(newSortBy, newSortType);
@@ -197,11 +215,6 @@ export default function useHeaders(
       sortType: newSortType,
       sortBy: newSortBy,
     });
-  };
-
-  const updateGroupSortField = (groupHeader: HeaderForRender) => {
-    updateSortField(groupHeader.value, groupHeader.sortType as SortType, true);
-    groupHeader.sortType = getNewSortType(groupHeader.sortType as SortType, true) as SortType;
   };
 
   const filteredClientSortOptions = computed(() => {
@@ -252,6 +265,7 @@ export default function useHeaders(
   };
 
   return {
+    initialHeaders,
     groupedHeaders,
     filteredClientSortOptions,
     headerColumns,
@@ -260,6 +274,5 @@ export default function useHeaders(
     isMultiSorting,
     getMultiSortNumber,
     getNewSortType,
-    updateGroupSortField,
   };
 }

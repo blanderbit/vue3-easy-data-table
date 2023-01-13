@@ -88,7 +88,7 @@
                   v-else
                   class="header"
                   :class="`direction-${headerTextDirection}`"
-                  @click="header.sortable && header.sortType && updateSortField(header.value, header.sortType)"
+                  @click="header.sortable && header.sortType && updateSortField(header)"
                 >
                   <slot
                     v-if="slots[`header-${header.value}`]"
@@ -119,7 +119,7 @@
                     {{ getMultiSortNumber(header.value) }}
                   </span>
                   <i
-                    v-if="header.groupable"
+                    v-if="header.groupable && !header.grouped"
                     class="group-icon fa fa-stream"
                     @click.stop="group(header)"
                   />
@@ -181,9 +181,9 @@
                           {
                             'fa-sort-up': item.groupHeader.sortType === 'asc',
                             'fa-sort-down': item.groupHeader.sortType === 'desc',
-                            'fa-sort': item.groupHeader.sortType === 'none' || !item.groupHeader.sortType
+                            'fa-sort': item.groupHeader.sortType === 'none'
                           }"
-                        @click.stop="updateGroupSortField(item.groupHeader)"
+                        @click.stop="updateSortField(item.groupHeader)"
                       />
                     </span>
                     <i
@@ -556,6 +556,7 @@ const {
 } = useTableProperties();
 
 const {
+  initialHeaders,
   groupedHeaders,
   filteredClientSortOptions,
   headerColumns,
@@ -563,7 +564,6 @@ const {
   updateSortField,
   isMultiSorting,
   getMultiSortNumber,
-  updateGroupSortField,
 } = useHeaders(
   tableProperties,
   manageTableProperties,
@@ -673,7 +673,7 @@ const {
   ungroup,
   toggleGroupChildrenVisibility,
 } = useGroupBy(
-  tableHeaders,
+  initialHeaders,
   pageItems,
   groupedHeaders,
 );

@@ -1,6 +1,5 @@
 import {
   computed,
-  ComputedRef,
   ref,
   Ref,
   watch,
@@ -21,7 +20,7 @@ import { GROUP_SHIFT, GROUP_PARENT_SHIFT, ZERO } from '../constants';
 
 export default function useGroupBy(
   tableHeaders: Ref<Header[]>,
-  pageItems: ComputedRef<Row[]>,
+  pageItems: Ref<Row[]>,
   groupedHeaders: Ref<HeaderForRender[]>,
 ) {
   const gropedByRows = ref<GroupByHeader[]>([]);
@@ -29,21 +28,14 @@ export default function useGroupBy(
   const groupParentDictionary = ref<Record<string, number>>({});
 
   const group = (headerGroup: HeaderForRender) => {
-    const header = tableHeaders.value
-      .find((tableHeader) => tableHeader.value === headerGroup.value);
-    if (header) {
-      header.grouped = true;
-      groupedHeaders.value.push(headerGroup);
-    }
+    headerGroup.grouped = true;
+    groupedHeaders.value.push(headerGroup);
   };
 
   const ungroup = (headerGroup: HeaderForRender) => {
-    const header = tableHeaders.value.find((tableHeader) => tableHeader.value === headerGroup.value);
-    if (header) {
-      header.grouped = false;
-      groupedHeaders.value = groupedHeaders.value
-        .filter((groupedHeader) => groupedHeader.value !== headerGroup.value);
-    }
+    headerGroup.grouped = false;
+    groupedHeaders.value = groupedHeaders.value
+      .filter((groupedHeader) => groupedHeader.value !== headerGroup.value);
   };
 
   const fillGroupParentDictionary = (rows: Row[], shift: number) => {
@@ -90,7 +82,7 @@ export default function useGroupBy(
         isGroup: true,
       },
     })).sort((groupA, groupB) => {
-      const direction = groupA.groupHeader.sortType === 'desc' ? -1 : 1;
+      const direction = header.sortType === 'desc' ? -1 : 1;
       const sortValueA = groupA.groupKey;
       const sortValueB = groupB.groupKey;
 
