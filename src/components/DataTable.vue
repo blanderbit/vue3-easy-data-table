@@ -32,7 +32,6 @@
           'fixed-header': fixedHeader,
           'fixed-height': tableHeight,
           'show-shadow': showShadow,
-          'table-fixed': fixedHeaders.length,
           'hoverable': !noHover,
           'border-cell': borderCell,
         }"
@@ -89,7 +88,7 @@
                   v-else
                   class="header"
                   :class="`direction-${headerTextDirection}`"
-                  @click="header.sortable && header.sortType && updateSortField(header.value, header.sortType)"
+                  @click="header.sortable && header.sortType && updateSortField(header)"
                 >
                   <slot
                     v-if="slots[`header-${header.value}`]"
@@ -120,7 +119,7 @@
                     {{ getMultiSortNumber(header.value) }}
                   </span>
                   <i
-                    v-if="header.groupable"
+                    v-if="header.groupable && !header.grouped"
                     class="group-icon fa fa-stream"
                     @click.stop="group(header)"
                   />
@@ -182,9 +181,9 @@
                           {
                             'fa-sort-up': item.groupHeader.sortType === 'asc',
                             'fa-sort-down': item.groupHeader.sortType === 'desc',
-                            'fa-sort': item.groupHeader.sortType === 'none' || !item.groupHeader.sortType
+                            'fa-sort': item.groupHeader.sortType === 'none'
                           }"
-                        @click.stop="updateGroupSortField(item.groupHeader)"
+                        @click.stop="updateSortField(item.groupHeader)"
                       />
                     </span>
                     <i
@@ -212,7 +211,9 @@
                   :data-test-id="`table-row-${column}-column`"
                   :style="[
                     getFixedDistance(column, 'td'),
-                    !i && item.meta.groupParent && { 'padding-left': `${item.meta.groupParent}rem` }
+                    !i && item.meta.groupParent && { 'padding-left': `${item.meta.groupParent}rem` },
+                    !i && groupParentDictionary[item.meta.uniqueIndex]
+                      && { 'padding-left': `${ groupParentDictionary[item.meta.uniqueIndex]}rem` },
                   ]"
                   :class="[{
                     'shadow': column === lastFixedColumn,
@@ -315,7 +316,7 @@
               v-if="ifHasLoadingSlot"
               name="loading"
             />
-            <Loading v-else></Loading>
+            <Loading v-else />
           </div>
         </div>
 
@@ -345,7 +346,7 @@
             v-if="paginationWithInput"
             data-test-id="pagination-with-input-text"
           >
-            {{ currentPaginationNumber }} of {{ maxPaginationNumber }}
+            {{ currentPaginationNumber }} {{ rowsOfPageSeparatorMessage }} {{ maxPaginationNumber }}
           </span>
           <span
             v-else
@@ -443,7 +444,7 @@ import type { HeaderForRender } from '../types/internal';
 // eslint-disable-next-line import/extensions
 import { generateColumnContent } from '../utils';
 import propsWithDefault from '../propsWithDefault';
-import { SelectableEnum } from '../enums/main';
+import { SELECTABLE } from '../constants';
 
 const props = defineProps({
   ...propsWithDefault,
@@ -533,7 +534,7 @@ const emits = defineEmits([
 ]);
 
 const isServerSideMode = computed((): boolean => serverOptions.value !== null);
-const isMultiSelect = computed((): boolean => selectable.value === SelectableEnum.MULTIPLE);
+const isMultiSelect = computed((): boolean => selectable.value === SELECTABLE.MULTIPLE);
 
 const {
   serverOptionsComputed,
@@ -555,6 +556,7 @@ const {
 } = useTableProperties();
 
 const {
+  initialHeaders,
   groupedHeaders,
   filteredClientSortOptions,
   headerColumns,
@@ -562,7 +564,6 @@ const {
   updateSortField,
   isMultiSorting,
   getMultiSortNumber,
-  updateGroupSortField,
 } = useHeaders(
   tableProperties,
   manageTableProperties,
@@ -664,6 +665,7 @@ const {
 );
 
 const {
+  groupParentDictionary,
   multipleCheckboxShift,
   flattenedRows,
   flattenedNonGroupedRows,
@@ -671,7 +673,7 @@ const {
   ungroup,
   toggleGroupChildrenVisibility,
 } = useGroupBy(
-  tableHeaders,
+  initialHeaders,
   pageItems,
   groupedHeaders,
 );
@@ -702,7 +704,6 @@ const {
 const {
   clickRow,
 } = useClickRow(
-  initialRows,
   isMultiSelect,
   flattenedNonGroupedRows,
   selectedItems,
@@ -713,7 +714,7 @@ const {
 
 // template style generation function
 const getColStyle = (header: HeaderForRender): string | undefined => {
-  const width = header.width ?? (fixedHeaders.value.length ? 100 : null);
+  const width = header.width ?? (header.fixed ? 100 : null);
   if (width) return `width: ${width}px; min-width: ${width}px;`;
   return undefined;
 };
@@ -812,6 +813,8 @@ defineExpose({
     --easy-table-footer-font-color: #212121;
     --easy-table-footer-font-size: 12px;
     --easy-table-footer-pagination-input-width: 1.875rem;
+    --easy-table-footer-pagination-arrow-background-color: #fff;
+    --easy-table-footer-pagination-arrow-disabled-background-color: #000;
     --easy-table-footer-padding: 0px 5px;
     --easy-table-footer-height: 36px;
     /**footer-rowsPerPage**/
@@ -856,7 +859,7 @@ defineExpose({
 
   .resizable {
     resize: horizontal;
-    overflow: auto;
+    overflow: hidden;
   }
 
   &__main {

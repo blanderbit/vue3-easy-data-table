@@ -1,3 +1,6 @@
+import { SELECTABLE } from '../constants';
+import { ObjectValues } from './internal';
+
 export type SortType = 'asc' | 'desc';
 
 export type FilterComparison = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'between';
@@ -46,6 +49,7 @@ export type Header = {
   width?: number
   groupable?: boolean
   grouped?: boolean
+  hideOnGroup?: boolean
   groupBy?: (value: string) => string
 };
 
@@ -70,3 +74,4 @@ export type BodyRowClassNameFunction = (item: Item, index: number) => string;
 export type BodyItemClassNameFunction = (column: string, index: number) => string;
 
 export type TextDirection = 'center' | 'left' | 'right';
+export type Selectable = ObjectValues<typeof SELECTABLE>

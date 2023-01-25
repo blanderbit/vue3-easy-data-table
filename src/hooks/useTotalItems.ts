@@ -266,6 +266,7 @@ export default function useTotalItems(
   const clearSearching = (rows: Row[]) => {
     if (!rows.length) return;
     rows.forEach((rowItem) => {
+      rowItem.meta.exactMatchColumns = [];
       if (rowItem.meta.index !== rowItem.meta.originalIndex) {
         rowItem.meta.index = rowItem.meta.originalIndex;
       }
@@ -289,17 +290,26 @@ export default function useTotalItems(
     deep: true,
   });
 
+  const changeRowSelectedStateRecursively = (rows: Row[], isChecked: boolean) => {
+    if (!rows.length) return;
+    rows.forEach((rowItem) => {
+      rowItem.meta.selected = isChecked;
+      if (rowItem.meta.children.length) {
+        changeRowSelectedStateRecursively(rowItem.meta.children, isChecked);
+      }
+    });
+  };
+
   const toggleSelectAll = (isChecked: boolean): void => {
     if (!isMultiSelect.value) {
       return;
     }
-    selectedItems.value = totalItems.value.map((item) => {
-      item.meta.selected = isChecked;
-      return item;
-    });
+    changeRowSelectedStateRecursively(totalItems.value, isChecked);
     if (!isChecked) {
       selectedItems.value = [];
+      return;
     }
+    selectedItems.value = totalItems.value;
   };
 
   const toggleSelectItem = (item: Row):void => {

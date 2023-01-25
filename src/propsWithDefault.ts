@@ -5,7 +5,8 @@ import type {
   TextDirection,
 } from './types/main';
 import type { ClickEventType } from './types/internal';
-import { SelectableEnum } from './enums/main';
+import { Selectable } from './types/main';
+import { SELECTABLE } from './constants';
 
 export default {
   alternating: {
@@ -194,13 +195,13 @@ export default {
   },
   selectable: {
     type: String,
-    validator(value: SelectableEnum) {
+    validator(value: Selectable) {
       return [
-        SelectableEnum.SINGLE,
-        SelectableEnum.MULTIPLE,
+        SELECTABLE.SINGLE,
+        SELECTABLE.MULTIPLE,
       ].includes(value);
     },
-    default: SelectableEnum.SINGLE,
+    default: SELECTABLE.SINGLE,
   },
   exactMatch: {
     type: Boolean,

@@ -16,6 +16,7 @@ export type HeaderForRender = {
   width?: number,
   groupable?: boolean,
   grouped?: boolean,
+  hideOnGroup?: boolean,
   groupBy?: (value: string) => string
 }
 
@@ -44,3 +45,4 @@ export type MultipleSelectStatus = 'allSelected' | 'noneSelected' | 'partSelecte
 
 // eslint-disable-next-line max-len
 export type EmitsEventName = 'clickRow' | 'expandRow' | 'updateSort' | 'update:itemsSelected' | 'update:serverOptions' | 'updateFilter'
+export type ObjectValues<T> = T[keyof T];

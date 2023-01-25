@@ -8,7 +8,6 @@ import type { Item, Row } from '../types/main';
 import type { EmitsEventName, ClickEventType } from '../types/internal';
 
 export default function useClickRow(
-  initialRows: Ref<Row[]>,
   isMultiSelect: ComputedRef<boolean>,
   pageItems: ComputedRef<Row[]>,
   selectedItems: Ref<Row[]>,
@@ -21,10 +20,6 @@ export default function useClickRow(
   const setSelectedMetaForItems = (items: Item[], selected: boolean) => {
     items.forEach((item) => {
       item.meta.selected = selected;
-      const rowItem = initialRows.value.find((initialRow) => initialRow.meta.uniqueIndex === item.meta.uniqueIndex);
-      if (rowItem) {
-        rowItem.meta.selected = selected;
-      }
     });
   };
 

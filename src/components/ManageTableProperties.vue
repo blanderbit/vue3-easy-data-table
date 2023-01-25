@@ -56,7 +56,7 @@ const selectedTablePropertyColumns = ref<string[]>([]);
 const manageTablePropertiesRef = ref<HTMLElement | null>(null);
 
 const transformedTablePropertyColumns = computed(() => columns.value.map((column) => {
-  const disabled = column.grouped || (selectedTablePropertyColumns.value.length === 1
+  const disabled = (column.groupable && column.grouped) || (selectedTablePropertyColumns.value.length === 1
           && selectedTablePropertyColumns.value[0] === column.value);
   const shortTitle = column.text.length > COLUMN_TITLE_PROPERTY_LENGTH_LIMIT
     ? `${column.text.slice(0, COLUMN_TITLE_PROPERTY_LENGTH_LIMIT)}...`
