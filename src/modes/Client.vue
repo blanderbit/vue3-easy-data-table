@@ -34,6 +34,7 @@
       :buttons-pagination="false"
       :pagination-with-input="true"
       :columns-resizable="true"
+      :has-checkbox-column="true"
       :sort-by="sortBy"
       :sort-type="sortType"
       theme-color="#1d90ff"

@@ -127,8 +127,8 @@ describe('Data Table', () => {
       const lastPageButton = findWrapperItemByTestId('last-page-click-button');
       expect(firstPageButton.exists()).toBe(true);
       expect(lastPageButton.exists()).toBe(true);
-      const firstPageDoubleArrow = findNodeItemsByTestId(firstPageButton, 'arrow-right-icon');
-      const lastPageDoubleArrow = findNodeItemsByTestId(lastPageButton, 'arrow-left-icon');
+      const firstPageDoubleArrow = findNodeItemsByTestId(firstPageButton, 'arrow-left-icon');
+      const lastPageDoubleArrow = findNodeItemsByTestId(lastPageButton, 'arrow-right-icon');
       expect(firstPageDoubleArrow.length).equal(1);
       expect(lastPageDoubleArrow.length).equal(1);
     });
@@ -1367,6 +1367,39 @@ describe('Data Table', () => {
         sortBy: 'height',
         sortType: 'desc',
       }]);
+    });
+  });
+
+  describe('Has checkbox column', () => {
+    it('should render table headers with checkbox column', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          showIndex: false,
+          clickRowToExpand: false,
+        },
+      });
+
+      const tableHeaders = findWrapperItemsByTestId('table-header-item');
+      expect(tableHeaders.length).toBe(11);
+    });
+
+    it('should not render table headers with checkbox column', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          hasCheckboxColumn: false,
+          showIndex: false,
+          clickRowToExpand: false,
+        },
+      });
+
+      const tableHeaders = findWrapperItemsByTestId('table-header-item');
+      expect(tableHeaders.length).toBe(10);
     });
   });
 });

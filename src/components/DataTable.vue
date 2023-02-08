@@ -5,8 +5,9 @@
       class="manage-table-properties-container"
     >
       <div class="area">
-        <i
-          class="sliders-icon fa fa-sliders-h"
+        <app-icon
+          class="sliders-icon"
+          icon="sliders-h"
           data-test-id="manage-table-properties-icon"
           @click.stop="toggleManageTablePropertiesVisibility"
         />
@@ -53,6 +54,7 @@
               <th
                 v-for="(header, index) in headersForRender"
                 :key="index"
+                data-test-id="table-header-item"
                 :class="[{
                   sortable: header.sortable,
                   'none': header.sortable && header.sortType === 'none',
@@ -72,9 +74,10 @@
                   v-if="header.text === 'checkbox'"
                   class="checkbox-container"
                 >
-                  <i
+                  <app-icon
                     v-if="rowsHaveChildren"
-                    class="expand-children-icon fa fa-plus-square"
+                    class="expand-children-icon"
+                    icon="plus-square"
                     :style="{ 'visibility': 'hidden' }"
                   />
                   <MultipleSelectCheckBox
@@ -118,9 +121,10 @@
                   >
                     {{ getMultiSortNumber(header.value) }}
                   </span>
-                  <i
+                  <app-icon
                     v-if="header.groupable && !header.grouped"
-                    class="group-icon fa fa-stream"
+                    class="group-icon"
+                    icon="stream"
                     @click.stop="group(header)"
                   />
                 </span>
@@ -166,28 +170,29 @@
                       class="group-column__label"
                       @click="toggleGroupChildrenVisibility(item)"
                     >
-                      <i
-                        class="square-icon fa"
-                        :class="{
-                          'fa-minus-square': item.meta.showChildren,
-                          'fa-plus-square': !item.meta.showChildren
+                      <app-icon
+                        class="square-icon"
+                        :icon="{
+                          'minus-square': item.meta.showChildren,
+                          'plus-square': !item.meta.showChildren
                         }"
                       />
                       <span>{{ item.groupKey }}</span>
-                      <i
+                      <app-icon
                         v-if="item.groupHeader.sortable"
-                        class="sort-icon fa"
-                        :class="
+                        class="sort-icon"
+                        :icon="
                           {
-                            'fa-sort-up': item.groupHeader.sortType === 'asc',
-                            'fa-sort-down': item.groupHeader.sortType === 'desc',
-                            'fa-sort': item.groupHeader.sortType === 'none'
+                            'sort-up': item.groupHeader.sortType === 'asc',
+                            'sort-down': item.groupHeader.sortType === 'desc',
+                            'sort': item.groupHeader.sortType === 'none'
                           }"
                         @click.stop="updateSortField(item.groupHeader)"
                       />
                     </span>
-                    <i
-                      class="group-column__icon fa fa-times-circle"
+                    <app-icon
+                      class="group-column__icon"
+                      icon="times-circle"
                       @click="ungroup(item.groupHeader)"
                     />
                   </div>
@@ -243,10 +248,14 @@
                     <div
                       class="checkbox-container"
                     >
-                      <i
+                      <app-icon
                         v-if="rowsHaveChildren"
-                        class="expand-children-icon fa"
-                        :class="{ 'fa-plus-square': !item.meta.showChildren, 'fa-minus-square': item.meta.showChildren }"
+                        class="expand-children-icon"
+                        :icon="
+                          {
+                            'plus-square': !item.meta.showChildren,
+                            'minus-square': item.meta.showChildren
+                          }"
                         :style="{ 'visibility': item.meta.children?.length ? 'visible' : 'hidden' }"
                         @click="toggleChildrenVisibility($event, item)"
                       />
@@ -445,6 +454,7 @@ import type { HeaderForRender } from '../types/internal';
 import { generateColumnContent } from '../utils';
 import propsWithDefault from '../propsWithDefault';
 import { SELECTABLE } from '../constants';
+import AppIcon from './AppIcon.vue';
 
 const props = defineProps({
   ...propsWithDefault,
@@ -494,6 +504,7 @@ const {
   exactMatch,
   isExactMatchCaseSensitive,
   manageTableProperties,
+  hasCheckboxColumn,
 } = toRefs(props);
 
 const tableHeaders = ref(headers.value);
@@ -583,6 +594,7 @@ const {
   sortBy,
   sortType,
   multiSort,
+  hasCheckboxColumn,
   updateServerOptionsSort,
   emits,
 );

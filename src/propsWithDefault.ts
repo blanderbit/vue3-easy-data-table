@@ -21,6 +21,10 @@ export default {
     type: Boolean,
     default: false,
   },
+  hasCheckboxColumn: {
+    type: Boolean,
+    default: true,
+  },
   checkboxColumnWidth: {
     type: Number,
     default: null,
