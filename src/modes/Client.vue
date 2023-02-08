@@ -361,9 +361,9 @@ const debouncedInput = (event: InputEvent) => {
   --easy-table-body-row-background-color: #2d3a4f;
   --easy-table-body-row-height: 40px;
   --easy-table-body-row-font-size: 14px;
-
   --easy-table-body-row-hover-font-color: #2d3a4f;
   --easy-table-body-row-hover-background-color: #eee;
+  --easy-table-body-selected-row-background-color: #506c67;
 
   /* --easy-table-body-item-padding: 10px 15px; */
 

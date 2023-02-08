@@ -807,7 +807,7 @@ defineExpose({
     /*body-row*/
     --easy-table-body-row-height: 36px;
     --easy-table-body-row-font-size: 12px;
-    --easy-table-body-selected-row-background-color: #506c67;
+    --easy-table-body-selected-row-background-color: #aab7d1;
     --easy-table-body-row-font-color: #212121;
     --easy-table-body-row-background-color: #fff;
     --easy-table-body-exact-match-row-column-background-color: #4c4c12;
