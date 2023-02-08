@@ -22,6 +22,7 @@
       :is-exact-match-case-sensitive="true"
       :show-index="true"
       :manage-table-properties="true"
+      manage-table-properties-label="Custom properties label"
       selectable="single"
       alternating
       border-cell

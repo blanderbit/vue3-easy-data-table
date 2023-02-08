@@ -16,6 +16,7 @@
           v-model="checkedTableProperties"
           data-test-id="manage-table-properties"
           :columns="tableProperties"
+          :label="manageTablePropertiesLabel"
           @set-checked-table-properties="setCheckedTableProperties"
           @close="toggleManageTablePropertiesVisibility"
         />
@@ -505,6 +506,7 @@ const {
   isExactMatchCaseSensitive,
   manageTableProperties,
   hasCheckboxColumn,
+  manageTablePropertiesLabel,
 } = toRefs(props);
 
 const tableHeaders = ref(headers.value);

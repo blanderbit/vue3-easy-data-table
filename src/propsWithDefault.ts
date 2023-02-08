@@ -219,6 +219,10 @@ export default {
     type: Boolean,
     default: false,
   },
+  manageTablePropertiesLabel: {
+    type: String,
+    default: 'Properties',
+  },
   columnsResizable: {
     type: Boolean,
     default: false,
