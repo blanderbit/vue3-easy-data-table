@@ -10,21 +10,21 @@ import type { EmitsEventName, ClickEventType } from '../types/internal';
 export default function useClickRow(
   isMultiSelect: ComputedRef<boolean>,
   pageItems: ComputedRef<Row[]>,
-  selectedItems: Ref<Row[]>,
+  selectedRows: Ref<Row[]>,
   clickEventType: Ref<ClickEventType>,
   showIndex: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
   const firstSelectedRowIndex = ref<string | null>(null);
 
-  const setSelectedMetaForItems = (items: Item[], selected: boolean) => {
-    items.forEach((item) => {
-      item.meta.selected = selected;
+  const setSelectedMetaForRows = (rows: Row[], selected: boolean) => {
+    rows.forEach((row) => {
+      row.meta.selected = selected;
     });
   };
 
   const clearSelection = () => {
-    setSelectedMetaForItems(pageItems.value, false);
+    setSelectedMetaForRows(pageItems.value, false);
   };
 
   const handleShiftKey = (row: Item) => {
@@ -40,8 +40,8 @@ export default function useClickRow(
     ] = keys.sort((a, b) => a - b);
     clearSelection();
     const pageItemsRange = pageItems.value.slice(minKey, maxKey + 1);
-    setSelectedMetaForItems(pageItemsRange, true);
-    selectedItems.value = pageItemsRange;
+    setSelectedMetaForRows(pageItemsRange, true);
+    selectedRows.value = pageItemsRange;
   };
 
   const handleCtrlKey = (row: Row) => {
@@ -52,35 +52,35 @@ export default function useClickRow(
     firstSelectedRowIndex.value = row.meta.uniqueIndex;
     row.meta.selected = !isAlreadySelected;
     if (isAlreadySelected) {
-      selectedItems.value = selectedItems.value
-        .filter((selectedItem) => row.meta.uniqueIndex !== selectedItem.meta.uniqueIndex);
-    } else if (!isMultiSelect.value && selectedItems.value.length === 1) {
+      selectedRows.value = selectedRows.value
+        .filter((selectedRow) => row.meta.uniqueIndex !== selectedRow.meta.uniqueIndex);
+    } else if (!isMultiSelect.value && selectedRows.value.length === 1) {
       // If multi select is not allowed, then we need to reset selected flag for
       //  current item and replace array el with the clicked row.
-      selectedItems.value[0].meta.selected = false;
-      selectedItems.value = [row];
+      selectedRows.value[0].meta.selected = false;
+      selectedRows.value = [row];
     } else {
-      selectedItems.value.unshift(row);
+      selectedRows.value.unshift(row);
     }
   };
 
-  const clickRow = (event: PointerEvent, item: Row, clickType: ClickEventType) => {
+  const clickRow = (event: PointerEvent, row: Row, clickType: ClickEventType) => {
     if (clickEventType.value !== clickType) return;
 
     if (event.shiftKey && isMultiSelect.value) {
-      handleShiftKey(item);
+      handleShiftKey(row);
     } else if (event.ctrlKey) {
-      handleCtrlKey(item);
+      handleCtrlKey(row);
     } else {
       clearSelection();
-      firstSelectedRowIndex.value = item.meta.uniqueIndex;
-      item.meta.selected = true;
-      selectedItems.value = [item];
+      firstSelectedRowIndex.value = row.meta.uniqueIndex;
+      row.meta.selected = true;
+      selectedRows.value = [row];
     }
 
-    const clickRowArgument = { ...item };
+    const clickRowArgument = { ...row };
     if (showIndex.value) {
-      const { index } = item;
+      const { index } = row;
       clickRowArgument.indexInCurrentPage = index;
     }
     emits('clickRow', clickRowArgument);

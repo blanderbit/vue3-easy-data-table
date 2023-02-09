@@ -1,10 +1,10 @@
 <template>
   <DataTable
-    v-model:items-selected="itemsSelected"
+    v-model:selected-rows="selectedRows"
     :headers="headers"
     :items="items"
-    @expand-row="loadIntroduction"
     :rows-per-page="4"
+    @expand-row="loadIntroduction"
   >
     <template #expand="item">
       <div
@@ -18,15 +18,12 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  computed, ref, reactive, toRefs,
-} from 'vue';
+import { ref } from 'vue';
 import type {
-  Header, Item, FilterOption, ClickRowArgument, HeaderItemClassNameFunction, BodyItemClassNameFunction, BodyRowClassNameFunction,
+  Header, Item,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 
-import { mockClientNestedItems, mockClientItems, mockDuplicateClientNestedItems } from '../mock';
 const headers: Header[] = [
   { text: 'PLAYER', value: 'player' },
   { text: 'TEAM', value: 'team', sortable: true },
@@ -43,7 +40,7 @@ const items = ref<Item[]>([
   { player: '4Giannis Antetokounmpo', team: 'MIL' },
 ]);
 
-const itemsSelected = ref<Item[]>([items.value[0]]);
+const selectedRows = ref<Item[]>([]);
 
 const mockItemIntroduction = async (name: string): Promise<string> => {
   await new Promise((s) => setTimeout(s, 2000));

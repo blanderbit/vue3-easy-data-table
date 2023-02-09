@@ -16,7 +16,7 @@
   <div>
     <DataTable
       ref="dataTable"
-      v-model:items-selected="itemsSelected"
+      v-model:selected-rows="selectedRows"
       :click-row-to-expand="false"
       :exact-match="true"
       :is-exact-match-case-sensitive="true"
@@ -193,10 +193,10 @@ const items = ref(tableItems);
 // const items = ref<Item[]>(mockClientItems());
 const headers = tableHeaders;
 
-const itemsSelected = ref<Item[]>([]);
+const selectedRows = ref<Item[]>([]);
 
-watch(itemsSelected, (val) => {
-  console.log('debug itemsSelected', val);
+watch(selectedRows, (val) => {
+  console.log('debug selectedRows on client side', val);
 }, {
   immediate: true,
   deep: true,

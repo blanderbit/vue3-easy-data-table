@@ -11,7 +11,7 @@ export default function usePageItems(
   isServerSideMode: ComputedRef<boolean>,
   items: Ref<Row[]>,
   rowsPerPageRef: Ref<number>,
-  selectedItems: Ref<Row[]>,
+  selectedRows: Ref<Row[]>,
   showIndex: Ref<boolean>,
   totalItems: ComputedRef<Row[]>,
   totalItemsLength: ComputedRef<number>,
@@ -46,10 +46,10 @@ export default function usePageItems(
   });
 
   const multipleSelectStatus = computed((): MultipleSelectStatus => {
-    if (selectedItems.value.length === 0) {
+    if (!selectedRows.value.length) {
       return 'noneSelected';
     }
-    return selectedItems.value.length === totalItems.value.length ? 'allSelected' : 'partSelected';
+    return selectedRows.value.length === totalItems.value.length ? 'allSelected' : 'partSelected';
   });
 
   return {

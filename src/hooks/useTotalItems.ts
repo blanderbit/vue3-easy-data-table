@@ -7,7 +7,6 @@ import {
 } from 'vue';
 import type {
   FilterOption,
-  Item,
   Row,
 } from '../types/main';
 import type { ClientSortOptions, EmitsEventName } from '../types/internal';
@@ -31,14 +30,13 @@ export default function useTotalItems(
   filterOptions: Ref<FilterOption[]>,
   isServerSideMode: ComputedRef<boolean>,
   items: Ref<Row[]>,
-  itemsSelected: Ref<Item[]>,
   searchField: Ref<string | string[]>,
   searchValue: Ref<string>,
   serverItemsLength: Ref<number>,
   multiSort: Ref<boolean>,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
-  const selectedItems: Ref<Row[]> = ref([]);
+  const selectedRows: Ref<Row[]> = ref([]);
   const itemIgnoreKeys = ['expand', 'index', 'checkbox', 'meta'];
 
   const generateSearchingTarget = (item: Row): string => {
@@ -284,8 +282,8 @@ export default function useTotalItems(
     }
   }, { immediate: true, deep: true });
 
-  watch(selectedItems, (val) => {
-    emits('update:itemsSelected', val);
+  watch(selectedRows, (val) => {
+    emits('update:selectedRows', val);
   }, {
     deep: true,
   });
@@ -306,31 +304,31 @@ export default function useTotalItems(
     }
     changeRowSelectedStateRecursively(totalItems.value, isChecked);
     if (!isChecked) {
-      selectedItems.value = [];
+      selectedRows.value = [];
       return;
     }
-    selectedItems.value = totalItems.value;
+    selectedRows.value = totalItems.value;
   };
 
   const toggleSelectItem = (item: Row):void => {
     const isAlreadySelected = item.meta.selected;
     item.meta.selected = !item.meta.selected;
     if (isAlreadySelected) {
-      selectedItems.value = selectedItems.value
+      selectedRows.value = selectedRows.value
         .filter((selectedItem) => item.meta.uniqueIndex !== selectedItem.meta.uniqueIndex);
-    } else if (!isMultiSelect.value && selectedItems.value.length === 1) {
-      selectedItems.value[0].meta.selected = false;
-      selectedItems.value = [item];
+    } else if (!isMultiSelect.value && selectedRows.value.length === 1) {
+      selectedRows.value[0].meta.selected = false;
+      selectedRows.value = [item];
     } else {
-      const selectItemsArr: Row[] = selectedItems.value;
+      const selectItemsArr: Row[] = selectedRows.value;
       selectItemsArr.unshift(item);
-      selectedItems.value = selectItemsArr;
+      selectedRows.value = selectItemsArr;
     }
   };
 
   return {
     totalItems,
-    selectedItems,
+    selectedRows,
     totalItemsLength,
     toggleSelectAll,
     toggleSelectItem,

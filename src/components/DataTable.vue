@@ -484,7 +484,6 @@ const {
   headerTextDirection,
   indexColumnWidth,
   items,
-  itemsSelected,
   loading,
   mustSort,
   multiSort,
@@ -542,7 +541,7 @@ const emits = defineEmits([
   'expandRow',
   'updateSort',
   'updateFilter',
-  'update:itemsSelected',
+  'update:selectedRows',
   'update:serverOptions',
 ]);
 
@@ -618,7 +617,7 @@ const {
 
 const {
   totalItems,
-  selectedItems,
+  selectedRows,
   totalItemsLength,
   toggleSelectAll,
   toggleSelectItem,
@@ -633,7 +632,6 @@ const {
   filterOptions,
   isServerSideMode,
   initialRows,
-  itemsSelected,
   searchField,
   searchValue,
   serverItemsLength,
@@ -672,7 +670,7 @@ const {
   isServerSideMode,
   initialRows,
   rowsPerPageRef,
-  selectedItems,
+  selectedRows,
   showIndex,
   totalItems,
   totalItemsLength,
@@ -720,7 +718,7 @@ const {
 } = useClickRow(
   isMultiSelect,
   flattenedNonGroupedRows,
-  selectedItems,
+  selectedRows,
   clickEventType,
   showIndex,
   emits,

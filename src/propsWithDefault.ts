@@ -1,6 +1,6 @@
 import { PropType } from 'vue';
 import type {
-  SortType, Item, ServerOptions, FilterOption,
+  SortType, ServerOptions, FilterOption,
   HeaderItemClassNameFunction, BodyItemClassNameFunction, BodyRowClassNameFunction,
   TextDirection,
 } from './types/main';
@@ -84,10 +84,6 @@ export default {
   indexColumnWidth: {
     type: Number,
     default: 60,
-  },
-  itemsSelected: {
-    type: Array as PropType<Item[]> | null,
-    default: null,
   },
   loading: {
     type: Boolean,
