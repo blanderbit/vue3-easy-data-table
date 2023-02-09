@@ -163,7 +163,7 @@ export default defineComponent({
     // index related
     const currentPageFirstIndex = computed(() => dataTable.value?.currentPageFirstIndex);
     const currentPageLastIndex = computed(() => dataTable.value?.currentPageLastIndex);
-    const clientItemsLength = computed(() => dataTable.value?.clientItemsLength);
+    const clientRowsLength = computed(() => dataTable.value?.clientRowsLength);
 
     const updateSort = (sortOption: UpdateSortArgument) => {
       console.log(sortOption);

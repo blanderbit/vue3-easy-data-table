@@ -135,7 +135,7 @@
           <slot
             v-if="ifHasBodySlot"
             name="body"
-            v-bind="pageItems"
+            v-bind="pageRows"
           />
           <tbody
             v-else-if="headerColumns.length"
@@ -145,7 +145,7 @@
             <slot
               name="body-prepend"
               v-bind="{
-                items: pageItems,
+                rows: pageRows,
                 pagination: {
                   isFirstPage,
                   isLastPage,
@@ -158,58 +158,58 @@
               }"
             />
             <template
-              v-for="(item, index) in flattenedRows"
+              v-for="(row, index) in flattenedRows"
               :key="index"
             >
-              <tr v-if="item.groupHeader">
+              <tr v-if="row.groupHeader">
                 <td
                   colspan="100%"
-                  :style="{ 'padding-left': `${item.meta.groupParent}rem` }"
+                  :style="{ 'padding-left': `${row.meta.groupParent}rem` }"
                 >
                   <div class="group-column">
                     <span
                       class="group-column__label"
-                      @click="toggleGroupChildrenVisibility(item)"
+                      @click="toggleGroupChildrenVisibility(row)"
                     >
                       <app-icon
                         class="square-icon"
                         :icon="{
-                          'minus-square': item.meta.showChildren,
-                          'plus-square': !item.meta.showChildren
+                          'minus-square': row.meta.showChildren,
+                          'plus-square': !row.meta.showChildren
                         }"
                       />
-                      <span>{{ item.groupKey }}</span>
+                      <span>{{ row.groupKey }}</span>
                       <app-icon
-                        v-if="item.groupHeader.sortable"
+                        v-if="row.groupHeader.sortable"
                         class="sort-icon"
                         :icon="
                           {
-                            'sort-up': item.groupHeader.sortType === 'asc',
-                            'sort-down': item.groupHeader.sortType === 'desc',
-                            'sort': item.groupHeader.sortType === 'none'
+                            'sort-up': row.groupHeader.sortType === 'asc',
+                            'sort-down': row.groupHeader.sortType === 'desc',
+                            'sort': row.groupHeader.sortType === 'none'
                           }"
-                        @click.stop="updateSortField(item.groupHeader)"
+                        @click.stop="updateSortField(row.groupHeader)"
                       />
                     </span>
                     <app-icon
                       class="group-column__icon"
                       icon="times-circle"
-                      @click="ungroup(item.groupHeader)"
+                      @click="ungroup(row.groupHeader)"
                     />
                   </div>
                 </td>
               </tr>
               <tr
                 v-else
-                :class="[{'even-row': (index + 1) % 2 === 0 && !item.meta.selected},
-                         {'selected': item.meta.selected},
-                         typeof bodyRowClassName === 'string' ? bodyRowClassName : bodyRowClassName(item, index)]"
+                :class="[{'even-row': (index + 1) % 2 === 0 && !row.meta.selected},
+                         {'selected': row.meta.selected},
+                         typeof bodyRowClassName === 'string' ? bodyRowClassName : bodyRowClassName(row, index)]"
                 data-test-id="table-row"
                 @click="($event) => {
-                  clickRow($event, item, 'single');
-                  clickRowToExpand && updateExpandingItemIndexList(index + prevPageEndIndex, item, $event);
+                  clickRow($event, row, 'single');
+                  clickRowToExpand && updateExpandingItemIndexList(index + prevPageEndIndex, row, $event);
                 }"
-                @dblclick="clickRow($event, item, 'double')"
+                @dblclick="clickRow($event, row, 'double')"
               >
                 <td
                   v-for="(column, i) in headerColumns"
@@ -217,32 +217,32 @@
                   :data-test-id="`table-row-${column}-column`"
                   :style="[
                     getFixedDistance(column, 'td'),
-                    !i && item.meta.groupParent && { 'padding-left': `${item.meta.groupParent}rem` },
-                    !i && groupParentDictionary[item.meta.uniqueIndex]
-                      && { 'padding-left': `${ groupParentDictionary[item.meta.uniqueIndex]}rem` },
+                    !i && row.meta.groupParent && { 'padding-left': `${row.meta.groupParent}rem` },
+                    !i && groupParentDictionary[row.meta.uniqueIndex]
+                      && { 'padding-left': `${ groupParentDictionary[row.meta.uniqueIndex]}rem` },
                   ]"
                   :class="[{
                     'shadow': column === lastFixedColumn,
                     'can-expand': column === 'expand',
-                    'exactMatch': item.meta.exactMatchColumns.includes(column),
+                    'exactMatch': row.meta.exactMatchColumns.includes(column),
                     // eslint-disable-next-line max-len
                   }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
-                  @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
+                  @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, row, $event) : null"
                 >
                   <slot
-                    v-if="slots[`item-${column}`]"
-                    :name="`item-${column}`"
-                    v-bind="item"
+                    v-if="slots[`row-${column}`]"
+                    :name="`row-${column}`"
+                    v-bind="row"
                   />
                   <slot
-                    v-else-if="slots[`item-${column.toLowerCase()}`]"
-                    :name="`item-${column.toLowerCase()}`"
-                    v-bind="item"
+                    v-else-if="slots[`row-${column.toLowerCase()}`]"
+                    :name="`row-${column.toLowerCase()}`"
+                    v-bind="row"
                   />
                   <template v-else-if="column === 'expand'">
                     <i
                       class="expand-icon"
-                      :class="{'expanding': expandingItemIndexList.includes(item.meta.uniqueIndex)}"
+                      :class="{'expanding': expandingRowIndexList.includes(row.meta.uniqueIndex)}"
                     />
                   </template>
                   <template v-else-if="column === 'checkbox'">
@@ -254,31 +254,31 @@
                         class="expand-children-icon"
                         :icon="
                           {
-                            'plus-square': !item.meta.showChildren,
-                            'minus-square': item.meta.showChildren
+                            'plus-square': !row.meta.showChildren,
+                            'minus-square': row.meta.showChildren
                           }"
-                        :style="{ 'visibility': item.meta.children?.length ? 'visible' : 'hidden' }"
-                        @click="toggleChildrenVisibility($event, item)"
+                        :style="{ 'visibility': row.meta.children?.length ? 'visible' : 'hidden' }"
+                        @click="toggleChildrenVisibility($event, row)"
                       />
                       <SingleSelectCheckBox
-                        :checked="item.meta.selected"
+                        :checked="row.meta.selected"
                         :class="{ 'has-children': rowsHaveChildren }"
-                        @change="toggleSelectItem(item)"
+                        @change="toggleSelectRow(row)"
                       />
                     </div>
                   </template>
                   <template v-else>
-                    {{ generateColumnContent(column, item) }}
+                    {{ generateColumnContent(column, row) }}
                   </template>
                 </td>
               </tr>
               <tr
-                v-if="ifHasExpandSlot && !item.groupHeader && expandingItemIndexList.includes(item.meta.uniqueIndex)"
+                v-if="ifHasExpandSlot && !row.groupHeader && expandingRowIndexList.includes(row.meta.uniqueIndex)"
                 :class="[
                   { 'even-row': (index + 1) % 2 === 0},
                   typeof bodyExpandRowClassName === 'string' ?
                     bodyExpandRowClassName :
-                    bodyExpandRowClassName(item, index)
+                    bodyExpandRowClassName(row, index)
                 ]"
               >
                 <td
@@ -286,12 +286,12 @@
                   class="expand"
                 >
                   <LoadingLine
-                    v-if="item.expandLoading"
+                    v-if="row.expandLoading"
                     class="expand-loading"
                   />
                   <slot
                     name="expand"
-                    v-bind="item"
+                    v-bind="row"
                   />
                 </td>
               </tr>
@@ -299,7 +299,7 @@
             <slot
               name="body-append"
               v-bind="{
-                items: pageItems,
+                rows: pageRows,
                 pagination: {
                   isFirstPage,
                   isLastPage,
@@ -331,7 +331,7 @@
         </div>
 
         <div
-          v-if="!pageItems.length && !loading"
+          v-if="!pageRows.length && !loading"
           class="vue3-easy-data-table__message"
         >
           {{ emptyMessage }}
@@ -363,7 +363,7 @@
             data-test-id="buttons-pagination-text"
           >
             {{ `${currentPageFirstIndex}–${currentPageLastIndex}` }}
-            {{ rowsOfPageSeparatorMessage }} {{ totalItemsLength }}
+            {{ rowsOfPageSeparatorMessage }} {{ totalRowsLength }}
           </span>
         </div>
         <slot
@@ -440,11 +440,11 @@ import useClickRow from '../hooks/useClickRow';
 import useExpandableRow from '../hooks/useExpandableRow';
 import useFixedColumn from '../hooks/useFixedColumn';
 import useHeaders from '../hooks/useHeaders';
-import usePageItems from '../hooks/usePageItems';
+import usePageRows from '../hooks/usePageRows';
 import usePagination from '../hooks/usePagination';
 import useRows from '../hooks/useRows';
 import useServerOptions from '../hooks/useServerOptions';
-import useTotalItems from '../hooks/useTotalItems';
+import useTotalRows from '../hooks/useTotalRows';
 import useTableProperties from '../hooks/useTableProperties';
 import useGroupBy from '../hooks/useGroupBy';
 
@@ -616,12 +616,12 @@ const {
 );
 
 const {
-  totalItems,
+  totalRows,
   selectedRows,
-  totalItemsLength,
+  totalRowsLength,
   toggleSelectAll,
-  toggleSelectItem,
-} = useTotalItems(
+  toggleSelectRow,
+} = useTotalRows(
   manageTableProperties,
   checkedTableProperties,
   exactMatch,
@@ -654,7 +654,7 @@ const {
   currentPage,
   isServerSideMode,
   loading,
-  totalItemsLength,
+  totalRowsLength,
   rowsPerPageRef,
   serverOptions,
   updateServerOptionsPage,
@@ -664,16 +664,16 @@ const {
   currentPageFirstIndex,
   currentPageLastIndex,
   multipleSelectStatus,
-  pageItems,
-} = usePageItems(
+  pageRows,
+} = usePageRows(
   currentPaginationNumber,
   isServerSideMode,
   initialRows,
   rowsPerPageRef,
   selectedRows,
   showIndex,
-  totalItems,
-  totalItemsLength,
+  totalRows,
+  totalRowsLength,
 );
 
 const {
@@ -686,7 +686,7 @@ const {
   toggleGroupChildrenVisibility,
 } = useGroupBy(
   initialHeaders,
-  pageItems,
+  pageRows,
   groupedHeaders,
 );
 
@@ -696,7 +696,7 @@ const prevPageEndIndex = computed(() => {
 });
 
 const {
-  expandingItemIndexList,
+  expandingRowIndexList,
   updateExpandingItemIndexList,
   clearExpandingItemIndexList,
 } = useExpandableRow(
@@ -775,7 +775,7 @@ const exposeForTest = isTestMode ? {
 defineExpose({
   currentPageFirstIndex,
   currentPageLastIndex,
-  clientItemsLength: totalItemsLength,
+  clientRowsLength: totalRowsLength,
   maxPaginationNumber,
   currentPaginationNumber,
   isLastPage,

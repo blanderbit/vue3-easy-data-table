@@ -13,13 +13,13 @@ import type { ClientSortOptions, EmitsEventName } from '../types/internal';
 import {
   excludeKeysFromObj,
   flattenObj,
-  getItemValue,
+  getRowValue,
   unFlattenObj,
   isValidDate,
 } from '../utils';
 import { ZERO } from '../constants';
 
-export default function useTotalItems(
+export default function useTotalRows(
   manageTableProperties: Ref<boolean>,
   checkedTableProperties: Ref<string[]>,
   exactMatch: Ref<boolean>,
@@ -29,7 +29,7 @@ export default function useTotalItems(
   filteredClientSortOptions: ComputedRef<ClientSortOptions | null>,
   filterOptions: Ref<FilterOption[]>,
   isServerSideMode: ComputedRef<boolean>,
-  items: Ref<Row[]>,
+  tableRows: Ref<Row[]>,
   searchField: Ref<string | string[]>,
   searchValue: Ref<string>,
   serverItemsLength: Ref<number>,
@@ -37,44 +37,44 @@ export default function useTotalItems(
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
   const selectedRows: Ref<Row[]> = ref([]);
-  const itemIgnoreKeys = ['expand', 'index', 'checkbox', 'meta'];
+  const rowIgnoreKeys = ['expand', 'index', 'checkbox', 'meta'];
 
-  const generateSearchingTarget = (item: Row): string => {
-    const itemWithoutControlKeys = excludeKeysFromObj(item, itemIgnoreKeys);
-    const flattenItem = flattenObj(itemWithoutControlKeys);
-    // Obtain those header keys that are not visible to exclude it from item.
-    const nonVisibleHeaderKeys = manageTableProperties.value ? Object.keys(flattenItem).filter(
+  const generateSearchingTarget = (row: Row): string => {
+    const rowWithoutControlKeys = excludeKeysFromObj(row, rowIgnoreKeys);
+    const flattenRow = flattenObj(rowWithoutControlKeys);
+    // Obtain those header keys that are not visible to exclude it from row.
+    const nonVisibleHeaderKeys = manageTableProperties.value ? Object.keys(flattenRow).filter(
       (key) => !checkedTableProperties.value.includes(key),
     ) : [];
     if (typeof searchField.value === 'string' && searchField.value !== '') {
-      // Exclude non visible header keys from flatten item keys and un flat flatten item.
-      const unFlattenItem = unFlattenObj(excludeKeysFromObj(flattenItem, nonVisibleHeaderKeys));
-      return getItemValue(searchField.value, unFlattenItem);
+      // Exclude non visible header keys from flatten row keys and un flat flatten row.
+      const unFlattenRow = unFlattenObj(excludeKeysFromObj(flattenRow, nonVisibleHeaderKeys)) as Row;
+      return getRowValue(searchField.value, unFlattenRow);
     }
     if (Array.isArray(searchField.value)) {
-      const unFlattenItem = unFlattenObj(excludeKeysFromObj(flattenItem, nonVisibleHeaderKeys));
+      const unFlattenRow = unFlattenObj(excludeKeysFromObj(flattenRow, nonVisibleHeaderKeys)) as Row;
       let searchString = '';
       searchField.value.forEach((field) => {
-        searchString += getItemValue(field, unFlattenItem);
+        searchString += getRowValue(field, unFlattenRow);
       });
       return searchString;
     }
-    const flattenFilteredItem = excludeKeysFromObj(flattenItem, nonVisibleHeaderKeys);
-    return Object.values(flattenFilteredItem).join(' ');
+    const flattenFilteredRow = excludeKeysFromObj(flattenRow, nonVisibleHeaderKeys);
+    return Object.values(flattenFilteredRow).join(' ');
   };
 
   const updateExactMatchRowsMetaIndex = (rows: Row[]) => {
     const exactMatchRowsDictionary = new Map();
     let exactMatchCounter = ZERO;
-    rows.forEach((rowItem, idx) => {
+    rows.forEach((row, idx) => {
       let index = idx;
-      if (rowItem.meta.isExactMatch) {
+      if (row.meta.isExactMatch) {
         index = exactMatchCounter;
         exactMatchCounter += 1;
       }
-      exactMatchRowsDictionary.set(rowItem, {
+      exactMatchRowsDictionary.set(row, {
         index,
-        exactMatch: rowItem.meta.isExactMatch,
+        exactMatch: row.meta.isExactMatch,
       });
     });
 
@@ -86,121 +86,121 @@ export default function useTotalItems(
       }
     });
 
-    rows.forEach((rowItem) => {
-      if (exactMatchRowsDictionary.has(rowItem)) {
-        const { index } = exactMatchRowsDictionary.get(rowItem);
-        rowItem.meta.index = index;
+    rows.forEach((row) => {
+      if (exactMatchRowsDictionary.has(row)) {
+        const { index } = exactMatchRowsDictionary.get(row);
+        row.meta.index = index;
       }
     });
   };
 
-  const handleExactMatch = (rowItems: Row[]) => {
-    if (!rowItems.length) return;
-    rowItems.forEach((rowItem) => {
-      rowItem.meta.exactMatchColumns = [];
-      const rowItemWithoutControlKeys = flattenObj(excludeKeysFromObj(rowItem, itemIgnoreKeys));
-      const rowItemKeys = Object.keys(rowItemWithoutControlKeys);
-      rowItemKeys.forEach((rowItemKey) => {
+  const handleExactMatch = (rows: Row[]) => {
+    if (!rows.length) return;
+    rows.forEach((row) => {
+      row.meta.exactMatchColumns = [];
+      const rowWithoutControlKeys = flattenObj(excludeKeysFromObj(row, rowIgnoreKeys));
+      const rowKeys = Object.keys(rowWithoutControlKeys);
+      rowKeys.forEach((rowKey) => {
         const hasColumnExactMatch = (isExactMatchCaseSensitive.value
-          ? rowItemWithoutControlKeys[rowItemKey].toString() === searchValue.value
-          : rowItemWithoutControlKeys[rowItemKey].toString().toLowerCase() === searchValue.value.toLowerCase());
+          ? rowWithoutControlKeys[rowKey].toString() === searchValue.value
+          : rowWithoutControlKeys[rowKey].toString().toLowerCase() === searchValue.value.toLowerCase());
         if (hasColumnExactMatch) {
-          rowItem.meta.exactMatchColumns.push(rowItemKey);
+          row.meta.exactMatchColumns.push(rowKey);
         }
       });
-      rowItem.meta.isExactMatch = Boolean(rowItem.meta.exactMatchColumns.length);
-      handleExactMatch(rowItem.meta.children);
+      row.meta.isExactMatch = Boolean(row.meta.exactMatchColumns.length);
+      handleExactMatch(row.meta.children);
     });
-    updateExactMatchRowsMetaIndex(rowItems);
+    updateExactMatchRowsMetaIndex(rows);
   };
 
   const isFiltering = computed(() => searchValue.value !== '');
 
-  const rowMatch = (rowItem: Row) => {
-    rowItem.meta.children = rowItem.meta.initialChildren.filter(rowMatch);
+  const rowMatch = (row: Row) => {
+    row.meta.children = row.meta.initialChildren.filter(rowMatch);
 
     if (!isFiltering.value) {
       return true;
     }
 
-    if (rowItem.meta.children.length) {
-      rowItem.meta.showChildren = true;
+    if (row.meta.children.length) {
+      row.meta.showChildren = true;
     }
-    const isRowMatch = new RegExp(searchValue.value, 'i').test(generateSearchingTarget(rowItem));
-    return isRowMatch || rowItem.meta.children.length;
+    const isRowMatch = new RegExp(searchValue.value, 'i').test(generateSearchingTarget(row));
+    return isRowMatch || row.meta.children.length;
   };
 
-  // items searching
-  const itemsSearching = computed((): Row[] => {
+  // rows searching
+  const rowsSearching = computed((): Row[] => {
     // searching feature is not available in server-side mode
     if (isServerSideMode.value) {
-      return items.value;
+      return tableRows.value;
     }
-    return items.value.filter(rowMatch);
+    return tableRows.value.filter(rowMatch);
   });
 
-  // items filtering
-  const itemsFiltering = computed((): Row[] => {
-    let itemsFiltered = [...itemsSearching.value];
+  // rows filtering
+  const rowsFiltering = computed((): Row[] => {
+    let rowsFiltered = [...rowsSearching.value];
     if (filterOptions.value) {
       filterOptions.value.forEach((option: FilterOption) => {
-        itemsFiltered = itemsFiltered.filter((item) => {
+        rowsFiltered = rowsFiltered.filter((row) => {
           const { field, comparison, criteria } = option;
           if (typeof comparison === 'function') {
-            return comparison(getItemValue(field, item), criteria as string);
+            return comparison(getRowValue(field, row), criteria as string);
           }
-          const itemValue = getItemValue(field, item);
+          const rowValue = getRowValue(field, row);
           switch (comparison) {
             case '=':
-              return itemValue === criteria;
+              return rowValue === criteria;
             case '!=':
-              return itemValue !== criteria;
+              return rowValue !== criteria;
             case '>':
-              return itemValue > criteria;
+              return rowValue > criteria;
             case '<':
-              return itemValue < criteria;
+              return rowValue < criteria;
             case '<=':
-              return itemValue <= criteria;
+              return rowValue <= criteria;
             case '>=':
-              return itemValue >= criteria;
+              return rowValue >= criteria;
             case 'between':
-              return itemValue >= Math.min(...criteria) && itemValue <= Math.max(...criteria);
+              return rowValue >= Math.min(...criteria) && rowValue <= Math.max(...criteria);
             default:
-              return itemValue === criteria;
+              return rowValue === criteria;
           }
         });
       });
-      return itemsFiltered;
+      return rowsFiltered;
     }
-    return itemsSearching.value;
+    return rowsSearching.value;
   });
 
   const moveRowsToTheirPosition = (rows: Row[]) => {
     if (!rows.length) {
       return rows;
     }
-    rows.forEach((rowItem) => {
-      moveRowsToTheirPosition(rowItem.meta.children);
+    rows.forEach((row) => {
+      moveRowsToTheirPosition(row.meta.children);
     });
     return rows.sort((rowA, rowB) => rowA.meta.index - rowB.meta.index);
   };
 
-  const sortRows = (sortByArr: string[], sortDescArr: boolean[], itemsToSort: Row[], index: number): Row[] => {
+  const sortRows = (sortByArr: string[], sortDescArr: boolean[], rowsToSort: Row[], index: number): Row[] => {
     const sortBy = sortByArr[index];
     const sortDesc = sortDescArr[index];
-    const sorted = (index === ZERO ? itemsToSort
-      : sortRows(sortByArr, sortDescArr, itemsToSort, index - 1)).sort((rowA: Row, rowB: Row) => {
+    const sorted = (index === ZERO ? rowsToSort
+      : sortRows(sortByArr, sortDescArr, rowsToSort, index - 1)).sort((rowA: Row, rowB: Row) => {
       let isAllSame = true;
       for (let i = ZERO; i < index; i += 1) {
-        if (getItemValue(sortByArr[i], rowA) !== getItemValue(sortByArr[i], rowB)) {
+        if (getRowValue(sortByArr[i], rowA) !== getRowValue(sortByArr[i], rowB)) {
           isAllSame = false;
           break;
         }
       }
       if (isAllSame) {
         const direction = sortDescArr[index] ? -1 : 1;
-        const sortValueA = getItemValue(sortBy, rowA);
-        const sortValueB = getItemValue(sortBy, rowB);
+        const sortValueA = getRowValue(sortBy, rowA);
+        const sortValueB = getRowValue(sortBy, rowB);
 
         if (sortValueA < sortValueB) {
           return -direction;
@@ -234,8 +234,8 @@ export default function useTotalItems(
 
   // flow: searching => filtering => sorting
   // (last step: sorting)
-  const totalItems = computed((): Row[] => {
-    const entities = isServerSideMode.value ? items.value : itemsFiltering.value;
+  const totalRows = computed((): Row[] => {
+    const entities = isServerSideMode.value ? tableRows.value : rowsFiltering.value;
     if (isFiltering.value && exactMatch.value) {
       handleExactMatch(entities);
     }
@@ -244,39 +244,39 @@ export default function useTotalItems(
       return entities;
     }
     const { sortBy, sortDesc } = filteredClientSortOptions.value;
-    const itemsFilteringSorted = [...entities];
+    const rowsFilteringSorted = [...entities];
     // multi sort
     if (multiSort && Array.isArray(sortBy) && Array.isArray(sortDesc)) {
       if (!sortBy.length) {
-        return itemsFilteringSorted;
+        return rowsFilteringSorted;
       }
-      return sortRows(sortBy, sortDesc, itemsFilteringSorted, sortBy.length - 1);
+      return sortRows(sortBy, sortDesc, rowsFilteringSorted, sortBy.length - 1);
     }
     const isSortByColumnVisible = headerColumns.value.includes(sortBy as string);
     // If sort by column is not visible does not make sense to sort by it.
-    if (!isSortByColumnVisible) return itemsFilteringSorted;
-    return sortRows([sortBy as string], [sortDesc as boolean], itemsFilteringSorted, ZERO);
+    if (!isSortByColumnVisible) return rowsFilteringSorted;
+    return sortRows([sortBy as string], [sortDesc as boolean], rowsFilteringSorted, ZERO);
   });
 
   // eslint-disable-next-line max-len
-  const totalItemsLength = computed((): number => (isServerSideMode.value ? serverItemsLength.value : totalItems.value.length));
+  const totalRowsLength = computed((): number => (isServerSideMode.value ? serverItemsLength.value : totalRows.value.length));
 
   const clearSearching = (rows: Row[]) => {
     if (!rows.length) return;
-    rows.forEach((rowItem) => {
-      rowItem.meta.exactMatchColumns = [];
-      if (rowItem.meta.index !== rowItem.meta.originalIndex) {
-        rowItem.meta.index = rowItem.meta.originalIndex;
+    rows.forEach((row) => {
+      row.meta.exactMatchColumns = [];
+      if (row.meta.index !== row.meta.originalIndex) {
+        row.meta.index = row.meta.originalIndex;
       }
-      clearSearching(rowItem.meta.children);
+      clearSearching(row.meta.children);
     });
   };
 
   watch(searchValue, () => {
-    clearSearching(items.value);
+    clearSearching(tableRows.value);
   });
 
-  watch(itemsFiltering, (newVal) => {
+  watch(rowsFiltering, (newVal) => {
     if (filterOptions.value) {
       emits('updateFilter', newVal);
     }
@@ -290,10 +290,10 @@ export default function useTotalItems(
 
   const changeRowSelectedStateRecursively = (rows: Row[], isChecked: boolean) => {
     if (!rows.length) return;
-    rows.forEach((rowItem) => {
-      rowItem.meta.selected = isChecked;
-      if (rowItem.meta.children.length) {
-        changeRowSelectedStateRecursively(rowItem.meta.children, isChecked);
+    rows.forEach((row) => {
+      row.meta.selected = isChecked;
+      if (row.meta.children.length) {
+        changeRowSelectedStateRecursively(row.meta.children, isChecked);
       }
     });
   };
@@ -302,35 +302,35 @@ export default function useTotalItems(
     if (!isMultiSelect.value) {
       return;
     }
-    changeRowSelectedStateRecursively(totalItems.value, isChecked);
+    changeRowSelectedStateRecursively(totalRows.value, isChecked);
     if (!isChecked) {
       selectedRows.value = [];
       return;
     }
-    selectedRows.value = totalItems.value;
+    selectedRows.value = totalRows.value;
   };
 
-  const toggleSelectItem = (item: Row):void => {
-    const isAlreadySelected = item.meta.selected;
-    item.meta.selected = !item.meta.selected;
+  const toggleSelectRow = (row: Row):void => {
+    const isAlreadySelected = row.meta.selected;
+    row.meta.selected = !row.meta.selected;
     if (isAlreadySelected) {
       selectedRows.value = selectedRows.value
-        .filter((selectedItem) => item.meta.uniqueIndex !== selectedItem.meta.uniqueIndex);
+        .filter((selectedRow) => row.meta.uniqueIndex !== selectedRow.meta.uniqueIndex);
     } else if (!isMultiSelect.value && selectedRows.value.length === 1) {
       selectedRows.value[0].meta.selected = false;
-      selectedRows.value = [item];
+      selectedRows.value = [row];
     } else {
-      const selectItemsArr: Row[] = selectedRows.value;
-      selectItemsArr.unshift(item);
-      selectedRows.value = selectItemsArr;
+      const selectRowsArr: Row[] = selectedRows.value;
+      selectRowsArr.unshift(row);
+      selectedRows.value = selectRowsArr;
     }
   };
 
   return {
-    totalItems,
+    totalRows,
     selectedRows,
-    totalItemsLength,
+    totalRowsLength,
     toggleSelectAll,
-    toggleSelectItem,
+    toggleSelectRow,
   };
 }

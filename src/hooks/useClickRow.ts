@@ -9,7 +9,7 @@ import type { EmitsEventName, ClickEventType } from '../types/internal';
 
 export default function useClickRow(
   isMultiSelect: ComputedRef<boolean>,
-  pageItems: ComputedRef<Row[]>,
+  pageRows: ComputedRef<Row[]>,
   selectedRows: Ref<Row[]>,
   clickEventType: Ref<ClickEventType>,
   showIndex: Ref<boolean>,
@@ -24,12 +24,12 @@ export default function useClickRow(
   };
 
   const clearSelection = () => {
-    setSelectedMetaForRows(pageItems.value, false);
+    setSelectedMetaForRows(pageRows.value, false);
   };
 
   const handleShiftKey = (row: Item) => {
-    let minKey = pageItems.value.findIndex((item) => item.meta.uniqueIndex === row.meta.uniqueIndex);
-    let maxKey = pageItems.value.findIndex((item) => item.meta.uniqueIndex === firstSelectedRowIndex.value);
+    let minKey = pageRows.value.findIndex((pageRow) => pageRow.meta.uniqueIndex === row.meta.uniqueIndex);
+    let maxKey = pageRows.value.findIndex((pageRow) => pageRow.meta.uniqueIndex === firstSelectedRowIndex.value);
     const keys = [
       minKey,
       maxKey,
@@ -39,7 +39,7 @@ export default function useClickRow(
       maxKey,
     ] = keys.sort((a, b) => a - b);
     clearSelection();
-    const pageItemsRange = pageItems.value.slice(minKey, maxKey + 1);
+    const pageItemsRange = pageRows.value.slice(minKey, maxKey + 1);
     setSelectedMetaForRows(pageItemsRange, true);
     selectedRows.value = pageItemsRange;
   };

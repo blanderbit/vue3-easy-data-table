@@ -54,9 +54,9 @@
       @update-sort="updateSort"
       @update-filter="updateFilter"
     >
-      <template #expand="item">
+      <template #expand="row">
         <div style="padding: 15px">
-          {{ item.player }} in {{ item.team }} won championships
+          {{ row.player }} in {{ row.team }} won championships.
         </div>
       </template>
 
@@ -78,15 +78,15 @@
         </div>
       </template>
 
-      <template #item-lastAttended="item">
+      <template #row-lastAttended="row">
         <div style="padding: 15px">
-          {{ item.lastAttended }} camelCase
+          {{ row.lastAttended }} camelCase
         </div>
       </template>
 
-      <template #item-player="item">
+      <template #row-player="row">
         <div style="padding: 15px">
-          {{ item.player }} player
+          {{ row.player }} player
         </div>
       </template>
 
