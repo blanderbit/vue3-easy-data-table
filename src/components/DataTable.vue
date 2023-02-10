@@ -834,6 +834,7 @@ defineExpose({
     --easy-table-rows-per-page-selector-option-padding: 5px;
     /*message*/
     --easy-table-message-font-color: #212121;
+    --easy-table-message-font-weight: 500;
     --easy-table-message-font-size: 12px;
     --easy-table-message-padding: 20px;
     /*loading-mask*/
