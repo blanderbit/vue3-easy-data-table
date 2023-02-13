@@ -20,7 +20,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import type {
-  Header, Item,
+  Header,
+  Item,
+  Row,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 
@@ -40,7 +42,7 @@ const items = ref<Item[]>([
   { player: '4Giannis Antetokounmpo', team: 'MIL' },
 ]);
 
-const selectedRows = ref<Item[]>([]);
+const selectedRows = ref<Row[]>([]);
 
 const mockItemIntroduction = async (name: string): Promise<string> => {
   await new Promise((s) => setTimeout(s, 2000));

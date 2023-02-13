@@ -96,6 +96,7 @@ import {
   ServerOptions,
   UpdateSortArgument,
   BodyRowClassNameFunction,
+  Row,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 import { mockServerItems } from '../mock';
@@ -117,7 +118,7 @@ export default defineComponent({
     // ];
     const headers = tableHeaders;
     const items = ref<Item[]>([]);
-    const selectedRows = ref<Item[]>([]);
+    const selectedRows = ref<Row[]>([]);
     const serverItemsLength = ref(0);
     const serverOptions = ref<ServerOptions>({
       page: 1,

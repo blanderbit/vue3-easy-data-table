@@ -159,6 +159,7 @@ import type {
   BodyItemClassNameFunction,
   BodyRowClassNameFunction,
   SortType,
+  Row,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 import {
@@ -193,7 +194,7 @@ const items = ref(tableItems);
 // const items = ref<Item[]>(mockClientItems());
 const headers = tableHeaders;
 
-const selectedRows = ref<Item[]>([]);
+const selectedRows = ref<Row[]>([]);
 
 watch(selectedRows, (val) => {
   console.log('debug selectedRows on client side', val);
