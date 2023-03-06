@@ -279,6 +279,7 @@ table {
 }
 .vue3-easy-data-table__message {
   color: var(--easy-table-message-font-color);
+  font-weight: var(--easy-table-message-font-weight);
   font-size: var(--easy-table-message-font-size);
   padding: var(--easy-table-message-padding);
 

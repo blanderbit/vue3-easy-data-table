@@ -7,19 +7,19 @@ export default function usePagination(
   currentPage: Ref<number>,
   isServerSideMode: ComputedRef<boolean>,
   loading: Ref<boolean>,
-  totalItemsLength: Ref<number>,
+  totalRowsLength: Ref<number>,
   rowsPerPage: Ref<number>,
   serverOptions: Ref<ServerOptions | null>,
   updateServerOptionsPage: (page: number) => void,
 ) {
   const currentPaginationNumber = ref(serverOptions.value ? serverOptions.value.page : currentPage.value);
-  const maxPaginationNumber = computed((): number => Math.ceil(totalItemsLength.value / rowsPerPage.value));
+  const maxPaginationNumber = computed((): number => Math.ceil(totalRowsLength.value / rowsPerPage.value));
   // eslint-disable-next-line max-len
   const isLastPage = computed((): boolean => maxPaginationNumber.value === 0 || (currentPaginationNumber.value === maxPaginationNumber.value));
   const isFirstPage = computed((): boolean => currentPaginationNumber.value === 1);
 
   const firstPage = () => {
-    if (totalItemsLength.value === 0 || loading.value) return;
+    if (!totalRowsLength.value || loading.value) return;
     if (isServerSideMode.value) {
       updateServerOptionsPage(1);
     } else {
@@ -28,7 +28,7 @@ export default function usePagination(
   };
 
   const nextPage = () => {
-    if (totalItemsLength.value === 0) return;
+    if (!totalRowsLength.value) return;
     if (isLastPage.value) return;
     if (loading.value) return;
     if (isServerSideMode.value) {
@@ -40,7 +40,7 @@ export default function usePagination(
   };
 
   const prevPage = () => {
-    if (totalItemsLength.value === 0) return;
+    if (!totalRowsLength.value) return;
     if (isFirstPage.value) return;
     if (loading.value) return;
     if (isServerSideMode.value) {
@@ -52,7 +52,7 @@ export default function usePagination(
   };
 
   const lastPage = () => {
-    if (totalItemsLength.value === 0 || loading.value) return;
+    if (!totalRowsLength.value || loading.value) return;
     if (isServerSideMode.value) {
       updateServerOptionsPage(maxPaginationNumber.value);
     } else {

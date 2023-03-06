@@ -1,6 +1,6 @@
 import { PropType } from 'vue';
 import type {
-  SortType, Item, ServerOptions, FilterOption,
+  SortType, ServerOptions, FilterOption,
   HeaderItemClassNameFunction, BodyItemClassNameFunction, BodyRowClassNameFunction,
   TextDirection,
 } from './types/main';
@@ -20,6 +20,10 @@ export default {
   paginationWithInput: {
     type: Boolean,
     default: false,
+  },
+  hasCheckboxColumn: {
+    type: Boolean,
+    default: true,
   },
   checkboxColumnWidth: {
     type: Number,
@@ -80,10 +84,6 @@ export default {
   indexColumnWidth: {
     type: Number,
     default: 60,
-  },
-  itemsSelected: {
-    type: Array as PropType<Item[]> | null,
-    default: null,
   },
   loading: {
     type: Boolean,
@@ -214,6 +214,10 @@ export default {
   manageTableProperties: {
     type: Boolean,
     default: false,
+  },
+  manageTablePropertiesLabel: {
+    type: String,
+    default: 'Properties',
   },
   columnsResizable: {
     type: Boolean,

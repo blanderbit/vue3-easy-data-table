@@ -44,5 +44,5 @@ export type ClickEventType = 'single' | 'double'
 export type MultipleSelectStatus = 'allSelected' | 'noneSelected' | 'partSelected'
 
 // eslint-disable-next-line max-len
-export type EmitsEventName = 'clickRow' | 'expandRow' | 'updateSort' | 'update:itemsSelected' | 'update:serverOptions' | 'updateFilter'
+export type EmitsEventName = 'clickRow' | 'expandRow' | 'updateSort' | 'update:selectedRows' | 'update:serverOptions' | 'updateFilter'
 export type ObjectValues<T> = T[keyof T];

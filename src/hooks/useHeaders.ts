@@ -28,6 +28,7 @@ export default function useHeaders(
   sortBy: Ref<string | string[]>,
   sortType: Ref<SortType | SortType[]>,
   multiSort: Ref<boolean>,
+  hasCheckboxColumn: Ref<boolean>,
   updateServerOptionsSort: (newSortBy: string, newSortType: SortType | null) => void,
   emits: (event: EmitsEventName, ...args: any[]) => void,
 ) {
@@ -154,10 +155,14 @@ export default function useHeaders(
     }
     // checkbox
     let headersWithCheckbox: HeaderForRender[] = [];
-    const headerCheckbox: HeaderForRender = (fixedCheckbox.value || hasFixedColumnsFromUser.value) ? {
-      text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 70,
-    } : { text: 'checkbox', value: 'checkbox' };
-    headersWithCheckbox = [headerCheckbox, ...headersWithIndex];
+    let headerCheckbox: HeaderForRender | null = null;
+    if (hasCheckboxColumn.value) {
+      headerCheckbox = (fixedCheckbox.value || hasFixedColumnsFromUser.value) ? {
+        text: 'checkbox', value: 'checkbox', fixed: true, width: checkboxColumnWidth.value ?? 70,
+      } : { text: 'checkbox', value: 'checkbox' };
+      headersWithCheckbox.push(headerCheckbox);
+    }
+    headersWithCheckbox = [...headersWithCheckbox, ...headersWithIndex];
     return headersWithCheckbox.filter((header) => {
       if (header.grouped && !header.hideOnGroup) {
         return true;

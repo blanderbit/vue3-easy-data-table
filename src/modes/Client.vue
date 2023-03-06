@@ -16,12 +16,13 @@
   <div>
     <DataTable
       ref="dataTable"
-      v-model:items-selected="itemsSelected"
+      v-model:selected-rows="selectedRows"
       :click-row-to-expand="false"
       :exact-match="true"
       :is-exact-match-case-sensitive="true"
       :show-index="true"
       :manage-table-properties="true"
+      manage-table-properties-label="Custom properties label"
       selectable="single"
       alternating
       border-cell
@@ -34,6 +35,7 @@
       :buttons-pagination="false"
       :pagination-with-input="true"
       :columns-resizable="true"
+      :has-checkbox-column="true"
       :sort-by="sortBy"
       :sort-type="sortType"
       theme-color="#1d90ff"
@@ -52,9 +54,9 @@
       @update-sort="updateSort"
       @update-filter="updateFilter"
     >
-      <template #expand="item">
+      <template #expand="row">
         <div style="padding: 15px">
-          {{ item.player }} in {{ item.team }} won championships
+          {{ row.player }} in {{ row.team }} won championships.
         </div>
       </template>
 
@@ -76,15 +78,15 @@
         </div>
       </template>
 
-      <template #item-lastAttended="item">
+      <template #row-lastAttended="row">
         <div style="padding: 15px">
-          {{ item.lastAttended }} camelCase
+          {{ row.lastAttended }} camelCase
         </div>
       </template>
 
-      <template #item-player="item">
+      <template #row-player="row">
         <div style="padding: 15px">
-          {{ item.player }} player
+          {{ row.player }} player
         </div>
       </template>
 
@@ -157,6 +159,7 @@ import type {
   BodyItemClassNameFunction,
   BodyRowClassNameFunction,
   SortType,
+  Row,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
 import {
@@ -191,10 +194,10 @@ const items = ref(tableItems);
 // const items = ref<Item[]>(mockClientItems());
 const headers = tableHeaders;
 
-const itemsSelected = ref<Item[]>([]);
+const selectedRows = ref<Row[]>([]);
 
-watch(itemsSelected, (val) => {
-  console.log('debug itemsSelected', val);
+watch(selectedRows, (val) => {
+  console.log('debug selectedRows on client side', val);
 }, {
   immediate: true,
   deep: true,
@@ -360,9 +363,9 @@ const debouncedInput = (event: InputEvent) => {
   --easy-table-body-row-background-color: #2d3a4f;
   --easy-table-body-row-height: 40px;
   --easy-table-body-row-font-size: 14px;
-
   --easy-table-body-row-hover-font-color: #2d3a4f;
   --easy-table-body-row-hover-background-color: #eee;
+  --easy-table-body-selected-row-background-color: #506c67;
 
   /* --easy-table-body-item-padding: 10px 15px; */
 

@@ -127,8 +127,8 @@ describe('Data Table', () => {
       const lastPageButton = findWrapperItemByTestId('last-page-click-button');
       expect(firstPageButton.exists()).toBe(true);
       expect(lastPageButton.exists()).toBe(true);
-      const firstPageDoubleArrow = findNodeItemsByTestId(firstPageButton, 'arrow-right-icon');
-      const lastPageDoubleArrow = findNodeItemsByTestId(lastPageButton, 'arrow-left-icon');
+      const firstPageDoubleArrow = findNodeItemsByTestId(firstPageButton, 'arrow-left-icon');
+      const lastPageDoubleArrow = findNodeItemsByTestId(lastPageButton, 'arrow-right-icon');
       expect(firstPageDoubleArrow.length).equal(1);
       expect(lastPageDoubleArrow.length).equal(1);
     });
@@ -351,7 +351,7 @@ describe('Data Table', () => {
         await firstTableRow.trigger('click');
         expect(firstTableRow.classes()).toContain('selected');
         expect(firstTableRowSelectCheckbox.props().checked).toBeTruthy();
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(1);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeTruthy(); // element at 0 index.
         expect(updateItemsSelectedEvent[0]).toEqual([[initialRows[0]]]);
@@ -376,7 +376,7 @@ describe('Data Table', () => {
         await firstSingleCheckbox.trigger('click');
         expect(firstTableRow.classes()).toContain('selected');
         expect(firstSingleCheckbox.find('input').attributes()).toHaveProperty('checked');
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(1);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeTruthy(); // element at 0 index.
         expect(updateItemsSelectedEvent[0]).toEqual([[initialRows[0]]]);
@@ -410,7 +410,7 @@ describe('Data Table', () => {
         expect(firstTableRowSelectCheckbox.props().checked).toBeFalsy();
         expect(secondTableRowSelectCheckbox.props().checked).toBeTruthy();
 
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(2);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
         expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
@@ -445,7 +445,7 @@ describe('Data Table', () => {
         expect(firstTableRowSelectCheckbox.props().checked).toBeFalsy();
         expect(secondTableRowSelectCheckbox.props().checked).toBeTruthy();
 
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(2);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
         expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
@@ -480,7 +480,7 @@ describe('Data Table', () => {
         expect(firstTableRowSelectCheckbox.props().checked).toBeFalsy();
         expect(secondTableRowSelectCheckbox.props().checked).toBeTruthy();
 
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(2);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
         expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
@@ -517,7 +517,7 @@ describe('Data Table', () => {
         expect(firstTableRow.classes()).not.toContain('selected');
         expect(firstSingleCheckboxInput.attributes()).not.toHaveProperty('checked');
         expect(secondSingleCheckboxInput.attributes()).toHaveProperty('checked');
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(2);
         expect(updateItemsSelectedEvent[0][0][0].meta.selected).toBeFalsy(); // element at 0 index.
         expect(updateItemsSelectedEvent[1][0][0].meta.selected).toBeTruthy(); // element at 1 index.
@@ -539,7 +539,7 @@ describe('Data Table', () => {
           expect(tableRow.classes()).not.toContain('selected');
         });
         await wrapper.find('thead .easy-checkbox').trigger('click');
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toBeFalsy();
         tableRows.forEach((tableRow) => {
           expect(tableRow.classes()).not.toContain('selected');
@@ -574,7 +574,7 @@ describe('Data Table', () => {
         await thirdTableRow.trigger('click');
         expect(firstTableRowSelectCheckbox.props().checked).toBeFalsy();
         expect(thirdTableRowSelectCheckbox.props().checked).toBeTruthy();
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(2);
         updateItemsSelectedEvent[1][0].forEach((updateItemsSelectedEventElement) => {
           expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
@@ -614,7 +614,7 @@ describe('Data Table', () => {
         expect(firstTableRowSelectCheckbox.props().checked).toBeTruthy();
         expect(secondTableRowSelectCheckbox.props().checked).toBeTruthy();
         expect(secondTableRow.classes()).toContain('selected');
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(2);
         updateItemsSelectedEvent[1][0].forEach((updateItemsSelectedEventElement) => {
           expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
@@ -644,7 +644,7 @@ describe('Data Table', () => {
         const firstSingleCheckboxInSecondPage = singleCheckboxArrInSecondPage.at(1);
         await firstSingleCheckboxInSecondPage.trigger('click');
 
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(2);
         updateItemsSelectedEvent[1][0].forEach((updateItemsSelectedEventElement) => {
           expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
@@ -667,7 +667,7 @@ describe('Data Table', () => {
         await firstTableRow.trigger('click');
         const thirdTableRow = tableRows.at(2);
         await thirdTableRow.trigger('click', { shiftKey: true });
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(2);
         tableRows.slice(0, 2).forEach((tableRow) => {
           expect(tableRow.classes()).toContain('selected');
@@ -695,7 +695,7 @@ describe('Data Table', () => {
         expect(thirdTableRow.classes()).not.toContain('selected');
         await firstTableRow.trigger('click');
         await thirdTableRow.trigger('click', { ctrlKey: true });
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(2);
         updateItemsSelectedEvent[1][0].forEach((updateItemsSelectedEventElement) => {
           expect(updateItemsSelectedEventElement.meta.selected).toBeTruthy();
@@ -720,7 +720,7 @@ describe('Data Table', () => {
           expect(tableRow.classes()).not.toContain('selected');
         });
         await wrapper.find('thead .easy-checkbox').trigger('click');
-        const updateItemsSelectedEvent = wrapper.emitted('update:itemsSelected');
+        const updateItemsSelectedEvent = wrapper.emitted('update:selectedRows');
         expect(updateItemsSelectedEvent).toHaveLength(1);
         updateItemsSelectedEvent[0][0].forEach((updateItemsSelectedEventElement, idx) => {
           expect(tableRows[idx].classes()).toContain('selected');
@@ -1367,6 +1367,39 @@ describe('Data Table', () => {
         sortBy: 'height',
         sortType: 'desc',
       }]);
+    });
+  });
+
+  describe('Has checkbox column', () => {
+    it('should render table headers with checkbox column', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          showIndex: false,
+          clickRowToExpand: false,
+        },
+      });
+
+      const tableHeaders = findWrapperItemsByTestId('table-header-item');
+      expect(tableHeaders.length).toBe(11);
+    });
+
+    it('should not render table headers with checkbox column', async () => {
+      const mockItems = mockClientItems(1);
+      mountDataTableComponent({
+        props: {
+          items: mockItems,
+          headers: headersMocked,
+          hasCheckboxColumn: false,
+          showIndex: false,
+          clickRowToExpand: false,
+        },
+      });
+
+      const tableHeaders = findWrapperItemsByTestId('table-header-item');
+      expect(tableHeaders.length).toBe(10);
     });
   });
 });

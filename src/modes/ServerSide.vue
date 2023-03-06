@@ -3,7 +3,7 @@
   <div>
     <DataTable
       ref="dataTable"
-      v-model:items-selected="itemsSelected"
+      v-model:selected-rows="selectedRows"
       v-model:server-options="serverOptions"
       :headers="headers"
       :items="items"
@@ -89,19 +89,17 @@
 
 <script lang="ts">
 import {
-  defineComponent, ref, computed, watch, onMounted, Ref,
+  defineComponent, ref, computed, watch, onMounted,
 } from 'vue';
 import {
-  Header,
   Item,
   ServerOptions,
   UpdateSortArgument,
-  BodyItemClassNameFunction,
   BodyRowClassNameFunction,
-  HeaderItemClassNameFunction,
+  Row,
 } from '../types/main';
 import DataTable from '../components/DataTable.vue';
-import { mockClientItems, mockServerItems } from '../mock';
+import { mockServerItems } from '../mock';
 import { tableHeaders, tableItems } from '../data/table-data';
 
 export default defineComponent({
@@ -120,7 +118,7 @@ export default defineComponent({
     // ];
     const headers = tableHeaders;
     const items = ref<Item[]>([]);
-    const itemsSelected = ref<Item[]>([items.value[0]]);
+    const selectedRows = ref<Row[]>([]);
     const serverItemsLength = ref(0);
     const serverOptions = ref<ServerOptions>({
       page: 1,
@@ -153,12 +151,20 @@ export default defineComponent({
       },
       { deep: true },
     );
+
+    watch(selectedRows, (val) => {
+      console.log('debug selectedRows on server side', val);
+    }, {
+      immediate: true,
+      deep: true,
+    });
+
     // $ref dataTable
     const dataTable = ref();
     // index related
     const currentPageFirstIndex = computed(() => dataTable.value?.currentPageFirstIndex);
     const currentPageLastIndex = computed(() => dataTable.value?.currentPageLastIndex);
-    const clientItemsLength = computed(() => dataTable.value?.clientItemsLength);
+    const clientRowsLength = computed(() => dataTable.value?.clientRowsLength);
 
     const updateSort = (sortOption: UpdateSortArgument) => {
       console.log(sortOption);
@@ -200,7 +206,7 @@ export default defineComponent({
       currentPaginationNumber,
       isFirstPage,
       isLastPage,
-      itemsSelected,
+      selectedRows,
       nextPage,
       prevPage,
       updatePage,

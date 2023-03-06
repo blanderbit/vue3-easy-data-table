@@ -6,9 +6,11 @@
     :class="{'first-page': isFirstPage}"
     @click="emits('clickFirstPage')"
   >
-    <i
-      data-test-id="arrow-right-icon"
-      class="arrow arrow-right fa fa-angles-left fa-lg"
+    <app-icon
+      data-test-id="arrow-left-icon"
+      class="arrow arrow-left"
+      icon="angles-left"
+      size="lg"
     />
   </div>
   <div
@@ -16,7 +18,11 @@
     :class="{'first-page': isFirstPage}"
     @click="emits('clickPrevPage')"
   >
-    <i class="arrow arrow-right fa fa-angle-left fa-lg" />
+    <app-icon
+      class="arrow arrow-left"
+      icon="angle-left"
+      size="lg"
+    />
   </div>
   <slot
     v-if="slots.buttonsPagination"
@@ -31,7 +37,11 @@
     :class="{'last-page': isLastPage}"
     @click="emits('clickNextPage')"
   >
-    <i class="arrow arrow-left fa fa-angle-right fa-lg" />
+    <app-icon
+      class="arrow arrow-right"
+      icon="angle-right"
+      size="lg"
+    />
   </div>
   <div
     v-if="hasDoubleArrows"
@@ -40,15 +50,18 @@
     :class="{'last-page': isLastPage}"
     @click="emits('clickLastPage')"
   >
-    <i
-      data-test-id="arrow-left-icon"
-      class="arrow arrow-left fa fa-angles-right fa-lg"
+    <app-icon
+      data-test-id="arrow-right-icon"
+      class="arrow arrow-right"
+      icon="angles-right"
+      size="lg"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useSlots } from 'vue';
+import AppIcon from './AppIcon.vue';
 
 defineProps({
   isFirstPage: { type: Boolean, required: false },

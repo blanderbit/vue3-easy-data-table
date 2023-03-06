@@ -31,14 +31,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:analyze": "cross-env VITE_APP_RUN_BUNDLE_ANALYZER=true npm run build",
     "preview": "vite preview",
     "lint": "eslint --ext .vue,.html,.js,.ts --fix src",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^6.1.2",
     "uuid": "^9.0.0",
-    "vue": "^3.2.25"
+    "vue": "^3.2.25",
+    "vue-fa": "^4.0.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",
@@ -46,18 +49,20 @@
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
-    "@vitejs/plugin-vue": "^2.3.3",
+    "@vitejs/plugin-vue": "^4.0.0",
     "@vue/test-utils": "^2.2.4",
+    "cross-env": "^7.0.3",
     "eslint": "^8.15.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-unused-imports": "^2.0.0",
     "eslint-plugin-vue": "^8.7.1",
     "happy-dom": "^5.0.0",
+    "rollup-plugin-visualizer": "^5.9.0",
     "sass": "^1.51.0",
     "typescript": "^4.5.4",
-    "vite": "^2.9.9",
-    "vitest": "^0.25.3",
+    "vite": "^4.1.1",
+    "vitest": "^0.28.4",
     "vue-eslint-parser": "^9.0.1",
     "vue-tsc": "^0.34.7"
   }

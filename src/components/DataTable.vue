@@ -5,8 +5,9 @@
       class="manage-table-properties-container"
     >
       <div class="area">
-        <i
-          class="sliders-icon fa fa-sliders-h"
+        <app-icon
+          class="sliders-icon"
+          icon="sliders-h"
           data-test-id="manage-table-properties-icon"
           @click.stop="toggleManageTablePropertiesVisibility"
         />
@@ -15,6 +16,7 @@
           v-model="checkedTableProperties"
           data-test-id="manage-table-properties"
           :columns="tableProperties"
+          :label="manageTablePropertiesLabel"
           @set-checked-table-properties="setCheckedTableProperties"
           @close="toggleManageTablePropertiesVisibility"
         />
@@ -53,6 +55,7 @@
               <th
                 v-for="(header, index) in headersForRender"
                 :key="index"
+                data-test-id="table-header-item"
                 :class="[{
                   sortable: header.sortable,
                   'none': header.sortable && header.sortType === 'none',
@@ -72,9 +75,10 @@
                   v-if="header.text === 'checkbox'"
                   class="checkbox-container"
                 >
-                  <i
+                  <app-icon
                     v-if="rowsHaveChildren"
-                    class="expand-children-icon fa fa-plus-square"
+                    class="expand-children-icon"
+                    icon="plus-square"
                     :style="{ 'visibility': 'hidden' }"
                   />
                   <MultipleSelectCheckBox
@@ -118,9 +122,10 @@
                   >
                     {{ getMultiSortNumber(header.value) }}
                   </span>
-                  <i
+                  <app-icon
                     v-if="header.groupable && !header.grouped"
-                    class="group-icon fa fa-stream"
+                    class="group-icon"
+                    icon="stream"
                     @click.stop="group(header)"
                   />
                 </span>
@@ -130,7 +135,7 @@
           <slot
             v-if="ifHasBodySlot"
             name="body"
-            v-bind="pageItems"
+            v-bind="pageRows"
           />
           <tbody
             v-else-if="headerColumns.length"
@@ -140,7 +145,7 @@
             <slot
               name="body-prepend"
               v-bind="{
-                items: pageItems,
+                rows: pageRows,
                 pagination: {
                   isFirstPage,
                   isLastPage,
@@ -153,57 +158,58 @@
               }"
             />
             <template
-              v-for="(item, index) in flattenedRows"
+              v-for="(row, index) in flattenedRows"
               :key="index"
             >
-              <tr v-if="item.groupHeader">
+              <tr v-if="row.groupHeader">
                 <td
                   colspan="100%"
-                  :style="{ 'padding-left': `${item.meta.groupParent}rem` }"
+                  :style="{ 'padding-left': `${row.meta.groupParent}rem` }"
                 >
                   <div class="group-column">
                     <span
                       class="group-column__label"
-                      @click="toggleGroupChildrenVisibility(item)"
+                      @click="toggleGroupChildrenVisibility(row)"
                     >
-                      <i
-                        class="square-icon fa"
-                        :class="{
-                          'fa-minus-square': item.meta.showChildren,
-                          'fa-plus-square': !item.meta.showChildren
+                      <app-icon
+                        class="square-icon"
+                        :icon="{
+                          'minus-square': row.meta.showChildren,
+                          'plus-square': !row.meta.showChildren
                         }"
                       />
-                      <span>{{ item.groupKey }}</span>
-                      <i
-                        v-if="item.groupHeader.sortable"
-                        class="sort-icon fa"
-                        :class="
+                      <span>{{ row.groupKey }}</span>
+                      <app-icon
+                        v-if="row.groupHeader.sortable"
+                        class="sort-icon"
+                        :icon="
                           {
-                            'fa-sort-up': item.groupHeader.sortType === 'asc',
-                            'fa-sort-down': item.groupHeader.sortType === 'desc',
-                            'fa-sort': item.groupHeader.sortType === 'none'
+                            'sort-up': row.groupHeader.sortType === 'asc',
+                            'sort-down': row.groupHeader.sortType === 'desc',
+                            'sort': row.groupHeader.sortType === 'none'
                           }"
-                        @click.stop="updateSortField(item.groupHeader)"
+                        @click.stop="updateSortField(row.groupHeader)"
                       />
                     </span>
-                    <i
-                      class="group-column__icon fa fa-times-circle"
-                      @click="ungroup(item.groupHeader)"
+                    <app-icon
+                      class="group-column__icon"
+                      icon="times-circle"
+                      @click="ungroup(row.groupHeader)"
                     />
                   </div>
                 </td>
               </tr>
               <tr
                 v-else
-                :class="[{'even-row': (index + 1) % 2 === 0 && !item.meta.selected},
-                         {'selected': item.meta.selected},
-                         typeof bodyRowClassName === 'string' ? bodyRowClassName : bodyRowClassName(item, index)]"
+                :class="[{'even-row': (index + 1) % 2 === 0 && !row.meta.selected},
+                         {'selected': row.meta.selected},
+                         typeof bodyRowClassName === 'string' ? bodyRowClassName : bodyRowClassName(row, index)]"
                 data-test-id="table-row"
                 @click="($event) => {
-                  clickRow($event, item, 'single');
-                  clickRowToExpand && updateExpandingItemIndexList(index + prevPageEndIndex, item, $event);
+                  clickRow($event, row, 'single');
+                  clickRowToExpand && updateExpandingItemIndexList(index + prevPageEndIndex, row, $event);
                 }"
-                @dblclick="clickRow($event, item, 'double')"
+                @dblclick="clickRow($event, row, 'double')"
               >
                 <td
                   v-for="(column, i) in headerColumns"
@@ -211,64 +217,68 @@
                   :data-test-id="`table-row-${column}-column`"
                   :style="[
                     getFixedDistance(column, 'td'),
-                    !i && item.meta.groupParent && { 'padding-left': `${item.meta.groupParent}rem` },
-                    !i && groupParentDictionary[item.meta.uniqueIndex]
-                      && { 'padding-left': `${ groupParentDictionary[item.meta.uniqueIndex]}rem` },
+                    !i && row.meta.groupParent && { 'padding-left': `${row.meta.groupParent}rem` },
+                    !i && groupParentDictionary[row.meta.uniqueIndex]
+                      && { 'padding-left': `${ groupParentDictionary[row.meta.uniqueIndex]}rem` },
                   ]"
                   :class="[{
                     'shadow': column === lastFixedColumn,
                     'can-expand': column === 'expand',
-                    'exactMatch': item.meta.exactMatchColumns.includes(column),
+                    'exactMatch': row.meta.exactMatchColumns.includes(column),
                     // eslint-disable-next-line max-len
                   }, typeof bodyItemClassName === 'string' ? bodyItemClassName : bodyItemClassName(column, i), `direction-${bodyTextDirection}`]"
-                  @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, item, $event) : null"
+                  @click="column === 'expand' ? updateExpandingItemIndexList(index + prevPageEndIndex, row, $event) : null"
                 >
                   <slot
-                    v-if="slots[`item-${column}`]"
-                    :name="`item-${column}`"
-                    v-bind="item"
+                    v-if="slots[`row-${column}`]"
+                    :name="`row-${column}`"
+                    v-bind="row"
                   />
                   <slot
-                    v-else-if="slots[`item-${column.toLowerCase()}`]"
-                    :name="`item-${column.toLowerCase()}`"
-                    v-bind="item"
+                    v-else-if="slots[`row-${column.toLowerCase()}`]"
+                    :name="`row-${column.toLowerCase()}`"
+                    v-bind="row"
                   />
                   <template v-else-if="column === 'expand'">
                     <i
                       class="expand-icon"
-                      :class="{'expanding': expandingItemIndexList.includes(item.meta.uniqueIndex)}"
+                      :class="{'expanding': expandingRowIndexList.includes(row.meta.uniqueIndex)}"
                     />
                   </template>
                   <template v-else-if="column === 'checkbox'">
                     <div
                       class="checkbox-container"
                     >
-                      <i
+                      <app-icon
                         v-if="rowsHaveChildren"
-                        class="expand-children-icon fa"
-                        :class="{ 'fa-plus-square': !item.meta.showChildren, 'fa-minus-square': item.meta.showChildren }"
-                        :style="{ 'visibility': item.meta.children?.length ? 'visible' : 'hidden' }"
-                        @click="toggleChildrenVisibility($event, item)"
+                        class="expand-children-icon"
+                        :icon="
+                          {
+                            'plus-square': !row.meta.showChildren,
+                            'minus-square': row.meta.showChildren
+                          }"
+                        :style="{ 'visibility': row.meta.children?.length ? 'visible' : 'hidden' }"
+                        @click="toggleChildrenVisibility($event, row)"
                       />
                       <SingleSelectCheckBox
-                        :checked="item.meta.selected"
+                        :checked="row.meta.selected"
                         :class="{ 'has-children': rowsHaveChildren }"
-                        @change="toggleSelectItem(item)"
+                        @change="toggleSelectRow(row)"
                       />
                     </div>
                   </template>
                   <template v-else>
-                    {{ generateColumnContent(column, item) }}
+                    {{ generateColumnContent(column, row) }}
                   </template>
                 </td>
               </tr>
               <tr
-                v-if="ifHasExpandSlot && !item.groupHeader && expandingItemIndexList.includes(item.meta.uniqueIndex)"
+                v-if="ifHasExpandSlot && !row.groupHeader && expandingRowIndexList.includes(row.meta.uniqueIndex)"
                 :class="[
                   { 'even-row': (index + 1) % 2 === 0},
                   typeof bodyExpandRowClassName === 'string' ?
                     bodyExpandRowClassName :
-                    bodyExpandRowClassName(item, index)
+                    bodyExpandRowClassName(row, index)
                 ]"
               >
                 <td
@@ -276,12 +286,12 @@
                   class="expand"
                 >
                   <LoadingLine
-                    v-if="item.expandLoading"
+                    v-if="row.expandLoading"
                     class="expand-loading"
                   />
                   <slot
                     name="expand"
-                    v-bind="item"
+                    v-bind="row"
                   />
                 </td>
               </tr>
@@ -289,7 +299,7 @@
             <slot
               name="body-append"
               v-bind="{
-                items: pageItems,
+                rows: pageRows,
                 pagination: {
                   isFirstPage,
                   isLastPage,
@@ -321,7 +331,7 @@
         </div>
 
         <div
-          v-if="!pageItems.length && !loading"
+          v-if="!pageRows.length && !loading"
           class="vue3-easy-data-table__message"
         >
           {{ emptyMessage }}
@@ -353,7 +363,7 @@
             data-test-id="buttons-pagination-text"
           >
             {{ `${currentPageFirstIndex}–${currentPageLastIndex}` }}
-            {{ rowsOfPageSeparatorMessage }} {{ totalItemsLength }}
+            {{ rowsOfPageSeparatorMessage }} {{ totalRowsLength }}
           </span>
         </div>
         <slot
@@ -430,11 +440,11 @@ import useClickRow from '../hooks/useClickRow';
 import useExpandableRow from '../hooks/useExpandableRow';
 import useFixedColumn from '../hooks/useFixedColumn';
 import useHeaders from '../hooks/useHeaders';
-import usePageItems from '../hooks/usePageItems';
+import usePageRows from '../hooks/usePageRows';
 import usePagination from '../hooks/usePagination';
 import useRows from '../hooks/useRows';
 import useServerOptions from '../hooks/useServerOptions';
-import useTotalItems from '../hooks/useTotalItems';
+import useTotalRows from '../hooks/useTotalRows';
 import useTableProperties from '../hooks/useTableProperties';
 import useGroupBy from '../hooks/useGroupBy';
 
@@ -445,6 +455,7 @@ import type { HeaderForRender } from '../types/internal';
 import { generateColumnContent } from '../utils';
 import propsWithDefault from '../propsWithDefault';
 import { SELECTABLE } from '../constants';
+import AppIcon from './AppIcon.vue';
 
 const props = defineProps({
   ...propsWithDefault,
@@ -473,7 +484,6 @@ const {
   headerTextDirection,
   indexColumnWidth,
   items,
-  itemsSelected,
   loading,
   mustSort,
   multiSort,
@@ -494,6 +504,8 @@ const {
   exactMatch,
   isExactMatchCaseSensitive,
   manageTableProperties,
+  hasCheckboxColumn,
+  manageTablePropertiesLabel,
 } = toRefs(props);
 
 const tableHeaders = ref(headers.value);
@@ -529,7 +541,7 @@ const emits = defineEmits([
   'expandRow',
   'updateSort',
   'updateFilter',
-  'update:itemsSelected',
+  'update:selectedRows',
   'update:serverOptions',
 ]);
 
@@ -583,6 +595,7 @@ const {
   sortBy,
   sortType,
   multiSort,
+  hasCheckboxColumn,
   updateServerOptionsSort,
   emits,
 );
@@ -603,12 +616,12 @@ const {
 );
 
 const {
-  totalItems,
-  selectedItems,
-  totalItemsLength,
+  totalRows,
+  selectedRows,
+  totalRowsLength,
   toggleSelectAll,
-  toggleSelectItem,
-} = useTotalItems(
+  toggleSelectRow,
+} = useTotalRows(
   manageTableProperties,
   checkedTableProperties,
   exactMatch,
@@ -619,7 +632,6 @@ const {
   filterOptions,
   isServerSideMode,
   initialRows,
-  itemsSelected,
   searchField,
   searchValue,
   serverItemsLength,
@@ -642,7 +654,7 @@ const {
   currentPage,
   isServerSideMode,
   loading,
-  totalItemsLength,
+  totalRowsLength,
   rowsPerPageRef,
   serverOptions,
   updateServerOptionsPage,
@@ -652,16 +664,16 @@ const {
   currentPageFirstIndex,
   currentPageLastIndex,
   multipleSelectStatus,
-  pageItems,
-} = usePageItems(
+  pageRows,
+} = usePageRows(
   currentPaginationNumber,
   isServerSideMode,
   initialRows,
   rowsPerPageRef,
-  selectedItems,
+  selectedRows,
   showIndex,
-  totalItems,
-  totalItemsLength,
+  totalRows,
+  totalRowsLength,
 );
 
 const {
@@ -674,7 +686,7 @@ const {
   toggleGroupChildrenVisibility,
 } = useGroupBy(
   initialHeaders,
-  pageItems,
+  pageRows,
   groupedHeaders,
 );
 
@@ -684,7 +696,7 @@ const prevPageEndIndex = computed(() => {
 });
 
 const {
-  expandingItemIndexList,
+  expandingRowIndexList,
   updateExpandingItemIndexList,
   clearExpandingItemIndexList,
 } = useExpandableRow(
@@ -706,7 +718,7 @@ const {
 } = useClickRow(
   isMultiSelect,
   flattenedNonGroupedRows,
-  selectedItems,
+  selectedRows,
   clickEventType,
   showIndex,
   emits,
@@ -763,7 +775,7 @@ const exposeForTest = isTestMode ? {
 defineExpose({
   currentPageFirstIndex,
   currentPageLastIndex,
-  clientItemsLength: totalItemsLength,
+  clientRowsLength: totalRowsLength,
   maxPaginationNumber,
   currentPaginationNumber,
   isLastPage,
@@ -795,7 +807,7 @@ defineExpose({
     /*body-row*/
     --easy-table-body-row-height: 36px;
     --easy-table-body-row-font-size: 12px;
-    --easy-table-body-selected-row-background-color: #506c67;
+    --easy-table-body-selected-row-background-color: #aab7d1;
     --easy-table-body-row-font-color: #212121;
     --easy-table-body-row-background-color: #fff;
     --easy-table-body-exact-match-row-column-background-color: #4c4c12;
@@ -813,8 +825,8 @@ defineExpose({
     --easy-table-footer-font-color: #212121;
     --easy-table-footer-font-size: 12px;
     --easy-table-footer-pagination-input-width: 1.875rem;
-    --easy-table-footer-pagination-arrow-background-color: #fff;
-    --easy-table-footer-pagination-arrow-disabled-background-color: #000;
+    --easy-table-footer-pagination-arrow-background-color: #000;
+    --easy-table-footer-pagination-arrow-disabled-background-color: #a5a3a3;
     --easy-table-footer-padding: 0px 5px;
     --easy-table-footer-height: 36px;
     /**footer-rowsPerPage**/
@@ -822,6 +834,7 @@ defineExpose({
     --easy-table-rows-per-page-selector-option-padding: 5px;
     /*message*/
     --easy-table-message-font-color: #212121;
+    --easy-table-message-font-weight: 500;
     --easy-table-message-font-size: 12px;
     --easy-table-message-padding: 20px;
     /*loading-mask*/

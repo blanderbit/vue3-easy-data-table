@@ -123,6 +123,7 @@ const themeColor = inject('themeColor');
     }
   }
   ul.select-items {
+    z-index: 999;
     &.show {
       display: block;
     }

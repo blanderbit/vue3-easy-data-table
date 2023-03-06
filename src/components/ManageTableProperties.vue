@@ -6,7 +6,7 @@
     <div
       class="manage-table-properties__body"
     >
-      <span>Properties</span>
+      <span>{{ label }}</span>
       <div class="properties">
         <div
           v-for="column of transformedTablePropertyColumns"
@@ -47,6 +47,7 @@ const emits = defineEmits(['set-checked-table-properties', 'close']);
 const props = defineProps({
   columns: { type: Array as PropType<HeaderForRender[]>, required: true },
   modelValue: { type: Array as PropType<string[]>, required: true },
+  label: { type: String, default: null },
 });
 const { columns, modelValue } = toRefs(props);
 

@@ -1,6 +1,7 @@
 /* eslint-disable */ 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import visualizer from "rollup-plugin-visualizer";
 import path from 'path'
 
 // https://vitejs.dev/config/
@@ -20,11 +21,18 @@ export default defineConfig({
       },
     },
   },
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    visualizer({
+      gzipSize: true,
+      brotliSize: true,
+      open: process.env.VITE_APP_RUN_BUNDLE_ANALYZER,
+    }),
+  ],
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
     alias: {
-      '@src': path.resolve(__dirname, 'src'),
+      '@': path.resolve(__dirname, './src'),
     },
   },
 });
