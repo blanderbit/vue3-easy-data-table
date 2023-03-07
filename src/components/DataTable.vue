@@ -855,7 +855,7 @@ defineExpose({
 
 .manage-table-properties-container {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
 
   .area {
     margin-right: 1rem;

@@ -1722,7 +1722,7 @@ const ms = {
     type: Boolean,
     default: !1
   }
-}, ys = (e) => (we("data-v-b0b5f14c"), e = e(), Be(), e), hs = {
+}, ys = (e) => (we("data-v-f47792a9"), e = e(), Be(), e), hs = {
   key: 0,
   class: "manage-table-properties-container"
 }, bs = { class: "area" }, xs = {
@@ -1778,8 +1778,8 @@ const ms = {
   setup(e, { expose: t, emit: a }) {
     const n = e;
     Se((_) => ({
-      "0f1049e4": s(ae),
-      "08c526e8": s(H)
+      10968308: s(ae),
+      "3af265e8": s(H)
     }));
     const {
       clickEventType: l,
@@ -2319,7 +2319,7 @@ const ms = {
     ]));
   }
 });
-const Ds = /* @__PURE__ */ ce(zs, [["__scopeId", "data-v-b0b5f14c"]]);
+const Ds = /* @__PURE__ */ ce(zs, [["__scopeId", "data-v-f47792a9"]]);
 typeof window < "u" && window.Vue && window.Vue.createApp({}).component("Vue3EasyDataTable", Ds);
 export {
   Ds as default
